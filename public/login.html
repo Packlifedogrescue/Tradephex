@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tradephex — Log In</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --black:#060606; --surface:#0E0E0E; --surface2:#151515;
@@ -113,10 +112,10 @@ footer{padding:24px 60px;border-top:1px solid var(--border);display:flex;justify
   <div class="footer-copy">© 2026 Tradephex. Execute. Analyze. Elevate.</div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// Initialize Supabase
-const SUPABASE_URL = window.__env?.SUPABASE_URL || 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = window.__env?.SUPABASE_ANON_KEY || 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://esgfvgpdjxalhaofmwwt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZ2Z2Z3BkanhhbGhhb2Ztd3d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODc0OTMsImV4cCI6MjA5MjQ2MzQ5M30.cTz_WCY9tTDQAw5yRq1XSjnvEueIypjdvOD2X9Bz1SA';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Check if already logged in
