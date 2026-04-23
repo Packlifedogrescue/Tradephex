@@ -1,0 +1,27 @@
+TRADEPHEX UPDATE PACKAGE
+========================
+
+Upload ALL files in the /public folder to your GitHub repo → public/ folder.
+Upload vercel.json to the ROOT of your GitHub repo (replace existing).
+
+FILES IN /public — upload all to GitHub public/ folder:
+  index.html      — Main marketing site (fixed wording, stats, features, pricing)
+  journal.html    — Trade journal + evaluation dashboard (separated nav)
+  login.html      — Login page
+  signup.html     — Signup page
+  legal.html      — Legal hub page (NEW)
+  terms.html      — Terms of Service (NEW)
+  privacy.html    — Privacy Policy (NEW)
+  risk.html       — Risk Disclaimer (NEW)
+  refund.html     — Refund Policy (NEW)
+
+FILES IN ROOT — upload to GitHub root folder:
+  vercel.json     — Routing config
+
+WHAT CHANGED:
+- index.html: Removed false claims, fixed wording, fixed pricing
+- journal.html: Separated Platform/Evaluation nav, added evaluation dashboard
+- legal.html + terms/privacy/risk/refund: All new legal pages live at tradephex.com/legal etc.
+- vercel.json: cleanUrls enabled so /login /signup /terms etc all work without .html
+
+After uploading, Vercel auto-deploys in ~30 seconds.
