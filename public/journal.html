@@ -1012,56 +1012,167 @@ canvas{display:block;}
     </div>
 
     <div class="view fadeIn" id="view-upgrade">
-      <div style="text-align:center;margin-bottom:48px;">
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">Simple Pricing</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;letter-spacing:0.02em;text-transform:uppercase;color:var(--white);">Choose Your Plan</div>
-        <div style="font-size:15px;color:var(--gray2);margin-top:12px;font-weight:300;">Built by a trader. For traders. Cancel anytime.</div>
-      </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;max-width:960px;margin:0 auto;">
-
-        <!-- Starter -->
-        <div style="background:var(--surface);border:1px solid var(--border);padding:32px;position:relative;">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:12px;">Starter</div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;color:var(--white);">$49<span style="font-size:16px;font-weight:400;color:var(--gray2);">/mo</span></div>
-          <div style="font-size:13px;color:var(--gray2);margin:16px 0 28px;font-weight:300;">Everything you need to start journaling and analyzing your trades.</div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:32px;">
-            ${['Real-time futures data','Basic charting suite','Trade journal — unlimited entries','5 saved layouts','Basic analytics dashboard','Daily P&L tracker','Email support'].map(f=>`<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);font-size:16px;">✓</span>${f}</div>`).join('')}
-            ${['Order flow tools','Market scanner','Trade replay','Custom alerts','Multi-account management','Priority support'].map(f=>`<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray3);text-decoration:line-through;"><span style="color:var(--gray3);font-size:16px;">✗</span>${f}</div>`).join('')}
-          </div>
-          <button onclick="handleSubscribe('price_1TPKQGH73YsRKv0UsoJZCw4m','starter')" style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:13px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'" id="btn-starter">Get Started</button>
+      <!-- ── SECTION 1: PLATFORM PLANS ── -->
+      <div style="margin-bottom:56px;">
+        <div style="text-align:center;margin-bottom:36px;">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Platform Membership</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;letter-spacing:0.02em;text-transform:uppercase;color:var(--white);">Choose Your Plan</div>
+          <div style="font-size:14px;color:var(--gray2);margin-top:10px;font-weight:300;">Trade journal, analytics, charting tools, and more. Cancel anytime.</div>
         </div>
 
-        <!-- Professional -->
-        <div style="background:var(--surface);border:2px solid var(--gold);padding:32px;position:relative;">
-          <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.15em;padding:4px 16px;">MOST POPULAR</div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">Professional</div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;color:var(--white);">$99<span style="font-size:16px;font-weight:400;color:var(--gray2);">/mo</span></div>
-          <div style="font-size:13px;color:var(--gray2);margin:16px 0 28px;font-weight:300;">Full platform access for serious traders who demand more.</div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:32px;">
-            ${['Everything in Starter','Full order flow suite','Footprint charts & DOM ladder','Volume profile tools','15 saved layouts','Advanced analytics dashboard','Market scanner — 50+ markets','Trade replay — all timeframes','Custom alerts & notifications','Priority support'].map(f=>`<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);font-size:16px;">✓</span>${f}</div>`).join('')}
-            ${['Multi-account management','Early feature access','Trader community access'].map(f=>`<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray3);text-decoration:line-through;"><span style="color:var(--gray3);font-size:16px;">✗</span>${f}</div>`).join('')}
-          </div>
-          <button onclick="handleSubscribe('price_1TPMaUH73YsRKv0UxkflhJA0','professional')" style="width:100%;background:var(--gold);border:none;color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:13px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'" id="btn-professional">Upgrade Now</button>
-        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;max-width:960px;margin:0 auto;">
 
-        <!-- Elite -->
-        <div style="background:var(--surface);border:1px solid var(--border);padding:32px;position:relative;">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:12px;">Elite</div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;color:var(--white);">$199<span style="font-size:16px;font-weight:400;color:var(--gray2);">/mo</span></div>
-          <div style="font-size:13px;color:var(--gray2);margin:16px 0 28px;font-weight:300;">Maximum edge. Every feature. For traders who trade to win.</div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:32px;">
-            ${['Everything in Professional','Unlimited saved layouts','Multi-account management','Exclusive trader community','Early access to new features','Advanced session analytics','Highest priority support','White-glove onboarding'].map(f=>`<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);font-size:16px;">✓</span>${f}</div>`).join('')}
+          <!-- STARTER -->
+          <div style="background:var(--surface);border:1px solid var(--border);padding:28px;position:relative;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:10px;">Starter</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:44px;color:var(--white);">$49<span style="font-size:15px;font-weight:400;color:var(--gray2);">/mo</span></div>
+            <div style="font-size:13px;color:var(--gray2);margin:14px 0 24px;font-weight:300;line-height:1.6;">Everything you need to start journaling and analyzing your trades.</div>
+            <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:28px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Trade journal — unlimited entries</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Basic charting suite</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>5 saved layouts</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Basic analytics dashboard</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Daily P&L tracker</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Econ calendar</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Email support</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray2);text-decoration:line-through;"><span style="color:var(--gray3);">✗</span>Order flow tools</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray2);text-decoration:line-through;"><span style="color:var(--gray3);">✗</span>Trade replay</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray2);text-decoration:line-through;"><span style="color:var(--gray3);">✗</span>Market scanner</div>
+            </div>
+            <button onclick="handleSubscribe('price_1TPKQGH73YsRKv0UsoJZCw4m','starter')" style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'">Get Started</button>
           </div>
-          <button onclick="handleSubscribe('price_1TPMb3H73YsRKv0UYXlbv02P','elite')" style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:13px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'" id="btn-elite">Go Elite</button>
-        </div>
 
+          <!-- PROFESSIONAL -->
+          <div style="background:var(--surface);border:2px solid var(--gold);padding:28px;position:relative;">
+            <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.15em;padding:4px 14px;">MOST POPULAR</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Professional</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:44px;color:var(--white);">$99<span style="font-size:15px;font-weight:400;color:var(--gray2);">/mo</span></div>
+            <div style="font-size:13px;color:var(--gray2);margin:14px 0 24px;font-weight:300;line-height:1.6;">Full platform access for serious traders who demand more.</div>
+            <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:28px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Everything in Starter</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Full order flow suite</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Footprint charts & DOM ladder</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>15 saved layouts</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Advanced analytics dashboard</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Market scanner — 50+ markets</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Trade replay — all timeframes</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Custom alerts & notifications</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Priority support</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray2);text-decoration:line-through;"><span style="color:var(--gray3);">✗</span>Multi-account management</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray2);text-decoration:line-through;"><span style="color:var(--gray3);">✗</span>Trader community access</div>
+            </div>
+            <button onclick="handleSubscribe('price_1TPMaUH73YsRKv0UxkflhJA0','professional')" style="width:100%;background:var(--gold);border:none;color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;cursor:pointer;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'">Upgrade Now</button>
+          </div>
+
+          <!-- ELITE -->
+          <div style="background:var(--surface);border:1px solid var(--border);padding:28px;position:relative;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:10px;">Elite</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:44px;color:var(--white);">$199<span style="font-size:15px;font-weight:400;color:var(--gray2);">/mo</span></div>
+            <div style="font-size:13px;color:var(--gray2);margin:14px 0 24px;font-weight:300;line-height:1.6;">Maximum edge. Every feature. For traders who trade to win.</div>
+            <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:28px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Everything in Professional</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Unlimited saved layouts</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Multi-account management</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Exclusive trader community</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Early access to new features</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Advanced session analytics</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Highest priority support</div>
+            </div>
+            <button onclick="handleSubscribe('price_1TPMb3H73YsRKv0UYXlbv02P','elite')" style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'">Go Elite</button>
+          </div>
+
+        </div>
+        <div style="text-align:center;margin-top:20px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">14-day free trial · Cancel anytime · No hidden fees</div>
       </div>
 
-      <div style="text-align:center;margin-top:40px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">
-        All plans include a 14-day free trial · Cancel anytime · No hidden fees<br>
-        <span onclick="showTab('support')" style="color:var(--gold);cursor:pointer;margin-top:8px;display:inline-block;">Questions? Contact support →</span>
+      <!-- ── DIVIDER ── -->
+      <div style="border-top:1px solid var(--border2);margin-bottom:56px;position:relative;">
+        <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--bg);padding:0 16px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Evaluation Challenges</div>
       </div>
+
+      <!-- ── SECTION 2: EVALUATION CHALLENGES ── -->
+      <div>
+        <div style="text-align:center;margin-bottom:36px;">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Prop Firm Evaluation</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;letter-spacing:0.02em;text-transform:uppercase;color:var(--white);">Buy a Challenge</div>
+          <div style="font-size:14px;color:var(--gray2);margin-top:10px;font-weight:300;">Pass Phase 1 & Phase 2. Get funded. Keep up to 90% of profits.</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;max-width:960px;margin:0 auto;">
+
+          <!-- $25K -->
+          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;position:relative;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:8px;">$25K Account</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$149</div>
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:20px;">one-time fee</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 1 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">10% / $2,500</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 2 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $1,250</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $1,250</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Daily Loss Limit</span><span style="color:var(--white);font-family:'DM Mono',monospace;">2% / $500</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
+              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">Up to 80%</span></div>
+            </div>
+            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'">Buy $25K — $149</button>
+          </div>
+
+          <!-- $50K -->
+          <div style="background:var(--surface);border:2px solid var(--gold);padding:24px;position:relative;">
+            <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.15em;padding:3px 12px;">MOST POPULAR</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">$50K Account</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$249</div>
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:20px;">one-time fee</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 1 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">10% / $5,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 2 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $2,500</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $2,500</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Daily Loss Limit</span><span style="color:var(--white);font-family:'DM Mono',monospace;">2% / $1,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
+              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">Up to 85%</span></div>
+            </div>
+            <button style="width:100%;background:var(--gold);border:none;color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'">Buy $50K — $249</button>
+          </div>
+
+          <!-- $100K -->
+          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;position:relative;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:8px;">$100K Account</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$399</div>
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:20px;">one-time fee</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 1 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">8% / $8,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 2 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $5,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $5,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Daily Loss Limit</span><span style="color:var(--white);font-family:'DM Mono',monospace;">2% / $2,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
+              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">Up to 85%</span></div>
+            </div>
+            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'">Buy $100K — $399</button>
+          </div>
+
+          <!-- $150K -->
+          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;position:relative;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:8px;">$150K Account</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$599</div>
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:20px;">one-time fee</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 1 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">8% / $12,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 2 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $7,500</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $7,500</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Daily Loss Limit</span><span style="color:var(--white);font-family:'DM Mono',monospace;">2% / $3,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
+              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">Up to 90%</span></div>
+            </div>
+            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'">Buy $150K — $599</button>
+          </div>
+
+        </div>
+
+        <div style="text-align:center;margin-top:20px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">
+          One-time fee · Non-refundable once access granted · <span onclick="showTab('eval-rules')" style="color:var(--gold);cursor:pointer;">View full rules →</span>
+        </div>
+      </div>
+
     </div>
 
     <!-- ── SUPPORT ── -->
