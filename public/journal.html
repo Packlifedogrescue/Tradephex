@@ -932,22 +932,55 @@ canvas{display:block;}
               </tr>
             </thead>
             <tbody>
-              ${[
-                ['Phase 1 Profit Target','10%','10%','8%','8%'],
-                ['Phase 2 Profit Target','5%','5%','5%','5%'],
-                ['Max Drawdown','5%','5%','5%','5%'],
-                ['Daily Loss Limit','2%','2%','2%','2%'],
-                ['Min Trading Days','5 days','5 days','5 days','5 days'],
-                ['Consistency Rule','Max 40%','Max 40%','Max 35%','Max 30%'],
-                ['Profit Split','Up to 80%','Up to 85%','Up to 85%','Up to 90%'],
-              ].map((r,i) => `
-                <tr style="border-bottom:1px solid var(--border);background:${i%2===0?'var(--surface2)':'transparent'}">
-                  <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">${r[0]}</td>
-                  <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">${r[1]}</td>
-                  <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">${r[2]}</td>
-                  <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">${r[3]}</td>
-                  <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">${r[4]}</td>
-                </tr>`).join('')}
+              <tr style="border-bottom:1px solid var(--border);background:var(--surface2);">
+                <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Phase 1 Profit Target</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">10%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">10%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">8%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">8%</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Phase 2 Profit Target</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);background:var(--surface2);">
+                <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Max Drawdown</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Daily Loss Limit</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">2%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">2%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">2%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">2%</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);background:var(--surface2);">
+                <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Min Trading Days</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5 days</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5 days</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5 days</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5 days</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Consistency Rule</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">Max 40%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">Max 40%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">Max 35%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">Max 30%</td>
+              </tr>
+              <tr>
+                <td style="padding:12px;font-size:13px;color:var(--gold);font-weight:600;">Profit Split</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);">Up to 80%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);">Up to 85%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);">Up to 85%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);">Up to 90%</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -963,10 +996,12 @@ canvas{display:block;}
         <div style="background:rgba(255,23,68,0.04);border:1px solid rgba(255,23,68,0.15);padding:24px;margin-bottom:28px;">
           <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--red);margin-bottom:12px;">What Gets You Disqualified</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            ${['Exceeding max drawdown','Hitting daily loss limit','Violating consistency rule','Copy trading detected','Hedging across accounts','Exploiting platform errors'].map(r => `
-              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);">
-                <span style="color:var(--red);">✗</span>${r}
-              </div>`).join('')}
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--red);">✗</span>Exceeding max drawdown</div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--red);">✗</span>Hitting daily loss limit</div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--red);">✗</span>Violating consistency rule</div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--red);">✗</span>Copy trading detected</div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--red);">✗</span>Hedging across accounts</div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--red);">✗</span>Exploiting platform errors</div>
           </div>
         </div>
 
