@@ -5,6 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tradephex — Trade Journal & Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Barlow:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── AUTH GUARD ──
+const SUPABASE_URL = 'https://esgfvgpdjxalhaofmwwt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZ2Z2Z3BkanhhbGhhb2Ztd3d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODc0OTMsImV4cCI6MjA5MjQ2MzQ5M30.cTz_WCY9tTDQAw5yRq1XSjnvEueIypjdvOD2X9Bz1SA';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+
+async function initAuth() {
+  const { data: { session } } = await db.auth.getSession();
+  if (!session) {
+    window.location.href = '/login.html';
+    return;
+  }
+  currentUser = session.user;
+  // Update topbar with real user info
+  const nameEl = document.getElementById('topbar-username');
+  const avatarEl = document.getElementById('topbar-avatar');
+  if (nameEl) {
+    const name = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
+    nameEl.textContent = name;
+    if (avatarEl) avatarEl.textContent = name.slice(0,2).toUpperCase();
+  }
+}
+
+async function handleLogout() {
+  await db.auth.signOut();
+  window.location.href = '/login.html';
+}
+
+// Run auth check immediately
+initAuth();
+</script>
 <style>
 :root {
   --black:#060606; --surface:#0E0E0E; --surface2:#151515; --surface3:#1C1C1C;
@@ -195,9 +229,10 @@ canvas{display:block;}
   <div class="topbar-right">
     <div class="live-badge"><div class="live-dot"></div>LIVE SESSION</div>
     <div class="topbar-account">
-      <div class="account-avatar">BM</div>
-      <div class="account-name">Brett M.</div>
+      <div class="account-avatar" id="topbar-avatar">BM</div>
+      <div class="account-name" id="topbar-username">Loading...</div>
     </div>
+    <button onclick="handleLogout()" style="background:transparent;border:1px solid var(--border);color:var(--gray2);font-family:'DM Mono',monospace;font-size:10px;padding:6px 14px;cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--gray2)'">LOG OUT</button>
   </div>
 </div>
 
@@ -224,11 +259,11 @@ canvas{display:block;}
         Econ Calendar
       </div>
       <div class="nav-section">Account</div>
-      <div class="nav-item">
+      <div class="nav-item" onclick="showTab('profile')">
         <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
         Profile
       </div>
-      <div class="nav-item">
+      <div class="nav-item" onclick="showTab('settings')">
         <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/></svg>
         Settings
       </div>
@@ -245,6 +280,8 @@ canvas{display:block;}
       <div class="tab" onclick="showTab('journal')">Trade Journal</div>
       <div class="tab" onclick="showTab('analytics')">Analytics</div>
       <div class="tab" onclick="showTab('calendar')">Econ Calendar</div>
+      <div class="tab" onclick="showTab('profile')" style="margin-left:auto;">Profile</div>
+      <div class="tab" onclick="showTab('settings')">Settings</div>
     </div>
 
     <!-- ── DASHBOARD ── -->
@@ -410,6 +447,184 @@ canvas{display:block;}
     <!-- ── ECONOMIC CALENDAR ── -->
     <div class="view fadeIn" id="view-calendar">
       <div id="econCalendar"></div>
+    </div>
+
+    <!-- ── PROFILE ── -->
+    <div class="view fadeIn" id="view-profile">
+      <div style="max-width:700px;">
+        <div style="display:flex;align-items:center;gap:24px;margin-bottom:32px;">
+          <div style="width:80px;height:80px;background:var(--gold-dim);border:2px solid var(--border2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;color:var(--gold);" id="profile-avatar-lg">BM</div>
+          <div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;color:var(--white);" id="profile-name-display">Brett Miller</div>
+            <div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--gray2);" id="profile-email-display">miller.brett88@gmail.com</div>
+            <div style="margin-top:6px;"><span style="background:rgba(201,168,76,0.1);border:1px solid var(--border2);padding:3px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:0.1em;">STARTER PLAN</span></div>
+          </div>
+        </div>
+
+        <!-- Profile Form -->
+        <div style="background:var(--surface);border:1px solid var(--border);padding:28px;margin-bottom:16px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:24px;">Personal Information</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">First Name</label>
+              <input id="pf-firstname" type="text" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="Brett">
+            </div>
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Last Name</label>
+              <input id="pf-lastname" type="text" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="Miller">
+            </div>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Email Address</label>
+            <input id="pf-email" type="email" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--gray2);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" disabled placeholder="miller.brett88@gmail.com">
+            <div style="font-size:11px;color:var(--gray2);margin-top:4px;">Email cannot be changed here. Contact support.</div>
+          </div>
+          <div style="margin-bottom:16px;">
+            <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Username</label>
+            <input id="pf-username" type="text" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="@tradephex_user">
+          </div>
+          <button onclick="saveProfile()" style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 28px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'">Save Changes</button>
+          <span id="profile-save-msg" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);margin-left:16px;display:none;">Saved ✓</span>
+        </div>
+
+        <!-- Trading Preferences -->
+        <div style="background:var(--surface);border:1px solid var(--border);padding:28px;margin-bottom:16px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:24px;">Trading Preferences</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Primary Symbol</label>
+              <select id="pf-symbol" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;appearance:none;cursor:pointer;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+                <option>ES</option><option>NQ</option><option>YM</option><option>RTY</option>
+                <option>MES</option><option>MNQ</option><option>GC</option><option>SI</option><option>HG</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Account Size</label>
+              <input id="pf-accountsize" type="number" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="25000">
+            </div>
+          </div>
+          <div>
+            <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Timezone</label>
+            <select id="pf-timezone" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;appearance:none;cursor:pointer;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+              <option>America/New_York</option>
+              <option>America/Chicago</option>
+              <option>America/Denver</option>
+              <option>America/Los_Angeles</option>
+              <option>Europe/London</option>
+              <option>Europe/Berlin</option>
+              <option>Asia/Tokyo</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Account Stats -->
+        <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:24px;">Account Stats</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+            <div style="background:var(--surface2);border:1px solid var(--border);padding:16px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gray2);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px;">Member Since</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;color:var(--white);">Apr 2026</div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);padding:16px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gray2);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px;">Total Trades</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;color:var(--gold);" id="profile-trade-count">60</div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);padding:16px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gray2);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px;">Plan</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;color:var(--gold);">Starter</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="view fadeIn" id="view-settings">
+      <div style="max-width:700px;">
+
+        <!-- Change Password -->
+        <div style="background:var(--surface);border:1px solid var(--border);padding:28px;margin-bottom:16px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:24px;">Change Password</div>
+          <div style="margin-bottom:16px;">
+            <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Current Password</label>
+            <input id="pw-current" type="password" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="••••••••">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">New Password</label>
+              <input id="pw-new" type="password" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="Min 8 characters">
+            </div>
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Confirm New Password</label>
+              <input id="pw-confirm" type="password" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="Repeat password">
+            </div>
+          </div>
+          <button onclick="changePassword()" style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 28px;cursor:pointer;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'">Update Password</button>
+          <span id="pw-msg" style="font-family:'DM Mono',monospace;font-size:11px;margin-left:16px;display:none;"></span>
+        </div>
+
+        <!-- Notifications -->
+        <div style="background:var(--surface);border:1px solid var(--border);padding:28px;margin-bottom:16px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:24px;">Notifications</div>
+          <div style="display:flex;flex-direction:column;gap:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);">
+              <div><div style="font-size:14px;color:var(--white);">Daily P&L Summary</div><div style="font-size:12px;color:var(--gray2);margin-top:2px;">Email your daily trading summary at market close</div></div>
+              <div class="settings-toggle" onclick="toggleSetting(this)" data-enabled="true" style="width:44px;height:24px;background:var(--gold);border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;"><div style="position:absolute;width:18px;height:18px;background:var(--black);border-radius:50%;top:3px;right:3px;transition:right 0.2s;"></div></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);">
+              <div><div style="font-size:14px;color:var(--white);">High Impact Event Alerts</div><div style="font-size:12px;color:var(--gray2);margin-top:2px;">Notify 15 minutes before HIGH impact economic events</div></div>
+              <div class="settings-toggle" onclick="toggleSetting(this)" data-enabled="true" style="width:44px;height:24px;background:var(--gold);border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;"><div style="position:absolute;width:18px;height:18px;background:var(--black);border-radius:50%;top:3px;right:3px;transition:right 0.2s;"></div></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);">
+              <div><div style="font-size:14px;color:var(--white);">Daily Loss Limit Warning</div><div style="font-size:12px;color:var(--gray2);margin-top:2px;">Alert when you approach your daily loss limit</div></div>
+              <div class="settings-toggle" onclick="toggleSetting(this)" data-enabled="true" style="width:44px;height:24px;background:var(--gold);border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;"><div style="position:absolute;width:18px;height:18px;background:var(--black);border-radius:50%;top:3px;right:3px;transition:right 0.2s;"></div></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;">
+              <div><div style="font-size:14px;color:var(--white);">Weekly Performance Report</div><div style="font-size:12px;color:var(--gray2);margin-top:2px;">Weekly summary every Sunday evening</div></div>
+              <div class="settings-toggle" onclick="toggleSetting(this)" data-enabled="false" style="width:44px;height:24px;background:var(--gray3);border-radius:12px;position:relative;cursor:pointer;transition:background 0.2s;flex-shrink:0;"><div style="position:absolute;width:18px;height:18px;background:var(--black);border-radius:50%;top:3px;left:3px;transition:left 0.2s;"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk Management -->
+        <div style="background:var(--surface);border:1px solid var(--border);padding:28px;margin-bottom:16px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:24px;">Risk Management Rules</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Daily Loss Limit ($)</label>
+              <input type="number" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="500">
+            </div>
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Max Contracts Per Trade</label>
+              <input type="number" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="5">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Max Trades Per Day</label>
+              <input type="number" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="10">
+            </div>
+            <div>
+              <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Profit Target Per Day ($)</label>
+              <input type="number" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="1000">
+            </div>
+          </div>
+          <button style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 28px;cursor:pointer;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'">Save Risk Rules</button>
+        </div>
+
+        <!-- Danger Zone -->
+        <div style="background:var(--surface);border:1px solid rgba(255,23,68,0.2);padding:28px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--red);margin-bottom:24px;">Danger Zone</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:rgba(255,23,68,0.05);border:1px solid rgba(255,23,68,0.15);">
+            <div>
+              <div style="font-size:14px;color:var(--white);">Delete Account</div>
+              <div style="font-size:12px;color:var(--gray2);margin-top:2px;">Permanently delete your account and all trade data. This cannot be undone.</div>
+            </div>
+            <button onclick="confirmDelete()" style="background:transparent;border:1px solid var(--red);color:var(--red);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 20px;cursor:pointer;white-space:nowrap;margin-left:20px;" onmouseover="this.style.background='rgba(255,23,68,0.1)'" onmouseout="this.style.background='transparent'">Delete Account</button>
+          </div>
+        </div>
+
+      </div>
     </div>
 
   </div>
@@ -600,12 +815,102 @@ function showTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('view-' + tab).classList.add('active');
-  const tabMap = {dashboard:0,journal:1,analytics:2,calendar:3};
-  const titles = {dashboard:'Dashboard',journal:'Trade Journal',analytics:'Analytics',calendar:'Economic Calendar'};
+  const tabMap = {dashboard:0,journal:1,analytics:2,calendar:3,profile:4,settings:5};
+  const titles = {dashboard:'Dashboard',journal:'Trade Journal',analytics:'Analytics',calendar:'Economic Calendar',profile:'Profile',settings:'Settings'};
   document.querySelectorAll('.tab')[tabMap[tab]]?.classList.add('active');
   document.querySelectorAll('.nav-item')[tabMap[tab]]?.classList.add('active');
   document.getElementById('topbar-title').textContent = titles[tab] || '';
   if (tab === 'analytics') setTimeout(drawAnalyticsCharts, 50);
+  if (tab === 'profile') loadProfile();
+}
+
+// ── PROFILE ──
+function loadProfile() {
+  if (!currentUser) return;
+  const meta = currentUser.user_metadata || {};
+  const fullName = meta.full_name || '';
+  const parts = fullName.split(' ');
+  const firstName = parts[0] || '';
+  const lastName = parts.slice(1).join(' ') || '';
+  document.getElementById('pf-firstname').value = firstName;
+  document.getElementById('pf-lastname').value = lastName;
+  document.getElementById('pf-email').value = currentUser.email || '';
+  document.getElementById('profile-name-display').textContent = fullName || currentUser.email;
+  document.getElementById('profile-email-display').textContent = currentUser.email;
+  const initials = (firstName.slice(0,1) + (lastName.slice(0,1)||'')).toUpperCase() || '??';
+  document.getElementById('profile-avatar-lg').textContent = initials;
+  document.getElementById('profile-trade-count').textContent = TRADES.length;
+}
+
+async function saveProfile() {
+  const firstName = document.getElementById('pf-firstname').value.trim();
+  const lastName = document.getElementById('pf-lastname').value.trim();
+  const fullName = `${firstName} ${lastName}`.trim();
+  const msg = document.getElementById('profile-save-msg');
+  try {
+    await db.auth.updateUser({ data: { full_name: fullName } });
+    document.getElementById('profile-name-display').textContent = fullName;
+    const initials = (firstName.slice(0,1) + lastName.slice(0,1)).toUpperCase();
+    document.getElementById('profile-avatar-lg').textContent = initials;
+    document.getElementById('topbar-avatar').textContent = initials;
+    document.getElementById('topbar-username').textContent = firstName;
+    msg.textContent = 'Saved ✓';
+    msg.style.color = 'var(--green)';
+    msg.style.display = 'inline';
+    setTimeout(() => msg.style.display = 'none', 3000);
+  } catch(e) {
+    msg.textContent = 'Error saving';
+    msg.style.color = 'var(--red)';
+    msg.style.display = 'inline';
+  }
+}
+
+async function changePassword() {
+  const newPw = document.getElementById('pw-new').value;
+  const confirmPw = document.getElementById('pw-confirm').value;
+  const msg = document.getElementById('pw-msg');
+  if (!newPw || newPw.length < 8) { msg.textContent = 'Password must be at least 8 characters'; msg.style.color='var(--red)'; msg.style.display='inline'; return; }
+  if (newPw !== confirmPw) { msg.textContent = 'Passwords do not match'; msg.style.color='var(--red)'; msg.style.display='inline'; return; }
+  try {
+    await db.auth.updateUser({ password: newPw });
+    msg.textContent = 'Password updated ✓';
+    msg.style.color = 'var(--green)';
+    msg.style.display = 'inline';
+    document.getElementById('pw-current').value = '';
+    document.getElementById('pw-new').value = '';
+    document.getElementById('pw-confirm').value = '';
+    setTimeout(() => msg.style.display = 'none', 3000);
+  } catch(e) {
+    msg.textContent = e.message || 'Error updating password';
+    msg.style.color = 'var(--red)';
+    msg.style.display = 'inline';
+  }
+}
+
+function toggleSetting(el) {
+  const enabled = el.dataset.enabled === 'true';
+  el.dataset.enabled = (!enabled).toString();
+  const thumb = el.querySelector('div');
+  if (!enabled) {
+    el.style.background = 'var(--gold)';
+    thumb.style.right = '3px';
+    thumb.style.left = 'auto';
+  } else {
+    el.style.background = 'var(--gray3)';
+    thumb.style.left = '3px';
+    thumb.style.right = 'auto';
+  }
+}
+
+function confirmDelete() {
+  if (confirm('Are you sure? This will permanently delete your account and ALL trade data. This cannot be undone.')) {
+    if (confirm('Final confirmation — delete everything?')) {
+      db.auth.admin?.deleteUser(currentUser.id).then(() => {
+        db.auth.signOut();
+        window.location.href = '/';
+      });
+    }
+  }
 }
 
 // ── MODAL ──
