@@ -1,14 +1,4 @@
 {
-  "version": 2,
-  "name": "tradephex",
-  "routes": [
-    { "src": "/", "dest": "/public/index.html" },
-    { "src": "/login", "dest": "/public/login.html" },
-    { "src": "/login.html", "dest": "/public/login.html" },
-    { "src": "/signup", "dest": "/public/signup.html" },
-    { "src": "/signup.html", "dest": "/public/signup.html" },
-    { "src": "/journal", "dest": "/public/journal.html" },
-    { "src": "/journal.html", "dest": "/public/journal.html" },
-    { "src": "/(.*)", "dest": "/public/$1" }
-  ]
+  "cleanUrls": true,
+  "trailingSlash": false
 }
