@@ -241,7 +241,8 @@ canvas{display:block;}
   <!-- SIDEBAR -->
   <div class="sidebar">
     <div class="sidebar-nav">
-      <div class="nav-section">Main</div>
+
+      <div class="nav-section">Platform</div>
       <div class="nav-item active" onclick="showTab('dashboard')">
         <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="1" width="6" height="6" stroke="currentColor" stroke-width="1.2" rx="1"/><rect x="9" y="1" width="6" height="6" stroke="currentColor" stroke-width="1.2" rx="1"/><rect x="1" y="9" width="6" height="6" stroke="currentColor" stroke-width="1.2" rx="1"/><rect x="9" y="9" width="6" height="6" stroke="currentColor" stroke-width="1.2" rx="1"/></svg>
         Dashboard
@@ -258,7 +259,24 @@ canvas{display:block;}
         <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="12" rx="1" stroke="currentColor" stroke-width="1.2"/><line x1="1" y1="7" x2="15" y2="7" stroke="currentColor" stroke-width="1.2"/><line x1="5" y1="1" x2="5" y2="5" stroke="currentColor" stroke-width="1.2"/><line x1="11" y1="1" x2="11" y2="5" stroke="currentColor" stroke-width="1.2"/></svg>
         Econ Calendar
       </div>
-      <div class="nav-section">Account</div>
+
+      <div class="nav-section" style="margin-top:8px;">
+        <span style="color:var(--gold);">Evaluation</span>
+      </div>
+      <div class="nav-item" onclick="showTab('evaluation')" style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="#C9A84C" stroke-width="1.2"/><path d="M5 8l2 2 4-4" stroke="#C9A84C" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span style="color:var(--gold);">My Evaluation</span>
+      </div>
+      <div class="nav-item" onclick="showTab('eval-rules')" style="border:1px solid rgba(201,168,76,0.1);">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h5" stroke="#C9A84C" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <span style="color:var(--gold);">Rules & Info</span>
+      </div>
+      <div class="nav-item" onclick="showTab('upgrade')" style="border:1px solid rgba(201,168,76,0.1);">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 2L10.5 6.5H13.5L11 9.5L12 14L8 11.5L4 14L5 9.5L2.5 6.5H5.5L8 2Z" stroke="#C9A84C" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        <span style="color:var(--gold);">Buy Challenge</span>
+      </div>
+
+      <div class="nav-section" style="margin-top:8px;">Account</div>
       <div class="nav-item" onclick="showTab('profile')">
         <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.2"/><path d="M2 14c0-3.314 2.686-5 6-5s6 1.686 6 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
         Profile
@@ -267,6 +285,11 @@ canvas{display:block;}
         <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/></svg>
         Settings
       </div>
+      <div class="nav-item" onclick="showTab('support')">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4M8 11v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Support
+      </div>
+
     </div>
     <div class="sidebar-bottom">
       <button class="add-trade-btn" onclick="openModal()">+ Add Trade</button>
@@ -275,13 +298,28 @@ canvas{display:block;}
 
   <!-- MAIN -->
   <div class="main">
-    <div class="tab-bar">
+    <!-- Platform tab bar -->
+    <div class="tab-bar" id="tabbar-platform">
       <div class="tab active" onclick="showTab('dashboard')">Dashboard</div>
       <div class="tab" onclick="showTab('journal')">Trade Journal</div>
       <div class="tab" onclick="showTab('analytics')">Analytics</div>
       <div class="tab" onclick="showTab('calendar')">Econ Calendar</div>
-      <div class="tab" onclick="showTab('profile')" style="margin-left:auto;">Profile</div>
-      <div class="tab" onclick="showTab('settings')">Settings</div>
+      <div style="margin-left:auto;display:flex;">
+        <div class="tab" onclick="showTab('profile')">Profile</div>
+        <div class="tab" onclick="showTab('settings')">Settings</div>
+        <div class="tab" onclick="showTab('support')">Support</div>
+      </div>
+    </div>
+    <!-- Evaluation tab bar -->
+    <div class="tab-bar" id="tabbar-evaluation" style="display:none;">
+      <div class="tab" onclick="showTab('evaluation')" style="color:var(--gold);">⚡ My Evaluation</div>
+      <div class="tab" onclick="showTab('eval-rules')" style="color:var(--gold);">Rules & Info</div>
+      <div class="tab" onclick="showTab('upgrade')" style="color:var(--gold);">Buy Challenge</div>
+      <div style="margin-left:auto;display:flex;">
+        <div class="tab" onclick="showTab('profile')">Profile</div>
+        <div class="tab" onclick="showTab('settings')">Settings</div>
+        <div class="tab" onclick="showTab('support')">Support</div>
+      </div>
     </div>
 
     <!-- ── DASHBOARD ── -->
@@ -627,6 +665,418 @@ canvas{display:block;}
       </div>
     </div>
 
+    <!-- ── EVALUATION DASHBOARD ── -->
+    <div class="view fadeIn" id="view-evaluation">
+
+      <!-- No active eval state -->
+      <div id="eval-empty" style="display:none;text-align:center;padding:80px 40px;">
+        <div style="font-size:48px;margin-bottom:20px;">🎯</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;text-transform:uppercase;color:var(--white);margin-bottom:12px;">No Active Evaluation</div>
+        <div style="font-size:15px;color:var(--gray2);margin-bottom:32px;max-width:480px;margin-left:auto;margin-right:auto;font-weight:300;line-height:1.7;">Purchase an evaluation to start proving your edge. Pass both phases and earn access to a Tradephex funded account.</div>
+        <button onclick="showTab('upgrade')" style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:0.1em;text-transform:uppercase;padding:14px 40px;cursor:pointer;">Start Evaluation</button>
+      </div>
+
+      <!-- Active eval state -->
+      <div id="eval-active">
+
+        <!-- Header row -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:4px;">Active Evaluation</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;color:var(--white);" id="eval-account-title">$50,000 Professional Account — Phase 1</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div id="eval-status-badge" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.15em;padding:8px 20px;border:1px solid rgba(0,230,118,0.3);background:rgba(0,230,118,0.08);color:#00E676;">● IN PROGRESS</div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">Started: <span id="eval-start-date">Apr 24, 2026</span></div>
+          </div>
+        </div>
+
+        <!-- Key stats row -->
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;">
+          <div style="background:var(--surface);border:1px solid var(--border);padding:20px;">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gray2);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px;">Account Balance</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;color:var(--white);" id="eval-balance">$51,362.50</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);margin-top:4px;" id="eval-balance-pct">+2.73%</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);padding:20px;">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gray2);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px;">Net P&L</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;color:var(--green);" id="eval-pnl">+$1,362.50</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gray2);margin-top:4px;">Target: +$5,000</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);padding:20px;">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gray2);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px;">Current Drawdown</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;color:var(--white);" id="eval-drawdown">-$420.00</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gray2);margin-top:4px;">Max: -$2,500</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);padding:20px;">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gray2);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px;">Trading Days</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;color:var(--white);" id="eval-days">3 / 5</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);margin-top:4px;">2 more required</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);padding:20px;">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--gray2);letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px;">Win Rate</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;color:var(--gold);" id="eval-winrate">68%</div>
+            <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gray2);margin-top:4px;">17W / 8L</div>
+          </div>
+        </div>
+
+        <!-- Rules tracking -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+
+          <!-- Left — Rule progress bars -->
+          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:20px;">Rule Tracking</div>
+
+            <!-- Profit Target -->
+            <div style="margin-bottom:20px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="font-size:13px;color:var(--white);">Profit Target</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);">+$1,362 / +$5,000</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);padding:2px 8px;">27%</span>
+                </div>
+              </div>
+              <div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;">
+                <div id="bar-profit" style="height:100%;width:27%;background:linear-gradient(90deg,#00E676,#69F0AE);border-radius:4px;transition:width 0.5s;"></div>
+              </div>
+              <div style="font-size:11px;color:var(--gray2);margin-top:4px;">Need +$3,638 more to pass</div>
+            </div>
+
+            <!-- Max Drawdown -->
+            <div style="margin-bottom:20px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="font-size:13px;color:var(--white);">Max Drawdown</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);">$420 used / $2,500 limit</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);padding:2px 8px;">16%</span>
+                </div>
+              </div>
+              <div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;">
+                <div id="bar-drawdown" style="height:100%;width:16%;background:linear-gradient(90deg,#00E676,#FFB300);border-radius:4px;transition:width 0.5s;"></div>
+              </div>
+              <div style="font-size:11px;color:var(--gray2);margin-top:4px;">$2,080 remaining before violation</div>
+            </div>
+
+            <!-- Daily Loss -->
+            <div style="margin-bottom:20px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="font-size:13px;color:var(--white);">Today's Loss Limit</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);">$0 used / $1,000 limit</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);padding:2px 8px;">0%</span>
+                </div>
+              </div>
+              <div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;">
+                <div id="bar-daily" style="height:100%;width:0%;background:linear-gradient(90deg,#00E676,#FF1744);border-radius:4px;transition:width 0.5s;"></div>
+              </div>
+              <div style="font-size:11px;color:var(--green);margin-top:4px;">No losses today ✓</div>
+            </div>
+
+            <!-- Consistency Rule -->
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="font-size:13px;color:var(--white);">Consistency Rule</div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);">Best trade: 31% of profit</span>
+                  <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green);background:rgba(0,230,118,0.1);border:1px solid rgba(0,230,118,0.2);padding:2px 8px;">✓ PASS</span>
+                </div>
+              </div>
+              <div style="height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;">
+                <div id="bar-consistency" style="height:100%;width:31%;background:linear-gradient(90deg,#00E676,#FFB300);border-radius:4px;transition:width 0.5s;"></div>
+              </div>
+              <div style="font-size:11px;color:var(--gray2);margin-top:4px;">Max allowed: 40% of total profit</div>
+            </div>
+          </div>
+
+          <!-- Right — Rule checklist -->
+          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:20px;">Phase 1 Rules</div>
+
+            <div id="eval-rules-list" style="display:flex;flex-direction:column;gap:0;">
+              <!-- Rules populated by JS -->
+            </div>
+
+            <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border);">
+              <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray2);margin-bottom:12px;">Evaluation Rules Summary</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div style="background:var(--surface2);padding:10px 14px;">
+                  <div style="font-size:10px;color:var(--gray2);font-family:'DM Mono',monospace;">Account Size</div>
+                  <div style="font-size:14px;font-weight:700;color:var(--white);font-family:'Barlow Condensed',sans-serif;">$50,000</div>
+                </div>
+                <div style="background:var(--surface2);padding:10px 14px;">
+                  <div style="font-size:10px;color:var(--gray2);font-family:'DM Mono',monospace;">Profit Target</div>
+                  <div style="font-size:14px;font-weight:700;color:var(--white);font-family:'Barlow Condensed',sans-serif;">10% / $5,000</div>
+                </div>
+                <div style="background:var(--surface2);padding:10px 14px;">
+                  <div style="font-size:10px;color:var(--gray2);font-family:'DM Mono',monospace;">Max Drawdown</div>
+                  <div style="font-size:14px;font-weight:700;color:var(--white);font-family:'Barlow Condensed',sans-serif;">5% / $2,500</div>
+                </div>
+                <div style="background:var(--surface2);padding:10px 14px;">
+                  <div style="font-size:10px;color:var(--gray2);font-family:'DM Mono',monospace;">Daily Loss Limit</div>
+                  <div style="font-size:14px;font-weight:700;color:var(--white);font-family:'Barlow Condensed',sans-serif;">2% / $1,000</div>
+                </div>
+                <div style="background:var(--surface2);padding:10px 14px;">
+                  <div style="font-size:10px;color:var(--gray2);font-family:'DM Mono',monospace;">Min Trading Days</div>
+                  <div style="font-size:14px;font-weight:700;color:var(--white);font-family:'Barlow Condensed',sans-serif;">5 Days</div>
+                </div>
+                <div style="background:var(--surface2);padding:10px 14px;">
+                  <div style="font-size:10px;color:var(--gray2);font-family:'DM Mono',monospace;">Consistency Rule</div>
+                  <div style="font-size:14px;font-weight:700;color:var(--white);font-family:'Barlow Condensed',sans-serif;">Max 40%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily P&L chart + trade log -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:16px;">Equity Curve</div>
+            <canvas id="evalEquityChart" height="140"></canvas>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:16px;">Daily P&L</div>
+            <canvas id="evalDailyChart" height="140"></canvas>
+          </div>
+        </div>
+
+        <!-- Evaluation trade log -->
+        <div style="background:var(--surface);border:1px solid var(--border);padding:24px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);">Evaluation Trades</div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">25 trades · Phase 1</div>
+          </div>
+          <div id="eval-trade-log"></div>
+        </div>
+
+        <!-- Phase indicator -->
+        <div style="background:var(--surface);border:1px solid var(--border);padding:24px;margin-top:16px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:20px;">Your Path to Funding</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;">
+            <div style="text-align:center;padding:20px;background:rgba(201,168,76,0.08);border:1px solid var(--border2);">
+              <div style="font-size:24px;margin-bottom:8px;">💳</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--gold);">PURCHASED</div>
+              <div style="font-size:12px;color:var(--gray2);margin-top:4px;">Evaluation fee paid</div>
+              <div style="margin-top:12px;font-size:18px;color:var(--green);">✓</div>
+            </div>
+            <div style="text-align:center;padding:20px;background:rgba(201,168,76,0.06);border:1px solid var(--border2);border-left:none;">
+              <div style="font-size:24px;margin-bottom:8px;">📊</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--gold);">PHASE 1</div>
+              <div style="font-size:12px;color:var(--gray2);margin-top:4px;">10% profit target</div>
+              <div style="margin-top:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">IN PROGRESS</div>
+            </div>
+            <div style="text-align:center;padding:20px;background:var(--surface2);border:1px solid var(--border);border-left:none;opacity:0.5;">
+              <div style="font-size:24px;margin-bottom:8px;">🔒</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--gray);">PHASE 2</div>
+              <div style="font-size:12px;color:var(--gray2);margin-top:4px;">5% profit target</div>
+              <div style="margin-top:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">LOCKED</div>
+            </div>
+            <div style="text-align:center;padding:20px;background:var(--surface2);border:1px solid var(--border);border-left:none;opacity:0.5;">
+              <div style="font-size:24px;margin-bottom:8px;">🏆</div>
+              <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--gray);">FUNDED</div>
+              <div style="font-size:12px;color:var(--gray2);margin-top:4px;">Up to 90% split</div>
+              <div style="margin-top:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">LOCKED</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- ── EVALUATION RULES & INFO ── -->
+    <div class="view fadeIn" id="view-eval-rules">
+      <div style="max-width:800px;">
+        <div style="margin-bottom:32px;">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">How It Works</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;text-transform:uppercase;color:var(--white);">Evaluation Rules</div>
+          <div style="font-size:14px;color:var(--gray2);margin-top:8px;font-weight:300;">Prove your edge. Earn your capital. We don't fund gamblers — we fund disciplined traders.</div>
+        </div>
+
+        <!-- Phase overview -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px;">
+          <div style="background:var(--surface);border:1px solid var(--border2);padding:24px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:12px;">📊</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--gold);margin-bottom:8px;">PHASE 1</div>
+            <div style="font-size:13px;color:var(--gray2);line-height:1.6;">Hit 10% profit target while respecting all risk rules. Minimum 5 trading days.</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:12px;">✅</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--white);margin-bottom:8px;">PHASE 2</div>
+            <div style="font-size:13px;color:var(--gray2);line-height:1.6;">Hit 5% profit target. Confirms consistency and discipline before funding.</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:12px;">🏆</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--white);margin-bottom:8px;">FUNDED</div>
+            <div style="font-size:13px;color:var(--gray2);line-height:1.6;">Trade a Tradephex funded account. Keep up to 90% of profits. Scale as you perform.</div>
+          </div>
+        </div>
+
+        <!-- Rules table -->
+        <div style="background:var(--surface);border:1px solid var(--border);padding:28px;margin-bottom:20px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:20px;">Rules by Account Size</div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+              <tr style="border-bottom:2px solid var(--border2);">
+                <th style="text-align:left;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;color:var(--gray2);text-transform:uppercase;">Rule</th>
+                <th style="text-align:center;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);">$25K</th>
+                <th style="text-align:center;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);">$50K</th>
+                <th style="text-align:center;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);">$100K</th>
+                <th style="text-align:center;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);">$150K</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${[
+                ['Phase 1 Profit Target','10%','10%','8%','8%'],
+                ['Phase 2 Profit Target','5%','5%','5%','5%'],
+                ['Max Drawdown','5%','5%','5%','5%'],
+                ['Daily Loss Limit','2%','2%','2%','2%'],
+                ['Min Trading Days','5 days','5 days','5 days','5 days'],
+                ['Consistency Rule','Max 40%','Max 40%','Max 35%','Max 30%'],
+                ['Profit Split','Up to 80%','Up to 85%','Up to 85%','Up to 90%'],
+              ].map((r,i) => `
+                <tr style="border-bottom:1px solid var(--border);background:${i%2===0?'var(--surface2)':'transparent'}">
+                  <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">${r[0]}</td>
+                  <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">${r[1]}</td>
+                  <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">${r[2]}</td>
+                  <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">${r[3]}</td>
+                  <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">${r[4]}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Consistency rule callout -->
+        <div style="background:rgba(201,168,76,0.06);border:1px solid var(--border2);padding:24px;margin-bottom:20px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--gold);margin-bottom:10px;">⚡ The Consistency Rule</div>
+          <div style="font-size:13px;color:var(--gray);line-height:1.7;">No single trade can account for more than the allowed percentage of your total profit. This rule exists to ensure you're trading consistently — not getting lucky on one big trade. We fund disciplined traders, not gamblers.</div>
+          <div style="margin-top:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">Example: On a $50K account with $3,000 total profit, no single trade can exceed $1,200 (40%)</div>
+        </div>
+
+        <!-- What disqualifies you -->
+        <div style="background:rgba(255,23,68,0.04);border:1px solid rgba(255,23,68,0.15);padding:24px;margin-bottom:28px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--red);margin-bottom:12px;">What Gets You Disqualified</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            ${['Exceeding max drawdown','Hitting daily loss limit','Violating consistency rule','Copy trading detected','Hedging across accounts','Exploiting platform errors'].map(r => `
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);">
+                <span style="color:var(--red);">✗</span>${r}
+              </div>`).join('')}
+          </div>
+        </div>
+
+        <div style="text-align:center;">
+          <button onclick="showTab('upgrade')" style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:0.1em;text-transform:uppercase;padding:14px 48px;cursor:pointer;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'">Buy a Challenge →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="view fadeIn" id="view-upgrade">
+      <div style="text-align:center;margin-bottom:48px;">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">Simple Pricing</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;letter-spacing:0.02em;text-transform:uppercase;color:var(--white);">Choose Your Plan</div>
+        <div style="font-size:15px;color:var(--gray2);margin-top:12px;font-weight:300;">Built by a trader. For traders. Cancel anytime.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;max-width:960px;margin:0 auto;">
+
+        <!-- Starter -->
+        <div style="background:var(--surface);border:1px solid var(--border);padding:32px;position:relative;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:12px;">Starter</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;color:var(--white);">$49<span style="font-size:16px;font-weight:400;color:var(--gray2);">/mo</span></div>
+          <div style="font-size:13px;color:var(--gray2);margin:16px 0 28px;font-weight:300;">Everything you need to start journaling and analyzing your trades.</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:32px;">
+            ${['Real-time futures data','Basic charting suite','Trade journal — unlimited entries','5 saved layouts','Basic analytics dashboard','Daily P&L tracker','Email support'].map(f=>`<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);font-size:16px;">✓</span>${f}</div>`).join('')}
+            ${['Order flow tools','Market scanner','Trade replay','Custom alerts','Multi-account management','Priority support'].map(f=>`<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray3);text-decoration:line-through;"><span style="color:var(--gray3);font-size:16px;">✗</span>${f}</div>`).join('')}
+          </div>
+          <button onclick="handleSubscribe('price_1TPKQGH73YsRKv0UsoJZCw4m','starter')" style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:13px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'" id="btn-starter">Get Started</button>
+        </div>
+
+        <!-- Professional -->
+        <div style="background:var(--surface);border:2px solid var(--gold);padding:32px;position:relative;">
+          <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.15em;padding:4px 16px;">MOST POPULAR</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">Professional</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;color:var(--white);">$99<span style="font-size:16px;font-weight:400;color:var(--gray2);">/mo</span></div>
+          <div style="font-size:13px;color:var(--gray2);margin:16px 0 28px;font-weight:300;">Full platform access for serious traders who demand more.</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:32px;">
+            ${['Everything in Starter','Full order flow suite','Footprint charts & DOM ladder','Volume profile tools','15 saved layouts','Advanced analytics dashboard','Market scanner — 50+ markets','Trade replay — all timeframes','Custom alerts & notifications','Priority support'].map(f=>`<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);font-size:16px;">✓</span>${f}</div>`).join('')}
+            ${['Multi-account management','Early feature access','Trader community access'].map(f=>`<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray3);text-decoration:line-through;"><span style="color:var(--gray3);font-size:16px;">✗</span>${f}</div>`).join('')}
+          </div>
+          <button onclick="handleSubscribe('price_1TPMaUH73YsRKv0UxkflhJA0','professional')" style="width:100%;background:var(--gold);border:none;color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:13px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'" id="btn-professional">Upgrade Now</button>
+        </div>
+
+        <!-- Elite -->
+        <div style="background:var(--surface);border:1px solid var(--border);padding:32px;position:relative;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:12px;">Elite</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;color:var(--white);">$199<span style="font-size:16px;font-weight:400;color:var(--gray2);">/mo</span></div>
+          <div style="font-size:13px;color:var(--gray2);margin:16px 0 28px;font-weight:300;">Maximum edge. Every feature. For traders who trade to win.</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:32px;">
+            ${['Everything in Professional','Unlimited saved layouts','Multi-account management','Exclusive trader community','Early access to new features','Advanced session analytics','Highest priority support','White-glove onboarding'].map(f=>`<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);font-size:16px;">✓</span>${f}</div>`).join('')}
+          </div>
+          <button onclick="handleSubscribe('price_1TPMb3H73YsRKv0UYXlbv02P','elite')" style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:13px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'" id="btn-elite">Go Elite</button>
+        </div>
+
+      </div>
+
+      <div style="text-align:center;margin-top:40px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">
+        All plans include a 14-day free trial · Cancel anytime · No hidden fees<br>
+        <span onclick="showTab('support')" style="color:var(--gold);cursor:pointer;margin-top:8px;display:inline-block;">Questions? Contact support →</span>
+      </div>
+    </div>
+
+    <!-- ── SUPPORT ── -->
+    <div class="view fadeIn" id="view-support">
+      <div style="max-width:640px;">
+        <div style="margin-bottom:32px;">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">We're here to help</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;text-transform:uppercase;color:var(--white);">Contact Support</div>
+          <div style="font-size:14px;color:var(--gray2);margin-top:8px;font-weight:300;">Built by a trader, supported by a trader. We'll get back to you fast.</div>
+        </div>
+
+        <!-- Contact cards -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;">
+          <div style="background:var(--surface);border:1px solid var(--border);padding:20px;">
+            <div style="font-size:20px;margin-bottom:8px;">📧</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);margin-bottom:4px;">Email Support</div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">support@tradephex.com</div>
+            <div style="font-size:12px;color:var(--gray2);margin-top:6px;">Response within 24 hours</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);padding:20px;">
+            <div style="font-size:20px;margin-bottom:8px;">⚡</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);margin-bottom:4px;">Priority Support</div>
+            <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">Professional & Elite plans</div>
+            <div style="font-size:12px;color:var(--gray2);margin-top:6px;">Response within 4 hours</div>
+          </div>
+        </div>
+
+        <!-- Support form -->
+        <div style="background:var(--surface);border:1px solid var(--border);padding:28px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);margin-bottom:24px;">Send a Message</div>
+
+          <div style="margin-bottom:16px;">
+            <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Category</label>
+            <select id="support-category" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;appearance:none;cursor:pointer;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
+              <option value="technical">Technical Issue</option>
+              <option value="billing">Billing & Subscription</option>
+              <option value="feature">Feature Request</option>
+              <option value="account">Account Help</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom:16px;">
+            <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Subject</label>
+            <input id="support-subject" type="text" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:10px 14px;outline:none;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="Brief description of your issue">
+          </div>
+
+          <div style="margin-bottom:20px;">
+            <label style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;">Message</label>
+            <textarea id="support-message" style="width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'Barlow',sans-serif;font-size:13px;padding:10px 14px;outline:none;resize:vertical;min-height:120px;line-height:1.6;" onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'" placeholder="Describe your issue in detail..."></textarea>
+          </div>
+
+          <button onclick="submitSupport()" style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:12px 32px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'" id="support-btn">Send Message</button>
+          <div id="support-msg" style="font-family:'DM Mono',monospace;font-size:11px;margin-top:12px;display:none;"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -811,17 +1261,334 @@ function filterTrades(filter, btn) {
 
 // ── TABS ──
 function showTab(tab) {
+  const EVAL_TABS = ['evaluation','eval-rules','upgrade'];
+  const isEvalTab = EVAL_TABS.includes(tab);
+
+  // Show correct view
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const viewEl = document.getElementById('view-' + tab);
+  if (viewEl) viewEl.classList.add('active');
+
+  // Switch tab bars
+  document.getElementById('tabbar-platform').style.display = isEvalTab ? 'none' : 'flex';
+  document.getElementById('tabbar-evaluation').style.display = isEvalTab ? 'flex' : 'none';
+
+  // Highlight active tab in correct bar
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const activeBar = isEvalTab ? '#tabbar-evaluation' : '#tabbar-platform';
+  document.querySelectorAll(activeBar + ' .tab').forEach(t => {
+    const txt = t.textContent.toLowerCase();
+    if (tab === 'dashboard' && txt.includes('dashboard')) t.classList.add('active');
+    else if (tab === 'journal' && txt.includes('journal')) t.classList.add('active');
+    else if (tab === 'analytics' && txt.includes('analytics')) t.classList.add('active');
+    else if (tab === 'calendar' && txt.includes('econ')) t.classList.add('active');
+    else if (tab === 'evaluation' && txt.includes('evaluation')) t.classList.add('active');
+    else if (tab === 'eval-rules' && txt.includes('rules')) t.classList.add('active');
+    else if (tab === 'upgrade' && txt.includes('buy')) t.classList.add('active');
+    else if (tab === 'profile' && txt.includes('profile')) t.classList.add('active');
+    else if (tab === 'settings' && txt.includes('settings')) t.classList.add('active');
+    else if (tab === 'support' && txt.includes('support')) t.classList.add('active');
+  });
+
+  // Highlight active sidebar nav item
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('view-' + tab).classList.add('active');
-  const tabMap = {dashboard:0,journal:1,analytics:2,calendar:3,profile:4,settings:5};
-  const titles = {dashboard:'Dashboard',journal:'Trade Journal',analytics:'Analytics',calendar:'Economic Calendar',profile:'Profile',settings:'Settings'};
-  document.querySelectorAll('.tab')[tabMap[tab]]?.classList.add('active');
-  document.querySelectorAll('.nav-item')[tabMap[tab]]?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') === `showTab('${tab}')`) n.classList.add('active');
+  });
+
+  // Update topbar title
+  const titles = {
+    dashboard:'Dashboard', journal:'Trade Journal', analytics:'Analytics',
+    calendar:'Economic Calendar', evaluation:'My Evaluation',
+    'eval-rules':'Evaluation Rules & Info', upgrade:'Buy a Challenge',
+    profile:'Profile', settings:'Settings', support:'Contact Support'
+  };
   document.getElementById('topbar-title').textContent = titles[tab] || '';
+
   if (tab === 'analytics') setTimeout(drawAnalyticsCharts, 50);
   if (tab === 'profile') loadProfile();
+  if (tab === 'evaluation') setTimeout(initEvaluation, 50);
+}
+
+// ── STRIPE + PLANS ──
+// ── EVALUATION ──
+const EVAL_STATE = {
+  active: true,
+  phase: 1,
+  accountSize: 50000,
+  startDate: 'Apr 24, 2026',
+  balance: 51362.50,
+  netPnl: 1362.50,
+  maxDrawdown: 420.00,
+  dailyLoss: 0,
+  tradingDays: 3,
+  winCount: 17,
+  lossCount: 8,
+  largestTradePct: 31,
+  rules: {
+    profitTarget: { required: 5000, current: 1362.50 },
+    maxDrawdown:  { limit: 2500,  current: 420 },
+    dailyLoss:    { limit: 1000,  current: 0 },
+    minDays:      { required: 5,  current: 3 },
+    consistency:  { maxPct: 40,   currentPct: 31 },
+  },
+  equity: [50000,50120,50380,50210,50650,50900,51100,50880,51140,51362.50],
+  dailyPnl: [120,260,-170,440,250,200,-220,260,222.50],
+};
+
+const EVAL_TRADES = [
+  {date:'Apr 24',symbol:'ES',side:'Long', entry:7041.25,exit:7068.50,contracts:2,pnl:+1362.50,r:+2.1,rule:'✓'},
+  {date:'Apr 24',symbol:'NQ',side:'Short',entry:19510,  exit:19468.5,contracts:1,pnl:+830.00, r:+1.8,rule:'✓'},
+  {date:'Apr 24',symbol:'MES',side:'Long',entry:7035,   exit:7028,   contracts:5,pnl:-175.00, r:-0.6,rule:'✓'},
+  {date:'Apr 23',symbol:'ES', side:'Short',entry:7084, exit:7062.5, contracts:2,pnl:+2150.00,r:+2.9,rule:'✓'},
+  {date:'Apr 23',symbol:'NQ', side:'Long', entry:19420, exit:19385, contracts:1,pnl:-700.00, r:-1.2,rule:'✓'},
+];
+
+function initEvaluation() {
+  const e = EVAL_STATE;
+  if (!e.active) {
+    document.getElementById('eval-empty').style.display = 'block';
+    document.getElementById('eval-active').style.display = 'none';
+    return;
+  }
+  document.getElementById('eval-empty').style.display = 'none';
+  document.getElementById('eval-active').style.display = 'block';
+
+  // Update stats
+  document.getElementById('eval-account-title').textContent = 
+    `$${e.accountSize.toLocaleString()} Professional Account — Phase ${e.phase}`;
+  document.getElementById('eval-balance').textContent = '$' + e.balance.toLocaleString('en-US',{minimumFractionDigits:2});
+  document.getElementById('eval-balance-pct').textContent = '+' + ((e.netPnl/e.accountSize)*100).toFixed(2) + '%';
+  document.getElementById('eval-pnl').textContent = '+$' + e.netPnl.toLocaleString('en-US',{minimumFractionDigits:2});
+  document.getElementById('eval-drawdown').textContent = '-$' + e.maxDrawdown.toLocaleString('en-US',{minimumFractionDigits:2});
+  document.getElementById('eval-days').textContent = e.tradingDays + ' / 5';
+  document.getElementById('eval-winrate').textContent = Math.round((e.winCount/(e.winCount+e.lossCount))*100) + '%';
+  document.getElementById('eval-start-date').textContent = e.startDate;
+
+  // Progress bars
+  const profitPct = Math.min(100, (e.netPnl / e.rules.profitTarget.required) * 100);
+  const drawdownPct = Math.min(100, (e.maxDrawdown / e.rules.maxDrawdown.limit) * 100);
+  const dailyPct = Math.min(100, (e.dailyLoss / e.rules.dailyLoss.limit) * 100);
+  document.getElementById('bar-profit').style.width = profitPct + '%';
+  document.getElementById('bar-drawdown').style.width = drawdownPct + '%';
+  if (drawdownPct > 70) document.getElementById('bar-drawdown').style.background = 'linear-gradient(90deg,#FFB300,#FF1744)';
+  document.getElementById('bar-daily').style.width = dailyPct + '%';
+  document.getElementById('bar-consistency').style.width = e.largestTradePct + '%';
+  if (e.largestTradePct > 35) document.getElementById('bar-consistency').style.background = 'linear-gradient(90deg,#FFB300,#FF1744)';
+
+  // Rules list
+  const rules = [
+    { label: 'Profit Target (10%)', status: e.netPnl >= e.rules.profitTarget.required, 
+      detail: `+$${e.netPnl.toFixed(0)} of $${e.rules.profitTarget.required.toLocaleString()} required` },
+    { label: 'Max Drawdown (5%)', status: e.maxDrawdown < e.rules.maxDrawdown.limit,
+      detail: `$${e.maxDrawdown} used — $${(e.rules.maxDrawdown.limit - e.maxDrawdown).toFixed(0)} remaining` },
+    { label: 'Daily Loss Limit (2%)', status: e.dailyLoss < e.rules.dailyLoss.limit,
+      detail: e.dailyLoss === 0 ? 'No losses today' : `$${e.dailyLoss} of $${e.rules.dailyLoss.limit} used` },
+    { label: 'Min Trading Days (5)', status: e.tradingDays >= e.rules.minDays.required,
+      detail: `${e.tradingDays} of 5 days completed` },
+    { label: 'Consistency Rule (40%)', status: e.largestTradePct <= e.rules.consistency.maxPct,
+      detail: `Best trade = ${e.largestTradePct}% of total profit` },
+  ];
+
+  document.getElementById('eval-rules-list').innerHTML = rules.map(r => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:16px;color:${r.status ? 'var(--green)' : 'var(--gold)'};">${r.status ? '✓' : '○'}</span>
+        <div>
+          <div style="font-size:13px;color:${r.status ? 'var(--white)' : 'var(--gray)'};">${r.label}</div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gray2);margin-top:2px;">${r.detail}</div>
+        </div>
+      </div>
+      <span style="font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border:1px solid ${r.status ? 'rgba(0,230,118,0.3)' : 'rgba(201,168,76,0.3)'};color:${r.status ? 'var(--green)' : 'var(--gold)'};background:${r.status ? 'rgba(0,230,118,0.06)' : 'rgba(201,168,76,0.06)'};">
+        ${r.status ? 'PASS' : 'PENDING'}
+      </span>
+    </div>
+  `).join('');
+
+  // Trade log
+  document.getElementById('eval-trade-log').innerHTML = `
+    <table class="trade-table">
+      <thead><tr>
+        <th>Date</th><th>Symbol</th><th>Side</th><th>Entry</th><th>Exit</th><th>Qty</th><th>P&L</th><th>R</th><th>Rule</th>
+      </tr></thead>
+      <tbody>
+        ${EVAL_TRADES.map(t => `
+          <tr>
+            <td><span class="trade-time">${t.date}</span></td>
+            <td><span class="sym-badge">${t.symbol}</span></td>
+            <td><span class="side-badge ${t.side==='Long'?'side-long':'side-short'}">${t.side.toUpperCase()}</span></td>
+            <td style="font-family:'DM Mono',monospace;font-size:12px;">${t.entry}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:12px;">${t.exit}</td>
+            <td style="font-family:'DM Mono',monospace;font-size:12px;">${t.contracts}</td>
+            <td><span class="pnl-val ${t.pnl>=0?'pnl-pos':'pnl-neg'}">${t.pnl>=0?'+':''}$${Math.abs(t.pnl).toFixed(2)}</span></td>
+            <td><span class="r-val ${t.r>=0?'pnl-pos':'pnl-neg'}">${t.r>=0?'+':''}${t.r}R</span></td>
+            <td style="font-size:14px;color:var(--green);">${t.rule}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>`;
+
+  // Charts
+  drawEvalCharts();
+}
+
+function drawEvalCharts() {
+  // Equity curve
+  const ec = document.getElementById('evalEquityChart');
+  if (!ec) return;
+  const W = ec.offsetWidth; const H = ec.offsetHeight;
+  if (!W) return;
+  ec.width = W; ec.height = H;
+  const ctx = ec.getContext('2d');
+  const data = EVAL_STATE.equity;
+  const pad = {l:10,r:10,t:10,b:20};
+  const min = Math.min(...data) - 200;
+  const max = Math.max(...data) + 200;
+  const toX = i => pad.l + (i/(data.length-1))*(W-pad.l-pad.r);
+  const toY = v => pad.t + (H-pad.t-pad.b) - ((v-min)/(max-min))*(H-pad.t-pad.b);
+
+  // Fill
+  ctx.beginPath();
+  ctx.moveTo(toX(0), H-pad.b);
+  data.forEach((v,i) => ctx.lineTo(toX(i), toY(v)));
+  ctx.lineTo(toX(data.length-1), H-pad.b);
+  ctx.fillStyle = 'rgba(201,168,76,0.08)';
+  ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  data.forEach((v,i) => { if(i===0) ctx.moveTo(toX(i),toY(v)); else ctx.lineTo(toX(i),toY(v)); });
+  ctx.strokeStyle = '#C9A84C'; ctx.lineWidth = 2; ctx.stroke();
+
+  // Dots
+  data.forEach((v,i) => {
+    ctx.beginPath();
+    ctx.arc(toX(i), toY(v), 3, 0, Math.PI*2);
+    ctx.fillStyle = '#C9A84C'; ctx.fill();
+  });
+
+  // Daily P&L bar chart
+  const dc = document.getElementById('evalDailyChart');
+  if (!dc) return;
+  dc.width = dc.offsetWidth; dc.height = dc.offsetHeight;
+  const dctx = dc.getContext('2d');
+  const ddata = EVAL_STATE.dailyPnl;
+  const dW = dc.width; const dH = dc.height;
+  const dPad = {l:10,r:10,t:10,b:20};
+  const dMax = Math.max(...ddata.map(Math.abs)) * 1.2;
+  const midY = dPad.t + (dH-dPad.t-dPad.b)/2;
+  const barW = ((dW-dPad.l-dPad.r)/ddata.length)*0.6;
+  const spacing = (dW-dPad.l-dPad.r)/ddata.length;
+
+  // Zero line
+  dctx.strokeStyle = 'rgba(255,255,255,0.1)'; dctx.lineWidth = 1;
+  dctx.beginPath(); dctx.moveTo(dPad.l, midY); dctx.lineTo(dW-dPad.r, midY); dctx.stroke();
+
+  ddata.forEach((v,i) => {
+    const x = dPad.l + i*spacing + spacing/2 - barW/2;
+    const barH = Math.abs(v)/(dMax)*((dH-dPad.t-dPad.b)/2);
+    dctx.fillStyle = v >= 0 ? 'rgba(0,230,118,0.8)' : 'rgba(255,23,68,0.7)';
+    if (v >= 0) dctx.fillRect(x, midY-barH, barW, barH);
+    else dctx.fillRect(x, midY, barW, barH);
+  });
+}
+
+const PLAN_FEATURES = {
+  starter: ['basic_charts','journal','basic_analytics'],
+  professional: ['basic_charts','journal','basic_analytics','order_flow','market_scanner','trade_replay','custom_alerts','advanced_analytics'],
+  elite: ['basic_charts','journal','basic_analytics','order_flow','market_scanner','trade_replay','custom_alerts','advanced_analytics','multi_account','community','early_access']
+};
+
+function userHasFeature(feature) {
+  const plan = currentUser?.user_metadata?.plan || 'starter';
+  return (PLAN_FEATURES[plan] || PLAN_FEATURES.starter).includes(feature);
+}
+
+function showUpgradePrompt(featureName) {
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:#0E0E0E;border:1px solid rgba(201,168,76,0.3);padding:48px;max-width:440px;width:90%;text-align:center;">
+      <div style="font-size:32px;margin-bottom:16px;">⚡</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;text-transform:uppercase;color:#F5F5F5;margin-bottom:12px;">Upgrade Required</div>
+      <div style="font-size:14px;color:#888;margin-bottom:32px;line-height:1.7;"><strong style="color:#C9A84C;">${featureName}</strong> is available on Professional and Elite plans.</div>
+      <button onclick="this.closest('div[style*=fixed]').remove();showTab('upgrade')" style="background:#C9A84C;color:#060606;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:12px 32px;cursor:pointer;width:100%;margin-bottom:12px;">View Plans</button>
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:#888;font-family:'DM Mono',monospace;font-size:11px;padding:10px;cursor:pointer;width:100%;">Maybe Later</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+async function handleSubscribe(priceId, plan) {
+  if (!currentUser) { window.location.href = '/login'; return; }
+  const btn = document.getElementById('btn-' + plan);
+  if (btn) { btn.textContent = 'Loading...'; btn.disabled = true; }
+  try {
+    if (!window.Stripe) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://js.stripe.com/v3/';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    const stripe = Stripe(STRIPE_PK);
+    const { error } = await stripe.redirectToCheckout({
+      lineItems: [{ price: priceId, quantity: 1 }],
+      mode: 'subscription',
+      customerEmail: currentUser.email,
+      successUrl: window.location.origin + '/journal?upgraded=true',
+      cancelUrl: window.location.origin + '/journal?tab=upgrade',
+    });
+    if (error) throw error;
+  } catch(e) {
+    console.error(e);
+    const labels = {starter:'Get Started', professional:'Upgrade Now', elite:'Go Elite'};
+    if (btn) { btn.textContent = labels[plan] || 'Subscribe'; btn.disabled = false; }
+  }
+}
+
+async function submitSupport() {
+  const category = document.getElementById('support-category').value;
+  const subject = document.getElementById('support-subject').value.trim();
+  const message = document.getElementById('support-message').value.trim();
+  const btn = document.getElementById('support-btn');
+  const msg = document.getElementById('support-msg');
+  if (!subject || !message) {
+    msg.textContent = 'Please fill in subject and message.';
+    msg.style.color = '#FF1744'; msg.style.display = 'block'; return;
+  }
+  btn.textContent = 'Sending...'; btn.disabled = true;
+  try {
+    await db.from('support_tickets').insert({
+      user_id: currentUser?.id,
+      email: currentUser?.email,
+      category, subject, message,
+      status: 'open',
+      created_at: new Date().toISOString()
+    });
+    msg.textContent = '✓ Message sent. We\'ll respond to ' + currentUser?.email + ' within 24 hours.';
+    msg.style.color = '#00E676'; msg.style.display = 'block';
+    document.getElementById('support-subject').value = '';
+    document.getElementById('support-message').value = '';
+  } catch(e) {
+    msg.textContent = 'Error sending. Email us at support@tradephex.com';
+    msg.style.color = '#FF1744'; msg.style.display = 'block';
+  }
+  btn.textContent = 'Send Message'; btn.disabled = false;
+}
+
+// Check upgrade success
+const _params = new URLSearchParams(window.location.search);
+if (_params.get('upgraded') === 'true') {
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.style.cssText = 'position:fixed;top:80px;right:24px;background:#0E0E0E;border:1px solid rgba(0,230,118,0.3);padding:16px 24px;z-index:999;font-family:DM Mono,monospace;font-size:12px;color:#00E676;';
+      el.textContent = '✓ Plan upgraded successfully!';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 5000);
+    }, 500);
+  });
 }
 
 // ── PROFILE ──
