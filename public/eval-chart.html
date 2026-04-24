@@ -260,9 +260,15 @@ select.sym{background:var(--surf2);border:1px solid var(--border);color:var(--wh
   <div class="tsep"></div>
   <button class="tb" onclick="showGrid=!showGrid;redraw()">Grid</button>
   <button class="tb" onclick="volOverlay=!volOverlay;redraw()">Volume</button>
+  <button class="tb" onclick="toggleVolProfile()" id="btnVolProfile">Vol Profile</button>
+  <button class="tb" onclick="toggleSessions()" id="btnSessions">Sessions</button>
+  <button class="tb" onclick="toggleOpenLine()" id="btnOpenLine">Open Line</button>
   <button class="tb" onclick="offset=0;zoom=1;redraw()">Fit</button>
   <button class="tb" onclick="toggleRP()">Panel</button>
+  <button class="tb" onclick="toggleTheme()" id="btnTheme">☀ Theme</button>
+  <button class="tb" onclick="exportPNG()">📷 Save</button>
   <div class="tsep"></div>
+  <button class="tb" onclick="showTemplates()">📐 Templates</button>
   <button class="tb" onclick="showKeys()" title="Keyboard Shortcuts">⌨ Keys</button>
 </div>
 
@@ -639,6 +645,21 @@ function calcCCI(bars,period=20){
 let stochCtx=null,atrCtx=null,obvCtx=null,cciCtx=null;
 let alertLines=[]; // {price, triggered}
 let ctxMenu=null;
+let showVolProfile=false;
+let showSessions=false;
+let showOpenLine=true;
+let darkTheme=true;
+let tradeMarkers=[
+  {time:Date.now()-120*60000,price:7041.25,side:'long', pnl:+1362.50},
+  {time:Date.now()-90*60000, price:7068.50,side:'long', pnl:+830},
+  {time:Date.now()-60*60000, price:7084.00,side:'short',pnl:-175},
+];
+const templates={
+  'Default':{ov:{SMA20:{on:true,color:'#FFB300',p:{period:20},fn:'sma'},EMA9:{on:true,color:'#4FC3F7',p:{period:9},fn:'ema'},VWAP:{on:true,color:'#A5D6A7',p:{},fn:'vwap'}}},
+  'Trend':  {ov:{EMA9:{on:true,color:'#4FC3F7',p:{period:9},fn:'ema'},EMA21:{on:true,color:'#F06292',p:{period:21},fn:'ema'},EMA50:{on:true,color:'#FFCC80',p:{period:50},fn:'ema'}}},
+  'Scalp':  {ov:{EMA9:{on:true,color:'#4FC3F7',p:{period:9},fn:'ema'},VWAP:{on:true,color:'#A5D6A7',p:{},fn:'vwap'},BB:{on:true,color:'#CE93D8',p:{period:20,std:2},fn:'bb'}}},
+  'Clean':  {ov:{}},
+};
 function setupCanvases(){
   const wrap=document.getElementById('canvasWrap');
   const mc=document.getElementById('mainChart');
@@ -830,18 +851,66 @@ function redraw(){
   drawings.forEach(d=>drawShape(ctx,d,toX,toY,cW,H,PADT,cH,pMin,pMax,vis));
   if(wip)drawShape(ctx,wip,toX,toY,cW,H,PADT,cH,pMin,pMax,vis,true);
 
-  // ── CROSSHAIR ──
+  // ── CROSSHAIR + OHLCV TOOLTIP ──
   if(mX>0&&mX<cW&&mY>PADT&&mY<H-PADB){
     ctx.setLineDash([4,4]);ctx.strokeStyle='rgba(255,255,255,.18)';ctx.lineWidth=.8;
     ctx.beginPath();ctx.moveTo(mX,PADT);ctx.lineTo(mX,H-PADB);ctx.stroke();
     ctx.beginPath();ctx.moveTo(0,mY);ctx.lineTo(cW,mY);ctx.stroke();
     ctx.setLineDash([]);
-    // Hover price label
+
+    // Find hovered candle
+    const hIdx=Math.min(vis.length-1,Math.max(0,Math.floor(mX/bW)));
+    const hBar=vis[hIdx];
+
+    // OHLCV floating box
+    if(hBar){
+      const isUp=hBar.c>=hBar.o;
+      const boxW=200,boxH=82,boxPad=10;
+      let bx=mX+12; let by=mY-boxH-8;
+      if(bx+boxW>cW-10)bx=mX-boxW-12;
+      if(by<PADT+4)by=mY+12;
+      ctx.fillStyle='rgba(12,12,12,0.95)';
+      ctx.fillRect(bx,by,boxW,boxH);
+      ctx.strokeStyle='rgba(201,168,76,0.4)';ctx.lineWidth=1;
+      ctx.strokeRect(bx,by,boxW,boxH);
+      // Time header
+      const d=new Date(hBar.ts);
+      const timeStr=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+      ctx.fillStyle='rgba(201,168,76,0.9)';ctx.font='9px DM Mono,monospace';
+      ctx.textAlign='left';ctx.fillText(timeStr,bx+boxPad,by+14);
+      // OHLCV rows
+      const rows=[['O',hBar.o],['H',hBar.h],['L',hBar.l],['C',hBar.c]];
+      rows.forEach(([lbl,val],ri)=>{
+        const ry=by+26+ri*13;
+        ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText(lbl,bx+boxPad,ry);
+        ctx.fillStyle=lbl==='C'?(isUp?'#26A69A':'#EF5350'):'#FFFFFF';
+        ctx.textAlign='right';ctx.fillText(val.toFixed(2),bx+boxW-boxPad,ry);
+        ctx.textAlign='left';
+      });
+      // Volume
+      ctx.fillStyle='rgba(255,255,255,0.4)';ctx.fillText('V',bx+boxPad,by+78);
+      ctx.textAlign='right';ctx.fillStyle='#FFF';
+      ctx.fillText((hBar.v/1000).toFixed(0)+'K',bx+boxW-boxPad,by+78);
+      ctx.textAlign='left';
+    }
+
+    // Hover price label on axis
     const hp=pMin+(1-(mY-PADT)/cH)*(pMax-pMin);
-    ctx.fillStyle='#C9A84C';
-    ctx.fillRect(cW+1,mY-9,PADR-2,18);
-    ctx.fillStyle='#FFFFFF';ctx.font='bold 9px DM Mono,monospace';
+    ctx.fillStyle='#444';ctx.fillRect(cW+1,mY-9,PADR-2,18);
+    ctx.fillStyle='#FFF';ctx.font='9px DM Mono,monospace';
     ctx.textAlign='center';ctx.fillText(hp.toFixed(2),cW+PADR/2,mY+4);ctx.textAlign='left';
+
+    // Snap indicator — show nearest candle high/low when drawing
+    if(tool!=='cursor'&&tool!=='cross'&&hBar){
+      const snapPrices=[hBar.h,hBar.l,hBar.o,hBar.c];
+      snapPrices.forEach(sp=>{
+        const sy=toY(sp);
+        if(Math.abs(sy-mY)<8){
+          ctx.strokeStyle='rgba(201,168,76,0.8)';ctx.lineWidth=1.5;
+          ctx.beginPath();ctx.arc(mX,sy,5,0,Math.PI*2);ctx.stroke();
+        }
+      });
+    }
   }
 
   // ── PRICE AXIS ──
@@ -900,7 +969,66 @@ function redraw(){
     document.getElementById('oV').textContent=(last.v/1000).toFixed(0)+'K';
   }
 
-  // ── ALERT LINES ──
+  // ── SESSION MARKERS ──
+  if(showSessions&&(tf==='1m'||tf==='3m'||tf==='5m'||tf==='15m'||tf==='30m'||tf==='1H')){
+    vis.forEach((b,i)=>{
+      const d=new Date(b.ts);
+      const h=d.getHours(),m=d.getMinutes();
+      // Pre-market: 4am-9:30am (light blue)
+      if(h>=4&&(h<9||(h===9&&m<30))){
+        ctx.fillStyle='rgba(79,195,247,0.04)';
+        ctx.fillRect(toX(i)-bW/2,PADT,bW,cH);
+      }
+      // RTH: 9:30am-4pm (light green)
+      if((h===9&&m>=30)||h===10||h===11||h===12||h===13||h===14||h===15){
+        ctx.fillStyle='rgba(0,230,118,0.03)';
+        ctx.fillRect(toX(i)-bW/2,PADT,bW,cH);
+      }
+      // Mark open at 9:30
+      if(h===9&&m===30){
+        ctx.strokeStyle='rgba(0,230,118,0.4)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+        ctx.beginPath();ctx.moveTo(toX(i),PADT);ctx.lineTo(toX(i),PADT+cH);ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle='rgba(0,230,118,0.7)';ctx.font='9px DM Mono,monospace';
+        ctx.textAlign='center';ctx.fillText('RTH OPEN',toX(i),PADT+12);ctx.textAlign='left';
+      }
+    });
+  }
+
+  // ── OPEN LINE (day open price) ──
+  if(showOpenLine&&vis.length){
+    const dayOpen=vis[0].o;
+    const oy=toY(dayOpen);
+    ctx.strokeStyle='rgba(201,168,76,0.45)';ctx.lineWidth=1;ctx.setLineDash([6,4]);
+    ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(cW,oy);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='rgba(201,168,76,0.8)';ctx.font='9px DM Mono,monospace';
+    ctx.textAlign='left';ctx.fillText('OPEN '+dayOpen.toFixed(2),4,oy-3);
+  }
+
+  // ── VOLUME PROFILE ──
+  if(showVolProfile&&vis.length){
+    const profW=60;const profX=cW-profW-2;
+    const buckets=20;
+    const priceRange=pMax-pMin;
+    const buckSize=priceRange/buckets;
+    const vol=new Array(buckets).fill(0);
+    vis.forEach(b=>{
+      const idx=Math.min(buckets-1,Math.floor((b.c-pMin)/buckSize));
+      vol[idx]+=b.v;
+    });
+    const maxV=Math.max(...vol)||1;
+    ctx.fillStyle='rgba(10,10,10,0.5)';
+    ctx.fillRect(profX,PADT,profW,cH);
+    vol.forEach((v,i)=>{
+      const barH=cH/buckets;
+      const y=PADT+cH-(i+1)*barH;
+      const w=(v/maxV)*profW*.9;
+      const isVAH=v>maxV*.7;
+      ctx.fillStyle=isVAH?'rgba(201,168,76,0.6)':'rgba(201,168,76,0.2)';
+      ctx.fillRect(profX,y+1,w,barH-2);
+    });
+  }
   alertLines.forEach(a=>{
     const y=toY(a.price);
     ctx.strokeStyle=a.triggered?'rgba(255,23,68,.8)':'rgba(0,230,118,.7)';
@@ -916,7 +1044,33 @@ function redraw(){
     ctx.textAlign='left';
   });
 
-  drawRSIPanel();
+  // ── TRADE MARKERS ──
+  tradeMarkers.forEach(tm=>{
+    // Find closest visible bar by time
+    const idx=vis.findIndex(b=>Math.abs(b.ts-tm.time)<120000);
+    if(idx<0)return;
+    const x=toX(idx);
+    const isLong=tm.side==='long';
+    const y=isLong?toY(tm.price)+18:toY(tm.price)-18;
+    ctx.fillStyle=tm.pnl>=0?'#00E676':'#FF1744';
+    ctx.beginPath();
+    if(isLong){ctx.moveTo(x,y-14);ctx.lineTo(x+7,y);ctx.lineTo(x-7,y);}
+    else{ctx.moveTo(x,y+14);ctx.lineTo(x+7,y);ctx.lineTo(x-7,y);}
+    ctx.closePath();ctx.fill();
+    // P&L label
+    ctx.font='9px DM Mono,monospace';ctx.textAlign='center';
+    ctx.fillText((tm.pnl>=0?'+':'')+tm.pnl.toFixed(0),x,isLong?y-18:y+26);
+    ctx.textAlign='left';
+  });
+
+  // ── EVAL VIOLATION WARNINGS ──
+  const evalPnl=1362.50;
+  const dailyLoss=0;
+  if(dailyLoss>900){
+    ctx.fillStyle='rgba(255,23,68,0.15)';ctx.fillRect(0,PADT,cW,cH);
+    ctx.fillStyle='rgba(255,23,68,0.9)';ctx.font='bold 14px DM Mono,monospace';
+    ctx.textAlign='center';ctx.fillText('⚠ APPROACHING DAILY LOSS LIMIT',cW/2,PADT+30);ctx.textAlign='left';
+  }
   drawMACDPanel();
   drawVolPanel();
   drawStochPanel();
@@ -1233,8 +1387,26 @@ function initMouse(){
       if(txt)drawings.push({type:'text',x1:x,y1:y,text:txt,color:'#C9A84C'});
       redraw();return;
     }
-    if(!wip){wip={type:tool,x1:x,y1:y,color:'#C9A84C'};}
-    else{wip.x2=x;wip.y2=y;drawings.push({...wip});wip=null;redraw();}
+    // Snap to nearest candle high/low/open/close
+    const vis2=getVis();
+    const cW2=el.width-72;
+    const bW2=cW2/vis2.length;
+    const hIdx2=Math.min(vis2.length-1,Math.max(0,Math.floor(x/bW2)));
+    const hBar2=vis2[hIdx2];
+    let snapX=x,snapY=y;
+    if(hBar2){
+      const H2=el.height,PADT2=8,cH2=H2-30;
+      let pMin2=Math.min(...vis2.map(b=>b.l));let pMax2=Math.max(...vis2.map(b=>b.h));
+      const pad2=(pMax2-pMin2)*.1||1;pMin2-=pad2;pMax2+=pad2;
+      const toY2=p=>PADT2+cH2*(1-(p-pMin2)/(pMax2-pMin2));
+      const snaps=[hBar2.h,hBar2.l,hBar2.o,hBar2.c];
+      snaps.forEach(sp=>{
+        const sy=toY2(sp);
+        if(Math.abs(sy-y)<10){snapY=sy;}
+      });
+    }
+    if(!wip){wip={type:tool,x1:snapX,y1:snapY,color:'#C9A84C'};}
+    else{wip.x2=snapX;wip.y2=snapY;drawings.push({...wip});wip=null;redraw();}
   });
 
   el.addEventListener('mouseup',e=>{
@@ -1626,6 +1798,95 @@ function showKeys(){
   document.body.appendChild(m);
 }
 
+// ── NEW FEATURE FUNCTIONS ──
+function toggleVolProfile(){
+  showVolProfile=!showVolProfile;
+  document.getElementById('btnVolProfile').classList.toggle('on',showVolProfile);
+  redraw();
+}
+function toggleSessions(){
+  showSessions=!showSessions;
+  document.getElementById('btnSessions').classList.toggle('on',showSessions);
+  redraw();
+}
+function toggleOpenLine(){
+  showOpenLine=!showOpenLine;
+  document.getElementById('btnOpenLine').classList.toggle('on',showOpenLine);
+  redraw();
+}
+
+function toggleTheme(){
+  darkTheme=!darkTheme;
+  document.getElementById('btnTheme').textContent=darkTheme?'☀ Theme':'🌙 Theme';
+  document.getElementById('btnTheme').classList.toggle('on',!darkTheme);
+  if(darkTheme){
+    document.documentElement.style.setProperty('--bg','#080808');
+    document.documentElement.style.setProperty('--surf','#0E0E0E');
+    document.documentElement.style.setProperty('--surf2','#141414');
+  } else {
+    document.documentElement.style.setProperty('--bg','#F5F5F0');
+    document.documentElement.style.setProperty('--surf','#EEEEE8');
+    document.documentElement.style.setProperty('--surf2','#E0E0D8');
+  }
+  redraw();
+}
+
+function exportPNG(){
+  const mc=document.getElementById('mainChart');
+  const link=document.createElement('a');
+  link.download=`tradephex_${sym}_${tf}_${Date.now()}.png`;
+  link.href=mc.toDataURL('image/png');
+  link.click();
+}
+
+function showTemplates(){
+  const m=document.createElement('div');
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:flex;align-items:center;justify-content:center;';
+  const keys=Object.keys(templates);
+  // Add "Save Current" option
+  m.innerHTML=`<div style="background:#141414;border:1px solid rgba(201,168,76,.3);padding:24px;min-width:320px;font-family:'DM Mono',monospace;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:16px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px;color:#C9A84C;">Chart Templates</div>
+    ${keys.map(k=>`
+      <div onclick="loadTemplate('${k}',this.closest('[style]'))" style="padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.04);" onmouseover="this.style.background='rgba(201,168,76,.06)'" onmouseout="this.style.background=''">
+        <span style="color:#DDD;font-size:12px;">📐 ${k}</span>
+        <span style="color:#888;font-size:10px;">${Object.keys(templates[k].ov||{}).length} indicators</span>
+      </div>`).join('')}
+    <div onclick="saveCurrentTemplate(this.closest('[style]'))" style="padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.04);" onmouseover="this.style.background='rgba(201,168,76,.06)'" onmouseout="this.style.background=''">
+      <span style="color:#C9A84C;font-size:12px;">💾 Save Current as Template</span>
+    </div>
+    <button onclick="this.closest('[style]').remove()" style="width:100%;margin-top:12px;background:transparent;border:1px solid rgba(201,168,76,.3);color:#C9A84C;font-family:'DM Mono',monospace;font-size:11px;padding:8px;cursor:pointer;">Close</button>
+  </div>`;
+  m.onclick=e=>{if(e.target===m)m.remove();};
+  document.body.appendChild(m);
+}
+
+function loadTemplate(name,modal){
+  const tpl=templates[name];if(!tpl)return;
+  // Clear existing overlays and apply template
+  Object.keys(overlays).forEach(k=>delete overlays[k]);
+  Object.entries(tpl.ov||{}).forEach(([k,v])=>overlays[k]={...v});
+  renderLists();redraw();
+  if(modal)modal.remove();
+  // Toast
+  const n=document.createElement('div');
+  n.style.cssText='position:fixed;top:60px;right:20px;background:rgba(201,168,76,.9);color:#000;padding:10px 18px;font-family:\'DM Mono\',monospace;font-size:11px;z-index:999;';
+  n.textContent=`✓ Template "${name}" loaded`;
+  document.body.appendChild(n);setTimeout(()=>n.remove(),2500);
+}
+
+function saveCurrentTemplate(modal){
+  const name=prompt('Template name:');
+  if(!name)return;
+  templates[name]={ov:JSON.parse(JSON.stringify(overlays))};
+  if(modal)modal.remove();
+  const n=document.createElement('div');
+  n.style.cssText='position:fixed;top:60px;right:20px;background:rgba(0,230,118,.9);color:#000;padding:10px 18px;font-family:\'DM Mono\',monospace;font-size:11px;z-index:999;';
+  n.textContent=`✓ Template "${name}" saved`;
+  document.body.appendChild(n);setTimeout(()=>n.remove(),2500);
+}
+
+// ── NEW FEATURE FUNCTIONS END ──
+
 // ═══════════════════════
 // KEYBOARD SHORTCUTS
 // ═══════════════════════
@@ -1645,6 +1906,7 @@ document.addEventListener('keydown',e=>{
     if(wip){wip=null;redraw();}
     else if(drawings.length){drawings.pop();redraw();}
   }
+  else if(key==='p'&&e.ctrlKey){e.preventDefault();exportPNG();}
   else if(key==='+'||key==='='){zoom=Math.min(4,zoom+.1);redraw();}
   else if(key==='-'){zoom=Math.max(.3,zoom-.1);redraw();}
   else if(key==='0'){offset=0;zoom=1;redraw();}
@@ -1692,6 +1954,8 @@ window.addEventListener('load',()=>{
   bars=genBars(sym,tf,300);
   setTool('cursor');
   renderLists();
+  // Set initial button states
+  document.getElementById('btnOpenLine').classList.add('on');
   requestAnimationFrame(()=>{
     setTimeout(()=>{
       setupCanvases();
