@@ -2,832 +2,376 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tradephex — Execute. Analyze. Elevate.</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@200;300;400;500;600;700;800;900&family=Barlow:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tradephex — Elite Futures Prop Firm</title>
+<meta name="description" content="The only prop firm that gives you professional trading tools during your evaluation. Footprint candles, order flow delta, AI trade scoring. Get funded from $149.">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --black:#050505; --surface:#0D0D0D; --surface2:#141414; --surface3:#1A1A1A;
-  --gold:#C9A84C; --gold-bright:#F0CF7A; --gold-dim:#6B5520; --gold-glow:rgba(201,168,76,0.15);
-  --white:#FAFAFA; --gray:#777777; --gray2:#444444; --gray3:#222222;
-  --border:rgba(201,168,76,0.12); --border-bright:rgba(201,168,76,0.3);
-  --green:#00E676; --red:#FF1744;
-}
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#06060A;--s1:#0B0B12;--s2:#10101A;--gold:#C9A84C;--gold2:#E8C870;--white:#FFFFFF;--gray:#B0B0C8;--green:#00E676;--red:#FF1744;--border:rgba(201,168,76,.12);--border2:rgba(201,168,76,.28);}
 html{scroll-behavior:smooth;}
-body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;overflow-x:hidden;cursor:none;}
-.cursor{position:fixed;width:8px;height:8px;background:var(--gold);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:transform 0.1s;}
-.cursor-ring{position:fixed;width:36px;height:36px;border:1px solid rgba(201,168,76,0.5);border-radius:50%;pointer-events:none;z-index:9998;transition:width 0.2s,height 0.2s;transform:translate(-50%,-50%);}
-.cursor-ring.hovering{width:56px;height:56px;border-color:var(--gold);}
-::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:var(--black);}::-webkit-scrollbar-thumb{background:var(--gold-dim);}
-
-/* TICKER */
-.ticker-wrap{width:100%;background:var(--surface);border-bottom:1px solid var(--border);overflow:hidden;padding:10px 0;position:relative;z-index:50;}
-.ticker-track{display:flex;animation:ticker 35s linear infinite;white-space:nowrap;width:max-content;}
-.ticker-item{display:inline-flex;align-items:center;gap:10px;padding:0 36px;font-family:'DM Mono',monospace;font-size:11px;border-right:1px solid var(--border);}
-.ticker-name{color:var(--white);font-weight:500;}
-.ticker-price{color:var(--gray);}
-.ticker-change.up{color:var(--green);}
-.ticker-change.down{color:var(--red);}
-@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+body{background:var(--bg);color:var(--white);font-family:'DM Mono',monospace;overflow-x:hidden;}
+::-webkit-scrollbar{width:3px;background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--gold);}
+a{color:inherit;text-decoration:none;}
 
 /* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 80px;height:76px;display:flex;align-items:center;justify-content:space-between;transition:all 0.3s;}
-nav.scrolled{background:rgba(5,5,5,0.97);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);}
-.nav-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;letter-spacing:0.1em;color:var(--white);text-decoration:none;}
-.nav-logo span{color:var(--gold);}
-.nav-center{display:flex;gap:48px;list-style:none;position:absolute;left:50%;transform:translateX(-50%);}
-.nav-center a{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);text-decoration:none;transition:color 0.2s;position:relative;}
-.nav-center a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--gold);transform:scaleX(0);transition:transform 0.2s;}
-.nav-center a:hover{color:var(--white);}
-.nav-center a:hover::after{transform:scaleX(1);}
-.nav-right{display:flex;align-items:center;gap:20px;}
-.nav-login{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);text-decoration:none;transition:color 0.2s;}
-.nav-login:hover{color:var(--white);}
-.btn-gold{background:var(--gold);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;padding:12px 28px;text-decoration:none;display:inline-block;transition:background 0.2s;position:relative;overflow:hidden;}
-.btn-gold:hover{background:var(--gold-bright);}
+nav{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(6,6,10,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);z-index:100;display:flex;align-items:center;padding:0 5%;justify-content:space-between;}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;letter-spacing:.08em;}
+.logo span{color:var(--gold);}
+.navLinks{display:flex;gap:24px;font-size:11px;color:var(--gray);}
+.navLinks a:hover{color:var(--white);transition:.15s;}
+.navCta{display:flex;gap:8px;}
+.btnOutline{padding:7px 16px;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.08em;cursor:pointer;background:transparent;transition:.15s;}
+.btnOutline:hover{background:rgba(201,168,76,.08);}
+.btnPrimary{padding:7px 18px;background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;cursor:pointer;border:none;transition:.15s;}
+.btnPrimary:hover{background:var(--gold2);}
 
 /* HERO */
-.hero{min-height:100vh;display:grid;place-items:center;text-align:center;padding:160px 40px 100px;position:relative;overflow:hidden;}
-.hero-grid{position:absolute;inset:-100px;background-image:linear-gradient(rgba(201,168,76,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.05) 1px,transparent 1px);background-size:80px 80px;animation:gridMove 20s linear infinite;mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black 20%,transparent 80%);}
-@keyframes gridMove{0%{transform:translate(0,0)}100%{transform:translate(80px,80px)}}
-#particles{position:absolute;inset:0;pointer-events:none;}
-.hero-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(201,168,76,0.08);border:1px solid var(--border-bright);padding:8px 20px;font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:40px;position:relative;animation:fadeUp 1s ease both;}
-.badge-dot{width:6px;height:6px;background:var(--gold);border-radius:50%;animation:pulse 2s ease infinite;}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.5)}}
-.hero-headline{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(80px,14vw,180px);letter-spacing:-0.01em;line-height:0.9;color:var(--white);position:relative;animation:fadeUp 1s 0.1s ease both;text-transform:uppercase;}
-.hero-headline .line2{display:block;color:transparent;-webkit-text-stroke:1.5px var(--gold);font-weight:900;}
-.hero-sub{font-size:18px;color:var(--gray);max-width:560px;line-height:1.8;margin:32px auto 0;font-weight:300;position:relative;animation:fadeUp 1s 0.2s ease both;}
-.hero-actions{display:flex;gap:16px;margin-top:56px;justify-content:center;position:relative;animation:fadeUp 1s 0.3s ease both;flex-wrap:wrap;}
-.btn-outline{background:transparent;color:var(--white);font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.15em;text-transform:uppercase;padding:14px 36px;border:1px solid var(--gray2);text-decoration:none;display:inline-block;transition:border-color 0.2s,color 0.2s;}
-.btn-outline:hover{border-color:var(--gold);color:var(--gold);}
-.hero-scroll{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;animation:fadeUp 1s 0.5s ease both;}
-.scroll-line{width:1px;height:60px;background:linear-gradient(to bottom,var(--gold),transparent);animation:scrollLine 2s ease infinite;}
-@keyframes scrollLine{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}50.01%{transform:scaleY(1);transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
-.scroll-text{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--gray2);text-transform:uppercase;}
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 5% 60px;position:relative;overflow:hidden;}
+.heroBg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 55% at 50% 45%,rgba(201,168,76,.07) 0%,transparent 70%);pointer-events:none;}
+.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,.1);border:1px solid var(--border2);padding:4px 14px;font-size:9px;letter-spacing:.18em;color:var(--gold);margin-bottom:22px;}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+h1{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(52px,9vw,104px);line-height:.92;letter-spacing:-.01em;margin-bottom:18px;}
+h1 em{color:var(--gold);font-style:normal;}
+.heroSub{font-size:clamp(12px,1.8vw,15px);color:var(--gray);max-width:500px;line-height:1.7;margin-bottom:32px;}
+.heroCtas{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:56px;}
+.statsRow{display:flex;gap:48px;flex-wrap:wrap;justify-content:center;border-top:1px solid rgba(255,255,255,.05);padding-top:40px;}
+.stat .n{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:38px;color:var(--gold);}
+.stat .l{font-size:9px;letter-spacing:.15em;color:var(--gray);margin-top:2px;}
 
-/* STATS */
-.stats-section{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);}
-.stat-card{background:var(--black);padding:60px 40px;position:relative;overflow:hidden;transition:background 0.3s;}
-.stat-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,var(--gold),transparent);transform:scaleX(0);transition:transform 0.4s;}
-.stat-card:hover{background:var(--surface);}
-.stat-card:hover::before{transform:scaleX(1);}
-.stat-number{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:64px;color:var(--gold);letter-spacing:-0.02em;line-height:1;display:block;}
-.stat-label{font-size:12px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gray);margin-top:12px;display:block;}
-.stat-desc{font-size:13px;color:var(--gray2);margin-top:8px;font-weight:300;}
-
-/* SECTIONS */
-section{padding:120px 80px;position:relative;}
-.section-tag{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:12px;}
-.section-tag::before{content:'';display:block;width:24px;height:1px;background:var(--gold);}
-.section-h{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(44px,5vw,72px);letter-spacing:0.02em;line-height:1;text-transform:uppercase;}
-.section-h .gold{color:var(--gold);}
-.section-h .outline{color:transparent;-webkit-text-stroke:1.5px var(--white);}
-
-/* FEATURES */
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin-top:80px;}
-.feat{background:var(--black);padding:52px 44px;position:relative;overflow:hidden;transition:background 0.3s;}
-.feat::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(to right,transparent,var(--gold),transparent);transform:scaleX(0);transition:transform 0.4s;}
-.feat:hover{background:var(--surface);}
-.feat:hover::after{transform:scaleX(1);}
-.feat-num{font-family:'DM Mono',monospace;font-size:11px;color:var(--gold-dim);letter-spacing:0.1em;margin-bottom:28px;}
-.feat-icon{width:52px;height:52px;margin-bottom:24px;}
-.feat-icon svg{width:100%;height:100%;}
-.feat-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;letter-spacing:0.08em;text-transform:uppercase;color:var(--white);margin-bottom:14px;}
-.feat-desc{font-size:14px;color:var(--gray);line-height:1.8;font-weight:300;}
-
-/* PLATFORM WINDOW */
-.showcase-section{padding:120px 80px;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
-.showcase-wrap{display:grid;grid-template-columns:1fr 1.5fr;gap:80px;align-items:start;}
-.stp{padding:36px 0;border-bottom:1px solid var(--border);display:flex;gap:28px;transition:all 0.2s;}
-.stp:last-child{border-bottom:none;}
-.stp:hover .stp-num{color:var(--gold);}
-.stp-num{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:56px;color:var(--gray3);line-height:1;transition:color 0.3s;min-width:60px;}
-.stp-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;letter-spacing:0.06em;text-transform:uppercase;color:var(--white);margin-bottom:10px;}
-.stp-desc{font-size:14px;color:var(--gray);line-height:1.7;font-weight:300;}
-
-/* PLATFORM WINDOW */
-.platform-window{background:var(--black);border:1px solid var(--border-bright);overflow:hidden;box-shadow:0 0 80px rgba(201,168,76,0.08);}
-.pw-titlebar{background:var(--surface2);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
-.pw-dots{display:flex;gap:6px;}
-.pw-dot{width:11px;height:11px;border-radius:50%;}
-.pw-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;color:var(--gray2);text-transform:uppercase;}
-.pw-live{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;color:var(--green);}
-.pw-live-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;}
-
-/* SYMBOL SELECT */
-.pw-controls{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;}
-.symbol-select{background:var(--black);border:1px solid var(--border-bright);color:var(--gold);font-family:'DM Mono',monospace;font-size:12px;padding:8px 14px;cursor:pointer;outline:none;appearance:none;-webkit-appearance:none;letter-spacing:0.08em;min-width:180px;}
-.symbol-select option{background:var(--black);color:var(--white);}
-.tf-btn{background:transparent;border:1px solid var(--border);color:var(--gray);font-family:'DM Mono',monospace;font-size:10px;padding:6px 12px;cursor:pointer;letter-spacing:0.08em;transition:all 0.2s;}
-.tf-btn:hover,.tf-btn.active{border-color:var(--gold);color:var(--gold);}
-.pw-price-bar{display:flex;align-items:center;gap:20px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;}
-.pw-current-price{font-family:'DM Mono',monospace;font-weight:500;font-size:20px;color:var(--gold);}
-.pw-ohlc{display:flex;gap:16px;}
-.pw-ohlc-item{font-family:'DM Mono',monospace;font-size:11px;}
-.pw-ohlc-label{color:var(--gray2);}
-.pw-ohlc-val{color:var(--gray);}
-.pw-change-val{font-family:'DM Mono',monospace;font-size:13px;}
-
-/* CANDLESTICK CHART */
-.pw-chart-wrap{position:relative;background:var(--black);height:300px;border-bottom:1px solid var(--border);}
-#candleChart{width:100%;height:100%;display:block;}
-
-.pw-datarow{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);}
-.pw-cell{background:var(--surface2);padding:14px 16px;}
-.pw-cell-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;color:var(--gray2);text-transform:uppercase;margin-bottom:6px;}
-.pw-cell-val{font-family:'DM Mono',monospace;font-weight:500;font-size:15px;color:var(--white);}
-.pw-cell-val.gold{color:var(--gold);}
-.pw-cell-val.up{color:var(--green);}
-.pw-cell-val.down{color:var(--red);}
-
-/* MARKETS */
-.markets-section{padding:120px 80px;}
-.markets-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin-top:60px;}
-.market-card{background:var(--black);padding:32px 28px;transition:all 0.2s;border-left:2px solid transparent;}
-.market-card:hover{background:var(--surface);border-left-color:var(--gold);}
-.market-symbol{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;color:var(--white);margin-bottom:2px;}
-.market-name{font-size:11px;color:var(--gray2);letter-spacing:0.08em;margin-bottom:16px;text-transform:uppercase;}
-.market-price{font-family:'DM Mono',monospace;font-size:16px;color:var(--gold);margin-bottom:4px;}
-.market-change{font-family:'DM Mono',monospace;font-size:11px;}
-.market-change.up{color:var(--green);}
-.market-change.down{color:var(--red);}
-.market-sparkline{margin-top:14px;height:28px;}
-.market-sparkline svg{width:100%;height:100%;}
+/* FEATURES STRIP */
+.featStrip{background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:28px 5%;display:flex;gap:0;overflow-x:auto;justify-content:center;flex-wrap:wrap;}
+.feat{display:flex;align-items:center;gap:8px;padding:6px 20px;border-right:1px solid rgba(255,255,255,.05);white-space:nowrap;}
+.feat:last-child{border-right:none;}
+.feat .ico{font-size:15px;}
+.feat span{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--white);}
+.feat .pill{font-size:7px;letter-spacing:.1em;padding:1px 5px;background:rgba(201,168,76,.15);color:var(--gold);border:1px solid var(--border);margin-left:4px;}
 
 /* PRICING */
-.pricing-section{padding:120px 80px;background:var(--surface);border-top:1px solid var(--border);}
-.pricing-toggle{display:flex;align-items:center;gap:16px;margin-top:40px;margin-bottom:60px;}
-.toggle-label{font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);}
-.toggle-label.active{color:var(--white);}
-.toggle{width:52px;height:28px;background:var(--surface2);border:1px solid var(--border-bright);border-radius:14px;position:relative;cursor:pointer;}
-.toggle-thumb{position:absolute;width:20px;height:20px;background:var(--gold);border-radius:50%;top:3px;left:4px;transition:left 0.2s;}
-.toggle.annual .toggle-thumb{left:28px;}
-.save-badge{background:rgba(201,168,76,0.15);border:1px solid var(--border-bright);padding:4px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);letter-spacing:0.1em;}
-.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);}
-.price-card{background:var(--black);padding:56px 44px;position:relative;}
-.price-card.featured{background:var(--surface);box-shadow:0 0 0 1px var(--gold);}
-.price-card.featured .featured-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.2em;padding:6px 20px;white-space:nowrap;}
-.price-tier{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:28px;}
-.price-amount{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:72px;color:var(--white);line-height:1;}
-.price-amount sup{font-size:28px;vertical-align:top;margin-top:14px;display:inline-block;color:var(--gray);}
-.price-period{font-size:13px;color:var(--gray2);margin-top:8px;margin-bottom:40px;font-family:'DM Mono',monospace;letter-spacing:0.05em;}
-.price-divider{height:1px;background:var(--border);margin-bottom:36px;}
-.price-features{list-style:none;display:flex;flex-direction:column;gap:16px;margin-bottom:44px;}
-.price-features li{font-size:14px;color:var(--gray);display:flex;align-items:center;gap:14px;line-height:1.5;}
-.check{width:18px;height:18px;flex-shrink:0;}
-.check-gold{fill:var(--gold);}
-.check-gray{fill:var(--gray2);}
+.pricingSection{padding:72px 5%;text-align:center;}
+.sectionLabel{font-size:9px;letter-spacing:.2em;color:var(--gold);margin-bottom:10px;}
+h2{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(32px,5vw,52px);margin-bottom:10px;line-height:1.05;}
+.sectionSub{font-size:12px;color:var(--gray);margin-bottom:40px;}
+.pricingGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;max-width:980px;margin:0 auto 24px;}
+.pCard{background:var(--s1);border:1px solid var(--border);padding:24px 20px;text-align:left;transition:.2s;position:relative;}
+.pCard:hover{border-color:var(--border2);transform:translateY(-2px);}
+.pCard.pop{border-color:var(--gold);}
+.popBadge{position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:9px;letter-spacing:.15em;padding:2px 12px;}
+.pSize{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;margin-bottom:3px;}
+.pPrice{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:42px;color:var(--gold);line-height:1;margin-bottom:14px;}
+.pPrice span{font-size:13px;color:var(--gray);}
+.pList{list-style:none;margin-bottom:18px;}
+.pList li{font-size:10px;color:var(--gray);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:6px;}
+.pList li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;}
+.pList li b{color:var(--white);}
+.buyBtn{width:100%;padding:10px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;cursor:pointer;border:none;transition:.15s;position:relative;}
+.buyBtn.gold{background:var(--gold);color:#000;}.buyBtn.gold:hover{background:var(--gold2);}
+.buyBtn.out{background:transparent;border:1px solid var(--border2);color:var(--gold);}.buyBtn.out:hover{background:rgba(201,168,76,.08);}
+.buyBtn .spin{display:none;width:12px;height:12px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:sp .6s linear infinite;margin:0 auto;}
+@keyframes sp{to{transform:rotate(360deg)}}
 
-/* TESTIMONIALS */
-.testi-section{padding:120px 80px;border-top:1px solid var(--border);}
-.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin-top:60px;}
-.testi-card{background:var(--black);padding:48px 40px;transition:background 0.3s;}
-.testi-card:hover{background:var(--surface);}
-.testi-stars{display:flex;gap:4px;margin-bottom:24px;}
-.star{color:var(--gold);font-size:14px;}
-.testi-quote{font-size:15px;color:var(--gray);line-height:1.8;font-weight:300;margin-bottom:32px;font-style:italic;}
-.testi-quote::before{content:'"';color:var(--gold);font-size:40px;line-height:0;vertical-align:-16px;margin-right:4px;font-style:normal;}
-.testi-author{display:flex;align-items:center;gap:16px;}
-.testi-avatar{width:44px;height:44px;background:var(--surface2);border:1px solid var(--border-bright);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--gold);}
-.testi-name{font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:16px;letter-spacing:0.05em;color:var(--white);}
-.testi-role{font-size:12px;color:var(--gray2);margin-top:2px;}
+/* HOW IT WORKS */
+.howSection{background:var(--s1);padding:72px 5%;}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--border);margin-top:36px;}
+.step{background:var(--bg);padding:28px 24px;position:relative;}
+.stepN{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:rgba(201,168,76,.12);position:absolute;top:16px;right:16px;}
+.step h3{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:.06em;margin-bottom:6px;color:var(--gold);}
+.step p{font-size:10px;color:var(--gray);line-height:1.7;}
+
+/* RULES TABLE */
+.rulesSection{padding:72px 5%;}
+.rulesTable{width:100%;border-collapse:collapse;font-size:11px;overflow-x:auto;display:block;}
+.rulesTable th{text-align:left;padding:8px 12px;font-size:8px;letter-spacing:.1em;color:var(--gray);border-bottom:1px solid var(--border);white-space:nowrap;}
+.rulesTable td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap;}
+.rulesTable tr:hover td{background:rgba(255,255,255,.02);}
+.green{color:var(--green);}
+.gold{color:var(--gold);}
+
+/* FAQ */
+.faqSection{background:var(--s1);padding:72px 5%;}
+.faqWrap{max-width:680px;margin:32px auto 0;}
+.faqItem{border-bottom:1px solid var(--border);padding:16px 0;}
+.faqQ{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;letter-spacing:.03em;}
+.faqQ:hover{color:var(--gold);}
+.faqQ span{color:var(--gold);font-size:14px;transition:.2s;}
+.faqA{font-size:11px;color:var(--gray);line-height:1.8;max-height:0;overflow:hidden;transition:max-height .3s,padding .3s;}
+.faqItem.open .faqA{max-height:160px;padding-top:10px;}
+.faqItem.open .faqQ span{transform:rotate(45deg);}
 
 /* CTA */
-.cta-section{padding:200px 80px;text-align:center;position:relative;overflow:hidden;}
-.cta-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(201,168,76,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.04) 1px,transparent 1px);background-size:40px 40px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black,transparent);}
-.cta-glow{position:absolute;width:1000px;height:500px;background:radial-gradient(ellipse,rgba(201,168,76,0.1) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
-.cta-headline{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(60px,10vw,130px);line-height:0.9;text-transform:uppercase;position:relative;margin-bottom:32px;}
-.cta-headline .outline{color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,0.3);}
-.cta-headline .gold{color:var(--gold);}
-.cta-sub{font-size:17px;color:var(--gray);max-width:480px;margin:0 auto 56px;line-height:1.8;font-weight:300;position:relative;}
+.ctaSection{padding:80px 5%;text-align:center;background:linear-gradient(135deg,rgba(201,168,76,.06),transparent 60%,rgba(0,230,118,.03));}
+.ctaSection h2{font-size:clamp(36px,6vw,68px);margin-bottom:12px;}
 
 /* FOOTER */
-.footer-main{border-top:1px solid var(--border);padding:80px;display:grid;grid-template-columns:2.5fr 1fr 1fr 1fr;gap:60px;background:var(--surface);}
-.footer-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:30px;letter-spacing:0.1em;color:var(--white);margin-bottom:16px;}
-.footer-logo span{color:var(--gold);}
-.footer-desc{font-size:14px;color:var(--gray);line-height:1.8;font-weight:300;max-width:300px;margin-bottom:28px;}
-.footer-social{display:flex;gap:12px;}
-.social-btn{width:40px;height:40px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all 0.2s;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--gray);text-decoration:none;letter-spacing:0.05em;}
-.social-btn:hover{border-color:var(--gold);color:var(--gold);}
-.footer-col-h{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:var(--white);margin-bottom:24px;font-weight:600;}
-.footer-nav{list-style:none;display:flex;flex-direction:column;gap:14px;}
-.footer-nav a{font-size:14px;color:var(--gray);text-decoration:none;transition:color 0.2s;}
-.footer-nav a:hover{color:var(--gold);}
-.footer-bottom{border-top:1px solid var(--border);padding:24px 80px;background:var(--surface);display:flex;justify-content:space-between;align-items:center;}
-.footer-copy{font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);letter-spacing:0.05em;}
-.footer-links2{display:flex;gap:28px;}
-.footer-links2 a{font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);text-decoration:none;transition:color 0.2s;}
-.footer-links2 a:hover{color:var(--gold);}
+footer{background:var(--s1);border-top:1px solid var(--border);padding:32px 5%;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;}
+.fLogo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;}
+.fLogo span{color:var(--gold);}
+.fLinks{display:flex;gap:16px;font-size:10px;color:var(--gray);flex-wrap:wrap;}
+.fLinks a:hover{color:var(--white);}
+.disc{width:100%;font-size:8px;color:rgba(255,255,255,.18);line-height:1.6;border-top:1px solid rgba(255,255,255,.04);padding-top:16px;margin-top:8px;}
 
-@keyframes fadeUp{from{opacity:0;transform:translateY(32px)}to{opacity:1;transform:translateY(0)}}
-.reveal{opacity:0;transform:translateY(40px);transition:opacity 0.8s ease,transform 0.8s ease;}
-.reveal.visible{opacity:1;transform:translateY(0);}
+/* TOAST */
+#toast{position:fixed;bottom:20px;right:20px;background:rgba(8,8,18,.97);border-left:3px solid var(--gold);color:var(--white);padding:10px 16px;font-size:11px;z-index:999;border-radius:0 3px 3px 0;transform:translateX(140%);transition:transform .3s cubic-bezier(.22,.61,.36,1);box-shadow:0 4px 20px rgba(0,0,0,.6);}
+#toast.show{transform:none;}
 
-@media(max-width:900px){
-  nav{padding:0 24px;}.nav-center{display:none;}
-  .hero{padding:120px 24px 80px;}
-  .stats-section{grid-template-columns:repeat(2,1fr);}
-  section{padding:80px 24px;}
-  .features-grid,.testi-grid,.markets-grid{grid-template-columns:1fr 1fr;}
-  .showcase-wrap,.pricing-grid{grid-template-columns:1fr;}
-  .footer-main{grid-template-columns:1fr;padding:60px 24px;}
-  .footer-bottom{padding:24px;flex-direction:column;gap:12px;}
-}
+@media(max-width:640px){.navLinks{display:none;}.statsRow{gap:24px;}.featStrip{justify-content:flex-start;}.pricingGrid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
+<div id="toast"></div>
 
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-
-<!-- TICKER -->
-<div class="ticker-wrap" style="margin-top:76px;">
-  <div class="ticker-track" id="tickerTrack"></div>
-</div>
-
-<!-- NAV -->
-<nav id="mainNav">
-  <a href="/" class="nav-logo">TRADE<span>PHEX</span></a>
-  <ul class="nav-center">
-    <li><a href="#features">Platform</a></li>
-    <li><a href="#markets">Markets</a></li>
-    <li><a href="#how">How It Works</a></li>
-    <li><a href="#pricing">Pricing</a></li>
-    <li><a href="/legal">Legal</a></li>
-  </ul>
-  <div class="nav-right">
-    <a href="/login" class="nav-login">Log In</a>
-    <a href="/signup" class="btn-gold">Get Started</a>
+<nav>
+  <div class="logo">TRADE<span>PHEX</span></div>
+  <div class="navLinks">
+    <a href="#pricing">Pricing</a>
+    <a href="#how">How It Works</a>
+    <a href="#faq">FAQ</a>
+    <a href="/eval-chart">Platform</a>
+  </div>
+  <div class="navCta">
+    <a href="/login"><button class="btnOutline">Log In</button></a>
+    <a href="#pricing"><button class="btnPrimary">GET FUNDED →</button></a>
   </div>
 </nav>
 
 <!-- HERO -->
-<section class="hero" style="margin-top:0;">
-  <div class="hero-grid"></div>
-  <canvas id="particles"></canvas>
-  <div style="position:relative;display:flex;flex-direction:column;align-items:center;">
-    <div class="hero-badge"><div class="badge-dot"></div>Now Live — Futures Education & Performance Platform</div>
-    <h1 class="hero-headline">TRADE<span class="line2">PHEX</span></h1>
-    <p class="hero-sub">Built by a trader with 11 years in the game. The platform for futures traders who are serious about getting better — every single session.</p>
-    <div class="hero-actions">
-      <a href="/signup" class="btn-gold" style="padding:16px 48px;font-size:14px;">Start Free Trial</a>
-      <a href="#features" class="btn-outline" style="padding:16px 48px;font-size:14px;">Explore Platform</a>
-    </div>
-    <div style="margin-top:64px;display:flex;align-items:center;gap:32px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);letter-spacing:0.1em;">
-      <span>EXECUTE.</span><span style="color:var(--gold);">·</span>
-      <span>ANALYZE.</span><span style="color:var(--gold);">·</span>
-      <span>ELEVATE.</span>
-    </div>
+<section class="hero">
+  <div class="heroBg"></div>
+  <div class="badge">NOW ACCEPTING APPLICATIONS</div>
+  <h1>PROVE YOUR EDGE.<br><em>GET FUNDED.</em></h1>
+  <p class="heroSub">The only prop firm that gives you professional tools during your eval — footprint candles, order flow delta, AI trade scoring. Built in. No extra cost.</p>
+  <div class="heroCtas">
+    <a href="#pricing"><button class="btnPrimary" style="padding:14px 36px;font-size:14px;">START YOUR EVAL FROM $149 →</button></a>
+    <a href="/eval-chart"><button class="btnOutline" style="padding:14px 24px;font-size:13px;">TRY THE PLATFORM FREE</button></a>
   </div>
-  <div class="hero-scroll"><span class="scroll-text">Scroll</span><div class="scroll-line"></div></div>
+  <div class="statsRow">
+    <div class="stat"><div class="n">$150K</div><div class="l">MAX ACCOUNT</div></div>
+    <div class="stat"><div class="n">90%</div><div class="l">PROFIT SPLIT</div></div>
+    <div class="stat"><div class="n">$149</div><div class="l">STARTS FROM</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">DAY PAYOUTS</div></div>
+  </div>
 </section>
 
-<!-- STATS -->
-<div class="stats-section reveal">
-  <div class="stat-card"><span class="stat-number">11</span><span class="stat-label">Years Experience</span><div class="stat-desc">Built by a trader who has lived through every market condition. Not a tech company pretending to understand trading.</div></div>
-  <div class="stat-card"><span class="stat-number">50+</span><span class="stat-label">Futures Markets</span><div class="stat-desc">Equity index, metals, commodities — all tracked and analyzed in one platform.</div></div>
-  <div class="stat-card"><span class="stat-number">2</span><span class="stat-label">Revenue Lanes</span><div class="stat-desc">Platform memberships for traders who want better tools. Evaluation programs for traders who want funded accounts.</div></div>
-  <div class="stat-card"><span class="stat-number">100%</span><span class="stat-label">Education Focused</span><div class="stat-desc">We don't manage money. We don't give signals. We help you become a better trader through structure and data.</div></div>
+<!-- FEATURES STRIP -->
+<div class="featStrip">
+  <div class="feat"><span class="ico">👣</span><span>Footprint Candles</span><div class="pill">EXCLUSIVE</div></div>
+  <div class="feat"><span class="ico">Δ</span><span>Order Flow Delta</span><div class="pill">EXCLUSIVE</div></div>
+  <div class="feat"><span class="ico">📊</span><span>Market Profile (TPO)</span><div class="pill">EXCLUSIVE</div></div>
+  <div class="feat"><span class="ico">⭐</span><span>AI Trade Scoring</span><div class="pill">EXCLUSIVE</div></div>
+  <div class="feat"><span class="ico">📐</span><span>Pattern Recognition</span></div>
+  <div class="feat"><span class="ico">🐋</span><span>Iceberg Detection</span></div>
+  <div class="feat"><span class="ico">⏮</span><span>Replay Mode</span></div>
+  <div class="feat"><span class="ico">6</span><span>Chart Layouts</span></div>
 </div>
 
-<!-- FEATURES -->
-<section id="features">
-  <div class="section-tag reveal">The Platform</div>
-  <h2 class="section-h reveal">TOOLS BUILT FOR<br><span class="gold">SERIOUS</span> <span class="outline">TRADERS</span></h2>
-  <div class="features-grid reveal">
-    <div class="feat"><div class="feat-num">01 / 06</div><div class="feat-icon"><svg viewBox="0 0 52 52" fill="none"><polyline points="4,40 16,22 26,30 38,12 48,20" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="48" cy="20" r="3.5" fill="#C9A84C"/></svg></div><div class="feat-title">Advanced Charting</div><div class="feat-desc">Full candlestick, Heikin Ashi, Renko, and 15+ chart types. 100+ built-in indicators. Fully customizable layouts saved to your account.</div></div>
-    <div class="feat"><div class="feat-num">02 / 06</div><div class="feat-icon"><svg viewBox="0 0 52 52" fill="none"><rect x="4" y="10" width="44" height="34" rx="2" stroke="#C9A84C" stroke-width="2.5"/><rect x="12" y="28" width="8" height="10" fill="#00E676" opacity="0.8"/><rect x="24" y="18" width="8" height="20" fill="#FF1744" opacity="0.8"/><rect x="36" y="22" width="8" height="16" fill="#00E676" opacity="0.8"/></svg></div><div class="feat-title">Order Flow Tools</div><div class="feat-desc">Full DOM ladder, footprint charts, volume profile, and time & sales. See who's buying, who's selling, and where the real levels are.</div></div>
-    <div class="feat"><div class="feat-num">03 / 06</div><div class="feat-icon"><svg viewBox="0 0 52 52" fill="none"><rect x="4" y="8" width="44" height="36" rx="2" stroke="#C9A84C" stroke-width="2.5"/><line x1="4" y1="20" x2="48" y2="20" stroke="#C9A84C" stroke-width="1.5" opacity="0.4"/><path d="M12 30h8M24 26h8M36 32h8" stroke="#C9A84C" stroke-width="2" stroke-linecap="round"/></svg></div><div class="feat-title">Trade Journal</div><div class="feat-desc">Log every trade with entry, exit, emotion, quality, and notes. The most detailed futures trade journal built into any platform — free with every plan.</div></div>
-    <div class="feat"><div class="feat-num">04 / 06</div><div class="feat-icon"><svg viewBox="0 0 52 52" fill="none"><rect x="6" y="16" width="40" height="28" rx="2" stroke="#C9A84C" stroke-width="2.5"/><path d="M18 16V11a8 8 0 0 1 16 0v5" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round"/><circle cx="26" cy="30" r="5" stroke="#C9A84C" stroke-width="2"/></svg></div><div class="feat-title">Risk Management</div><div class="feat-desc">Daily loss limits, max position size caps, drawdown alerts, and session rules. Your risk framework, enforced automatically.</div></div>
-    <div class="feat"><div class="feat-num">05 / 06</div><div class="feat-icon"><svg viewBox="0 0 52 52" fill="none"><polyline points="6,44 6,22 18,30 28,12 40,22 46,14" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="2" y1="44" x2="50" y2="44" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/></svg></div><div class="feat-title">Performance Analytics</div><div class="feat-desc">Win rate, profit factor, average R, max drawdown, session analytics, and a 30-day heatmap. Know your edge. Measure it. Grow it.</div></div>
-    <div class="feat"><div class="feat-num">06 / 06</div><div class="feat-icon"><svg viewBox="0 0 52 52" fill="none"><circle cx="26" cy="26" r="9" stroke="#C9A84C" stroke-width="2.5"/><line x1="26" y1="4" x2="26" y2="14" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round"/><line x1="26" y1="38" x2="26" y2="48" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round"/><line x1="4" y1="26" x2="14" y2="26" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round"/><line x1="38" y1="26" x2="48" y2="26" stroke="#C9A84C" stroke-width="2.5" stroke-linecap="round"/></svg></div><div class="feat-title">Trade Replay</div><div class="feat-desc">Replay any trade on 8 timeframes with candlestick chart, entry/exit markers, and a post-trade review panel. Learn from every session.</div></div>
-  </div>
-</section>
+<!-- ALL PRODUCTS -->
+<section class="pricingSection" id="pricing">
+  <div class="sectionLabel">Everything We Offer</div>
+  <h2>ONE PLATFORM. THREE WAYS IN.</h2>
+  <p class="sectionSub">Start with an eval. Stay for the chart. Grow with the journal.</p>
 
-<!-- PLATFORM SHOWCASE WITH CANDLESTICK CHART -->
-<section class="showcase-section" id="how">
-  <div class="showcase-wrap">
-    <div>
-      <div class="section-tag reveal">How It Works</div>
-      <h2 class="section-h reveal">FROM SIGNUP<br><span class="gold">TO FUNDED</span><br><span class="outline">IN 3 STEPS</span></h2>
-      <div style="margin-top:48px;">
-        <div class="stp reveal"><div class="stp-num">01</div><div><div class="stp-title">Create Your Account</div><div class="stp-desc">Sign up in under 2 minutes. Choose a platform plan that fits your goals. Start journaling and analyzing your trades from day one.</div></div></div>
-        <div class="stp reveal"><div class="stp-num">02</div><div><div class="stp-title">Build Your Edge</div><div class="stp-desc">Use charts, analytics, trade replay, and the economic calendar to sharpen your strategy. Track every trade. Know your numbers.</div></div></div>
-        <div class="stp reveal"><div class="stp-num">03</div><div><div class="stp-title">Get Evaluated. Get Funded.</div><div class="stp-desc">When you're ready, purchase a Tradephex evaluation. Pass both phases and earn access to a funded account with up to a 90% profit split.</div></div></div>
+  <!-- OUTER BOX -->
+  <div style="max-width:1060px;margin:0 auto;border:1px solid var(--border2);border-radius:4px;overflow:hidden;">
+
+    <!-- SECTION HEADER: EVALUATIONS -->
+    <div style="background:rgba(201,168,76,.07);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="text-align:left;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.08em;">🎯 EVALUATION PROGRAM</div>
+        <div style="font-size:10px;color:var(--gray);margin-top:2px;">One-time fee · Full platform included · No monthly charge during eval</div>
+      </div>
+      <div style="font-size:10px;color:var(--green);font-weight:600;white-space:nowrap;">Up to 90% profit split</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;background:var(--border);">
+      <div style="background:var(--bg);padding:22px 20px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$25,000</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$149<span style="font-size:12px;color:var(--gray);"> once</span></div>
+        <div style="font-size:10px;color:var(--gray);line-height:1.8;">10% target · 5% DD · 80% split<br>5 min trading days · No time limit</div>
+        <button class="buyBtn out" style="margin-top:14px;" onclick="buyEval('25k',this)">START EVAL →</button>
+      </div>
+      <div style="background:var(--s1);padding:22px 20px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$50,000</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$249<span style="font-size:12px;color:var(--gray);"> once</span></div>
+        <div style="font-size:10px;color:var(--gray);line-height:1.8;">10% target · 5% DD · 85% split<br>5 min trading days · No time limit</div>
+        <button class="buyBtn out" style="margin-top:14px;" onclick="buyEval('50k',this)">START EVAL →</button>
+      </div>
+      <div style="background:var(--bg);padding:22px 20px;position:relative;border-top:2px solid var(--gold);">
+        <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:8px;letter-spacing:.15em;padding:2px 10px;">POPULAR</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;margin-top:8px;">$100,000</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$399<span style="font-size:12px;color:var(--gray);"> once</span></div>
+        <div style="font-size:10px;color:var(--gray);line-height:1.8;">8% target · 5% DD · 85% split<br>5 min trading days · No time limit</div>
+        <button class="buyBtn gold" style="margin-top:14px;" onclick="buyEval('100k',this)">START EVAL →</button>
+      </div>
+      <div style="background:var(--s1);padding:22px 20px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$150,000</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$599<span style="font-size:12px;color:var(--gray);"> once</span></div>
+        <div style="font-size:10px;color:var(--gray);line-height:1.8;">8% target · 5% DD · <span style="color:var(--green);font-weight:600;">90% split</span><br>5 min trading days · No time limit</div>
+        <button class="buyBtn out" style="margin-top:14px;" onclick="buyEval('150k',this)">START EVAL →</button>
       </div>
     </div>
 
-    <!-- PLATFORM WINDOW -->
-    <div class="platform-window reveal">
-      <div class="pw-titlebar">
-        <div class="pw-dots">
-          <div class="pw-dot" style="background:#FF5F57"></div>
-          <div class="pw-dot" style="background:#FEBC2E"></div>
-          <div class="pw-dot" style="background:#28C840"></div>
+    <!-- SECTION HEADER: CHART -->
+    <div style="background:rgba(79,195,247,.05);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="text-align:left;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.08em;">📈 CHART PLATFORM</div>
+        <div style="font-size:10px;color:var(--gray);margin-top:2px;">Footprint candles · Order flow · Market profile · Pattern recognition · 6 layouts</div>
+      </div>
+      <div style="font-size:10px;color:var(--green);font-weight:600;white-space:nowrap;">Free during active eval</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:var(--border);">
+      <div style="background:var(--bg);padding:20px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Trader</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;margin-bottom:10px;">$29<span style="font-size:12px;color:var(--gray);">/mo</span></div>
+        <div style="font-size:10px;color:var(--gray);line-height:1.9;">✓ All chart types + footprint<br>✓ Order flow delta<br>✓ 4-chart layout<br>✓ Drawing tools + S/R</div>
+        <a href="/signup?plan=trader"><button class="buyBtn out" style="margin-top:14px;font-size:10px;">GET TRADER PLAN</button></a>
+      </div>
+      <div style="background:var(--s1);padding:20px;border-left:1px solid var(--border);border-right:1px solid var(--border);">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Pro</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;margin-bottom:10px;">$79<span style="font-size:12px;color:var(--gray);">/mo</span></div>
+        <div style="font-size:10px;color:var(--gray);line-height:1.9;">✓ Everything in Trader<br>✓ 6-chart layout<br>✓ Market profile (TPO)<br>✓ Journal included</div>
+        <a href="/signup?plan=pro"><button class="buyBtn out" style="margin-top:14px;font-size:10px;">GET PRO PLAN</button></a>
+      </div>
+      <div style="background:var(--bg);padding:20px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Elite</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;margin-bottom:10px;">$149<span style="font-size:12px;color:var(--gray);">/mo</span></div>
+        <div style="font-size:10px;color:var(--gray);line-height:1.9;">✓ Everything in Pro<br>✓ Priority support<br>✓ API access<br>✓ Leaderboard + analytics</div>
+        <a href="/signup?plan=elite"><button class="buyBtn out" style="margin-top:14px;font-size:10px;">GET ELITE PLAN</button></a>
+      </div>
+    </div>
+
+    <!-- SECTION HEADER: JOURNAL -->
+    <div style="background:rgba(0,230,118,.04);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;">
+      <div style="text-align:left;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.08em;">📓 TRADE JOURNAL</div>
+        <div style="font-size:10px;color:var(--gray);margin-top:2px;">Session analytics · Win rate by symbol · Avg winner vs loser · Streak tracking</div>
+      </div>
+      <div style="font-size:10px;color:var(--green);font-weight:600;white-space:nowrap;">Included with eval + Pro+</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--border);">
+      <div style="background:var(--bg);padding:20px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Journal Standalone</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;margin-bottom:10px;">$19<span style="font-size:12px;color:var(--gray);">/mo</span></div>
+        <div style="font-size:10px;color:var(--gray);line-height:1.9;">✓ Full trade history<br>✓ Session P&L (morning/lunch/close)<br>✓ Win rate by symbol<br>✓ Avg winner vs loser + expectancy</div>
+        <a href="/signup?plan=journal"><button class="buyBtn out" style="margin-top:14px;font-size:10px;">GET JOURNAL</button></a>
+      </div>
+      <div style="background:var(--s1);padding:20px;border-left:1px solid var(--border);">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Chart + Journal Bundle</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;">$39<span style="font-size:12px;color:var(--gray);">/mo</span></div>
+          <div style="font-size:11px;color:var(--gray);text-decoration:line-through;">$48</div>
         </div>
-        <div class="pw-title">Tradephex Platform</div>
-        <div class="pw-live"><div class="pw-live-dot"></div>LIVE</div>
-      </div>
-
-      <!-- SYMBOL SELECTOR + TIMEFRAMES -->
-      <div class="pw-controls">
-        <select class="symbol-select" id="symbolSelect" onchange="changeSymbol()">
-          <optgroup label="── E-MINI INDEX ──">
-            <option value="ES">ES — E-mini S&amp;P 500</option>
-            <option value="NQ">NQ — E-mini Nasdaq 100</option>
-            <option value="YM">YM — E-mini Dow Jones</option>
-            <option value="RTY">RTY — E-mini Russell 2000</option>
-          </optgroup>
-          <optgroup label="── MICRO INDEX ──">
-            <option value="MES">MES — Micro E-mini S&amp;P 500</option>
-            <option value="MNQ">MNQ — Micro E-mini Nasdaq 100</option>
-            <option value="MYM">MYM — Micro E-mini Dow Jones</option>
-            <option value="M2K">M2K — Micro E-mini Russell 2000</option>
-          </optgroup>
-          <optgroup label="── METALS ──">
-            <option value="GC">GC — Gold Futures</option>
-            <option value="SI">SI — Silver Futures</option>
-            <option value="HG">HG — Copper Futures</option>
-          </optgroup>
-          <optgroup label="── MICRO METALS ──">
-            <option value="MGC">MGC — Micro Gold</option>
-            <option value="SIL">SIL — Micro Silver</option>
-          </optgroup>
-        </select>
-        <div style="display:flex;gap:6px;">
-          <button class="tf-btn active" onclick="setTF(this,'1m')">1m</button>
-          <button class="tf-btn" onclick="setTF(this,'5m')">5m</button>
-          <button class="tf-btn" onclick="setTF(this,'15m')">15m</button>
-          <button class="tf-btn" onclick="setTF(this,'1H')">1H</button>
-          <button class="tf-btn" onclick="setTF(this,'4H')">4H</button>
-          <button class="tf-btn" onclick="setTF(this,'D')">D</button>
-        </div>
-      </div>
-
-      <!-- PRICE BAR -->
-      <div class="pw-price-bar">
-        <div class="pw-current-price" id="currentPrice">7,068.50</div>
-        <div class="pw-ohlc">
-          <div class="pw-ohlc-item"><span class="pw-ohlc-label">O </span><span class="pw-ohlc-val" id="ohlcO">7,052.25</span></div>
-          <div class="pw-ohlc-item"><span class="pw-ohlc-label">H </span><span class="pw-ohlc-val" id="ohlcH">7,084.00</span></div>
-          <div class="pw-ohlc-item"><span class="pw-ohlc-label">L </span><span class="pw-ohlc-val" id="ohlcL">7,041.50</span></div>
-          <div class="pw-ohlc-item"><span class="pw-ohlc-label">C </span><span class="pw-ohlc-val" id="ohlcC">7,068.50</span></div>
-        </div>
-        <div class="pw-change-val up" id="priceChange">▲ +16.25 (+0.23%)</div>
-      </div>
-
-      <!-- CANDLESTICK CHART -->
-      <div class="pw-chart-wrap">
-        <canvas id="candleChart"></canvas>
-      </div>
-
-      <!-- DATA ROW -->
-      <div class="pw-datarow">
-        <div class="pw-cell"><div class="pw-cell-label">Volume</div><div class="pw-cell-val" id="volDisplay">482,301</div></div>
-        <div class="pw-cell"><div class="pw-cell-label">Daily P&L</div><div class="pw-cell-val up">+$1,240</div></div>
-        <div class="pw-cell"><div class="pw-cell-label">Win Rate</div><div class="pw-cell-val gold">68.4%</div></div>
-        <div class="pw-cell"><div class="pw-cell-label">Open Int.</div><div class="pw-cell-val" id="oiDisplay">2,841,204</div></div>
+        <div style="font-size:10px;color:var(--gray);line-height:1.9;">✓ Full chart platform (Trader tier)<br>✓ Full journal included<br>✓ Save $9/month vs buying separate<br>✓ Best value for active traders</div>
+        <a href="/signup?plan=bundle"><button class="buyBtn gold" style="margin-top:14px;font-size:10px;">GET BUNDLE — SAVE $9/MO</button></a>
       </div>
     </div>
+
+    <!-- BOTTOM NOTE -->
+    <div style="background:rgba(201,168,76,.04);border-top:1px solid var(--border);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+      <span style="font-size:10px;color:var(--gray);">✓ All plans include full platform access &nbsp;·&nbsp; ✓ Cancel anytime &nbsp;·&nbsp; ✓ Chart is free during active evaluation</span>
+      <span style="font-size:10px;color:var(--gray);">Secure checkout via Stripe</span>
+    </div>
+
+  </div>
+  <p style="font-size:10px;color:var(--gray);margin-top:16px;">Reset fees start at $49 if you need to retry an evaluation.</p>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="howSection" id="how">
+  <div class="sectionLabel">The Process</div>
+  <h2>FOUR STEPS TO FUNDED</h2>
+  <div class="steps">
+    <div class="step"><div class="stepN">1</div><h3>BUY YOUR EVAL</h3><p>Choose your account size. Pay once. Access the full Tradephex platform instantly with professional tools no other firm gives you.</p></div>
+    <div class="step"><div class="stepN">2</div><h3>PASS PHASE 1</h3><p>Hit your profit target while staying within drawdown limits. Minimum 5 trading days. No time limit. Real-time rule enforcement built into the chart.</p></div>
+    <div class="step"><div class="stepN">3</div><h3>PASS PHASE 2</h3><p>Smaller target, same rules. Confirms your consistency. 5 more trading days. Your AI trade score improves with every trade.</p></div>
+    <div class="step"><div class="stepN">4</div><h3>GET PAID</h3><p>Request your profit split anytime from your dashboard. We pay within 5 business days via PayPal, ACH, or crypto.</p></div>
   </div>
 </section>
 
-<!-- MARKETS -->
-<section class="markets-section" id="markets">
-  <div class="section-tag reveal">Markets</div>
-  <h2 class="section-h reveal">TRADE THE WORLD'S<br><span class="gold">BIGGEST</span> <span class="outline">FUTURES</span></h2>
-  <div class="markets-grid reveal">
-    <div class="market-card"><div class="market-symbol">ES</div><div class="market-name">E-mini S&P 500</div><div class="market-price">7,068.50</div><div class="market-change up">▲ +0.23%</div><div class="market-sparkline"><svg viewBox="0 0 100 32"><polyline points="0,28 15,22 30,25 45,15 60,18 75,8 90,12 100,6" fill="none" stroke="#00E676" stroke-width="1.5"/></svg></div></div>
-    <div class="market-card"><div class="market-symbol">NQ</div><div class="market-name">E-mini Nasdaq 100</div><div class="market-price">19,482.75</div><div class="market-change up">▲ +0.41%</div><div class="market-sparkline"><svg viewBox="0 0 100 32"><polyline points="0,26 15,20 30,22 45,12 60,16 75,6 90,10 100,4" fill="none" stroke="#00E676" stroke-width="1.5"/></svg></div></div>
-    <div class="market-card"><div class="market-symbol">YM</div><div class="market-name">E-mini Dow Jones</div><div class="market-price">41,628.00</div><div class="market-change up">▲ +0.18%</div><div class="market-sparkline"><svg viewBox="0 0 100 32"><polyline points="0,20 15,18 30,16 45,14 60,12 75,10 90,8 100,6" fill="none" stroke="#00E676" stroke-width="1.5"/></svg></div></div>
-    <div class="market-card"><div class="market-symbol">RTY</div><div class="market-name">E-mini Russell 2000</div><div class="market-price">2,048.40</div><div class="market-change down">▼ -0.11%</div><div class="market-sparkline"><svg viewBox="0 0 100 32"><polyline points="0,10 15,14 30,12 45,18 60,16 75,20 90,18 100,22" fill="none" stroke="#FF1744" stroke-width="1.5"/></svg></div></div>
-    <div class="market-card"><div class="market-symbol">GC</div><div class="market-name">Gold Futures</div><div class="market-price">4,748.20</div><div class="market-change up">▲ +0.62%</div><div class="market-sparkline"><svg viewBox="0 0 100 32"><polyline points="0,24 15,20 30,22 45,16 60,12 75,8 90,6 100,4" fill="none" stroke="#C9A84C" stroke-width="1.5"/></svg></div></div>
-    <div class="market-card"><div class="market-symbol">SI</div><div class="market-name">Silver Futures</div><div class="market-price">76.55</div><div class="market-change down">▼ -0.18%</div><div class="market-sparkline"><svg viewBox="0 0 100 32"><polyline points="0,8 15,12 30,10 45,18 60,14 75,22 90,20 100,26" fill="none" stroke="#FF1744" stroke-width="1.5"/></svg></div></div>
-    <div class="market-card"><div class="market-symbol">HG</div><div class="market-name">Copper Futures</div><div class="market-price">6.0170</div><div class="market-change up">▲ +0.54%</div><div class="market-sparkline"><svg viewBox="0 0 100 32"><polyline points="0,18 15,16 30,14 45,16 60,12 75,14 90,10 100,8" fill="none" stroke="#00E676" stroke-width="1.5"/></svg></div></div>
-    <div class="market-card" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--gold);">50+</div>
-      <div style="font-size:11px;letter-spacing:0.15em;color:var(--gray);text-transform:uppercase;text-align:center;">More Markets<br>Available</div>
-      <a href="/signup" class="btn-outline" style="margin-top:12px;padding:8px 20px;font-size:12px;">View All</a>
-    </div>
+<!-- RULES TABLE -->
+<section class="rulesSection">
+  <div class="sectionLabel">Eval Rules</div>
+  <h2>CLEAR RULES. NO SURPRISES.</h2>
+  <div style="overflow-x:auto;margin-top:28px;">
+    <table class="rulesTable" style="display:table;">
+      <thead><tr>
+        <th>ACCOUNT</th><th>FEE</th><th>PHASE 1</th><th>PHASE 2</th><th>MAX DD</th><th>DAILY LIMIT</th><th>MIN DAYS</th><th>SPLIT</th>
+      </tr></thead>
+      <tbody>
+        <tr><td>$25,000</td><td class="gold">$149</td><td>$2,500 (10%)</td><td>$1,250 (5%)</td><td>$1,250</td><td>$500</td><td>5</td><td class="green">80%</td></tr>
+        <tr><td>$50,000</td><td class="gold">$249</td><td>$5,000 (10%)</td><td>$2,500 (5%)</td><td>$2,500</td><td>$1,000</td><td>5</td><td class="green">85%</td></tr>
+        <tr style="background:rgba(201,168,76,.03);"><td>$100,000</td><td class="gold">$399</td><td>$8,000 (8%)</td><td>$5,000 (5%)</td><td>$5,000</td><td>$2,000</td><td>5</td><td class="green">85%</td></tr>
+        <tr><td>$150,000</td><td class="gold">$599</td><td>$12,000 (8%)</td><td>$7,500 (5%)</td><td>$7,500</td><td>$3,000</td><td>5</td><td class="green">90%</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
-<!-- PRICING -->
-<section class="pricing-section" id="pricing">
-  <div class="reveal">
-    <div class="section-tag">Pricing</div>
-    <h2 class="section-h">SIMPLE.<br><span class="gold">TRANSPARENT.</span></h2>
-    <div class="pricing-toggle">
-      <span class="toggle-label active" id="monthlyLabel">Monthly</span>
-      <div class="toggle" id="billingToggle" onclick="toggleBilling()"><div class="toggle-thumb"></div></div>
-      <span class="toggle-label" id="annualLabel">Annual</span>
-      <div class="save-badge" id="saveBadge" style="opacity:0;">SAVE 20%</div>
-    </div>
+<!-- FAQ -->
+<section class="faqSection" id="faq">
+  <div style="text-align:center;">
+    <div class="sectionLabel">Questions</div>
+    <h2>FREQUENTLY ASKED</h2>
   </div>
-  <div class="pricing-grid reveal">
-    <div class="price-card">
-      <div class="price-tier">Starter</div>
-      <div class="price-amount"><sup>$</sup><span id="starterPrice">49</span></div>
-      <div class="price-period" id="starterPeriod">per month, billed monthly</div>
-      <div class="price-divider"></div>
-      <ul class="price-features">
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Real-time futures data</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Basic charting suite</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>5 saved layouts</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Daily P&L tracker</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Email support</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gray" d="M2.5 9L7 13.5L15.5 5"/></svg><span style="color:var(--gray2)">Order flow tools</span></li>
-      </ul>
-      <a href="/signup" class="btn-outline" style="width:100%;text-align:center;padding:14px;">Get Started</a>
-    </div>
-    <div class="price-card featured">
-      <div class="featured-badge">MOST POPULAR</div>
-      <div class="price-tier">Professional</div>
-      <div class="price-amount"><sup>$</sup><span id="proPrice">99</span></div>
-      <div class="price-period" id="proPeriod">per month, billed monthly</div>
-      <div class="price-divider"></div>
-      <ul class="price-features">
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Everything in Starter</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Full order flow suite</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>15 saved layouts</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Advanced analytics</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Market scanner — 50+ markets</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Priority support</li>
-      </ul>
-      <a href="/signup" class="btn-gold" style="width:100%;text-align:center;padding:14px;">Get Started</a>
-    </div>
-    <div class="price-card">
-      <div class="price-tier">Elite</div>
-      <div class="price-amount"><sup>$</sup><span id="elitePrice">199</span></div>
-      <div class="price-period" id="elitePeriod">per month, billed monthly</div>
-      <div class="price-divider"></div>
-      <ul class="price-features">
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Everything in Professional</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Unlimited saved layouts</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Multi-account management</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Early access to new features</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Exclusive trader community</li>
-        <li><svg class="check" viewBox="0 0 18 18"><path class="check-gold" d="M2.5 9L7 13.5L15.5 5"/></svg>Highest priority support</li>
-      </ul>
-      <a href="/signup" class="btn-outline" style="width:100%;text-align:center;padding:14px;">Get Started</a>
-    </div>
-  </div>
-  <p style="text-align:center;margin-top:32px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);letter-spacing:0.1em;">No credit card required · Cancel anytime · No hidden fees</p>
-</section>
-
-<!-- TESTIMONIALS -->
-<section class="testi-section">
-  <div class="section-tag reveal">Why Tradephex</div>
-  <h2 class="section-h reveal">BUILT BY A TRADER.<br><span class="gold">FOR</span> <span class="outline">TRADERS.</span></h2>
-  <div class="testi-grid reveal">
-    <div class="testi-card">
-      <div style="font-size:32px;margin-bottom:16px;">📊</div>
-      <div class="testi-quote">Most platforms are built by software engineers who've never placed a futures trade. Tradephex is built by someone who has been in the market for 11 years — every feature exists because a real trader needed it.</div>
-      <div class="testi-author"><div class="testi-avatar">BM</div><div><div class="testi-name">Brett Miller</div><div class="testi-role">Founder · 11 Years Futures Trading</div></div></div>
-    </div>
-    <div class="testi-card">
-      <div style="font-size:32px;margin-bottom:16px;">🎯</div>
-      <div class="testi-quote">The gap between retail traders and funded traders isn't talent — it's structure. Tradephex gives you the journaling, analytics, and evaluation system to close that gap faster than going it alone.</div>
-      <div class="testi-author"><div class="testi-avatar">TX</div><div><div class="testi-name">The Tradephex Mission</div><div class="testi-role">Education · Analytics · Funding Path</div></div></div>
-    </div>
-    <div class="testi-card">
-      <div style="font-size:32px;margin-bottom:16px;">⚡</div>
-      <div class="testi-quote">We're not another prop firm that just sells challenges. We're building the complete ecosystem — platform, tools, journal, analytics, evaluation, and funding — so you have everything you need in one place.</div>
-      <div class="testi-author"><div class="testi-avatar">TX</div><div><div class="testi-name">The Tradephex System</div><div class="testi-role">Platform → Evaluate → Fund</div></div></div>
-    </div>
+  <div class="faqWrap">
+    <div class="faqItem"><div class="faqQ" onclick="this.parentElement.classList.toggle('open')">Is this real money?<span>+</span></div><div class="faqA">No. Tradephex evaluations use simulated market data. Payouts to funded traders come from the evaluation fee pool, not from live market trading profits.</div></div>
+    <div class="faqItem"><div class="faqQ" onclick="this.parentElement.classList.toggle('open')">How long do I have to pass?<span>+</span></div><div class="faqA">No time limit on either phase. The only requirement is a minimum of 5 trading days per phase. Take as long as you need.</div></div>
+    <div class="faqItem"><div class="faqQ" onclick="this.parentElement.classList.toggle('open')">What happens if I blow the eval?<span>+</span></div><div class="faqA">Purchase a reset at a reduced fee or buy a fresh evaluation. No penalty beyond the fee. Your account is not failed — only the evaluation attempt ends.</div></div>
+    <div class="faqItem"><div class="faqQ" onclick="this.parentElement.classList.toggle('open')">When do I get paid?<span>+</span></div><div class="faqA">Submit a payout request from your dashboard at any time after passing. We process within 5 business days via PayPal, bank ACH, or crypto.</div></div>
+    <div class="faqItem"><div class="faqQ" onclick="this.parentElement.classList.toggle('open')">Do I need to download anything?<span>+</span></div><div class="faqA">No. Tradephex runs entirely in your web browser. No downloads, no installations, no plugins. Works on any device.</div></div>
+    <div class="faqItem"><div class="faqQ" onclick="this.parentElement.classList.toggle('open')">What instruments can I trade?<span>+</span></div><div class="faqA">ES, NQ, YM, RTY, MES, MNQ, GC, SI, CL, NG, ZC, ZW, ZS, ZN, ZB and more. All 22 CME futures contracts are available on the platform.</div></div>
   </div>
 </section>
 
 <!-- CTA -->
-<section class="cta-section" id="cta">
-  <div class="cta-bg"></div>
-  <div class="cta-glow"></div>
-  <div style="position:relative;">
-    <div class="section-tag" style="justify-content:center;margin-bottom:32px;">Start Building Your Edge Today</div>
-    <h2 class="cta-headline"><span class="outline">YOUR</span><br><span class="gold">EDGE</span><br>STARTS HERE.</h2>
-    <p class="cta-sub">Create your free Tradephex account. Journal your trades. Analyze your performance. Get evaluated. Get funded.</p>
-    <div style="position:relative;display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
-      <a href="/signup" class="btn-gold" style="padding:18px 56px;font-size:15px;">Start Free Trial</a>
-      <a href="#features" class="btn-outline" style="padding:18px 56px;font-size:15px;">Explore Platform</a>
-    </div>
-    <div style="position:relative;margin-top:28px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);letter-spacing:0.1em;text-align:center;">14-DAY FREE TRIAL &nbsp;·&nbsp; NO CREDIT CARD &nbsp;·&nbsp; CANCEL ANYTIME</div>
+<section class="ctaSection">
+  <div class="sectionLabel">Ready?</div>
+  <h2>START YOUR EVAL TODAY</h2>
+  <p style="font-size:12px;color:var(--gray);margin-bottom:28px;">Join traders using professional-grade tools to get funded.</p>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+    <a href="#pricing"><button class="btnPrimary" style="padding:16px 44px;font-size:15px;">GET FUNDED FROM $149 →</button></a>
+    <a href="/eval-chart"><button class="btnOutline" style="padding:16px 28px;font-size:14px;">TRY FREE FIRST</button></a>
   </div>
 </section>
 
 <!-- FOOTER -->
-<footer class="footer-main">
-  <div>
-    <div class="footer-logo">TRADE<span>PHEX</span></div>
-    <p class="footer-desc">The premium futures trading platform for traders who demand precision, speed, and a genuine edge. Execute. Analyze. Elevate.</p>
-    <div class="footer-social">
-      <a href="/signup" class="social-btn">X</a>
-      <a href="/signup" class="social-btn">IN</a>
-      <a href="/signup" class="social-btn">YT</a>
-      <a href="/signup" class="social-btn">IG</a>
-    </div>
+<footer>
+  <div><div class="fLogo">TRADE<span>PHEX</span></div><div style="font-size:8px;color:var(--gray);margin-top:3px;">Built on Structure. Driven by Purpose.</div></div>
+  <div class="fLinks">
+    <a href="/journal">Dashboard</a>
+    <a href="/eval-chart">Platform</a>
+    <a href="/terms">Terms</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/risk">Risk Disclosure</a>
+    <a href="/refund">Refunds</a>
+    <a href="/support">Support</a>
   </div>
-  <div><div class="footer-col-h">Platform</div><ul class="footer-nav"><li><a href="/signup">Features</a></li><li><a href="/signup">Pricing</a></li><li><a href="/signup">Markets</a></li><li><a href="/journal">Dashboard</a></li><li><a href="/support">Contact</a></li></ul></div>
-  <div><div class="footer-col-h">Company</div><ul class="footer-nav"><li><a href="/legal">Legal Hub</a></li><li><a href="/support">Support</a></li><li><a href="mailto:support@tradephex.com">Email Us</a></li><li><a href="https://twitter.com/tradephex" target="_blank">@tradephex</a></li></ul></div>
-  <div><div class="footer-col-h">Legal</div><ul class="footer-nav"><li><a href="/privacy">Privacy Policy</a></li><li><a href="/terms">Terms of Service</a></li><li><a href="/risk">Risk Disclaimer</a></li><li><a href="/refund">Refund Policy</a></li></ul></div>
+  <div class="disc">Tradephex LLC is not a registered broker-dealer or investment adviser. All trading on the Tradephex platform uses simulated market data and does not involve real money or real financial instruments. Participation constitutes enrollment in a skills assessment program only. Trading futures involves substantial risk of loss. Tradephex LLC · 74 Parsonage St, Newville, PA 17241</div>
 </footer>
-<div class="footer-bottom">
-  <div class="footer-copy">© 2026 TRADEPHEX LLC · EIN 42-2087308 · ALL RIGHTS RESERVED.</div>
-  <div class="footer-links2"><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/risk">Risk</a><a href="/refund">Refund</a><a href="mailto:support@tradephex.com">support@tradephex.com</a></div>
-</div>
 
 <script>
-// ── SYMBOL DATA (current approximate prices April 22, 2026) ──
-const SYMBOLS = {
-  ES:  {name:'E-mini S&P 500',   price:7068.50,  vol:482301,  oi:2841204, tick:0.25,  volatility:8},
-  NQ:  {name:'E-mini Nasdaq 100',price:19482.75, vol:298441,  oi:1284002, tick:0.25,  volatility:25},
-  YM:  {name:'E-mini Dow Jones', price:41628,    vol:118320,  oi:644210,  tick:1,     volatility:30},
-  RTY: {name:'E-mini Russell 2000',price:2048.40,vol:89420,   oi:542300,  tick:0.1,   volatility:3},
-  MES: {name:'Micro E-mini S&P 500',price:7068.50,vol:1284002,oi:4200000, tick:0.25,  volatility:8},
-  MNQ: {name:'Micro E-mini Nasdaq',price:19482.75,vol:842100, oi:2100000, tick:0.25,  volatility:25},
-  MYM: {name:'Micro E-mini Dow',  price:41628,   vol:284100,  oi:980000,  tick:1,     volatility:30},
-  M2K: {name:'Micro E-mini Russell',price:2048.40,vol:184200, oi:820000,  tick:0.1,   volatility:3},
-  GC:  {name:'Gold Futures',       price:4748.20, vol:184200,  oi:442100,  tick:0.1,   volatility:12},
-  SI:  {name:'Silver Futures',     price:76.55,   vol:48420,   oi:142000,  tick:0.005, volatility:0.4},
-  HG:  {name:'Copper Futures',     price:6.017,   vol:38210,   oi:198400,  tick:0.0005,volatility:0.04},
-  MGC: {name:'Micro Gold',         price:4748.20, vol:284200,  oi:820000,  tick:0.1,   volatility:12},
-  SIL: {name:'Micro Silver',       price:76.55,   vol:48100,   oi:284000,  tick:0.005, volatility:0.4},
-};
+const SB_URL='https://esgfvgpdjxalhaofmwwt.supabase.co';
+const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZ2Z2Z3BkanhhbGhhb2Ztd3d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODc0OTMsImV4cCI6MjA5MjQ2MzQ5M30.cTz_WCY9tTDQAw5yRq1XSjnvEueIypjdvOD2X9Bz1SA';
 
-let currentSymbol = 'ES';
-let candleData = [];
-let animInterval = null;
+function toast(msg,col='var(--gold)'){const t=document.getElementById('toast');t.textContent=msg;t.style.borderLeftColor=col;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),4000);}
 
-function formatPrice(sym, price) {
-  const d = SYMBOLS[sym];
-  if (sym === 'HG' || sym === 'MHG') return price.toFixed(4);
-  if (['SI','SIL'].includes(sym)) return price.toFixed(3);
-  if (['GC','MGC'].includes(sym)) return price.toFixed(1);
-  if (['RTY','M2K'].includes(sym)) return price.toFixed(1);
-  if (['YM','MYM'].includes(sym)) return price.toFixed(0);
-  return price.toFixed(2);
+async function buyEval(plan,btn){
+  const{createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+  const sb=createClient(SB_URL,SB_ANON);
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session){localStorage.setItem('pendingPlan',plan);window.location.href='/signup?redirect=checkout&plan='+plan;return;}
+  const label=btn.textContent;
+  btn.innerHTML='<div class="spin" style="display:block;"></div>';btn.disabled=true;
+  try{
+    const res=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan,user_id:session.user.id,email:session.user.email})});
+    const data=await res.json();
+    if(data.url){window.location.href=data.url;}
+    else{toast('Error: '+(data.error||'Unknown'),'#FF1744');btn.textContent=label;btn.disabled=false;}
+  }catch(e){toast('Something went wrong. Try again.','#FF1744');btn.textContent=label;btn.disabled=false;}
 }
 
-function generateCandles(sym, count) {
-  const d = SYMBOLS[sym];
-  let price = d.price;
-  const vol = d.volatility;
-  const candles = [];
-  for (let i = 0; i < count; i++) {
-    const open = price;
-    const move = (Math.random() - 0.48) * vol * 2;
-    const close = open + move;
-    const high = Math.max(open, close) + Math.abs(Math.random() * vol * 0.5);
-    const low = Math.min(open, close) - Math.abs(Math.random() * vol * 0.5);
-    candles.push({ open, high, low, close });
-    price = close;
-  }
-  return candles;
-}
-
-function drawCandleChart() {
-  const canvas = document.getElementById('candleChart');
-  if (!canvas) return;
-  const W = canvas.offsetWidth;
-  const H = canvas.offsetHeight;
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, W, H);
-
-  if (!candleData.length) return;
-
-  const pad = { l: 8, r: 60, t: 16, b: 24 };
-  const chartW = W - pad.l - pad.r;
-  const chartH = H - pad.t - pad.b;
-
-  const highs = candleData.map(c => c.high);
-  const lows = candleData.map(c => c.low);
-  const maxP = Math.max(...highs);
-  const minP = Math.min(...lows);
-  const range = maxP - minP || 1;
-
-  const toY = v => pad.t + chartH - ((v - minP) / range) * chartH;
-  const n = candleData.length;
-  const candleW = Math.max(2, (chartW / n) * 0.7);
-  const spacing = chartW / n;
-
-  // Grid lines
-  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-  ctx.lineWidth = 0.5;
-  for (let i = 1; i < 5; i++) {
-    const y = pad.t + (chartH / 5) * i;
-    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(W - pad.r, y); ctx.stroke();
-    const priceAtY = maxP - (range * i / 5);
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    ctx.font = '9px DM Mono, monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText(formatPrice(currentSymbol, priceAtY), W - pad.r + 4, y + 3);
-  }
-
-  // Candles
-  candleData.forEach((c, i) => {
-    const x = pad.l + i * spacing + spacing / 2;
-    const isUp = c.close >= c.open;
-    const color = isUp ? '#00E676' : '#FF1744';
-
-    // Wick
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(x, toY(c.high));
-    ctx.lineTo(x, toY(c.low));
-    ctx.stroke();
-
-    // Body
-    const bodyTop = toY(Math.max(c.open, c.close));
-    const bodyBot = toY(Math.min(c.open, c.close));
-    const bodyH = Math.max(1, bodyBot - bodyTop);
-    ctx.fillStyle = isUp ? 'rgba(0,230,118,0.85)' : 'rgba(255,23,68,0.85)';
-    ctx.fillRect(x - candleW / 2, bodyTop, candleW, bodyH);
-  });
-
-  // Last price line
-  const lastClose = candleData[candleData.length - 1].close;
-  const ly = toY(lastClose);
-  ctx.strokeStyle = 'rgba(201,168,76,0.6)';
-  ctx.lineWidth = 0.5;
-  ctx.setLineDash([4, 4]);
-  ctx.beginPath();
-  ctx.moveTo(pad.l, ly);
-  ctx.lineTo(W - pad.r, ly);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // Last price label
-  ctx.fillStyle = '#C9A84C';
-  ctx.font = 'bold 10px DM Mono, monospace';
-  ctx.textAlign = 'left';
-  ctx.fillText(formatPrice(currentSymbol, lastClose), W - pad.r + 4, ly + 3);
-}
-
-function updatePriceDisplay() {
-  const d = SYMBOLS[currentSymbol];
-  const last = candleData[candleData.length - 1];
-  if (!last) return;
-  const price = last.close;
-  const open = candleData[0].open;
-  const change = price - open;
-  const pct = (change / open * 100);
-  const isUp = change >= 0;
-
-  document.getElementById('currentPrice').textContent = formatPrice(currentSymbol, price);
-  document.getElementById('ohlcO').textContent = formatPrice(currentSymbol, candleData[candleData.length-1].open);
-  document.getElementById('ohlcH').textContent = formatPrice(currentSymbol, Math.max(...candleData.map(c=>c.high)));
-  document.getElementById('ohlcL').textContent = formatPrice(currentSymbol, Math.min(...candleData.map(c=>c.low)));
-  document.getElementById('ohlcC').textContent = formatPrice(currentSymbol, price);
-
-  const changeEl = document.getElementById('priceChange');
-  changeEl.textContent = `${isUp?'▲':'▼'} ${isUp?'+':''}${formatPrice(currentSymbol, change)} (${isUp?'+':''}${pct.toFixed(2)}%)`;
-  changeEl.className = 'pw-change-val ' + (isUp ? 'up' : 'down');
-
-  document.getElementById('volDisplay').textContent = (d.vol + Math.floor(Math.random()*5000)).toLocaleString();
-  document.getElementById('oiDisplay').textContent = d.oi.toLocaleString();
-}
-
-function changeSymbol() {
-  currentSymbol = document.getElementById('symbolSelect').value;
-  candleData = generateCandles(currentSymbol, 60);
-  drawCandleChart();
-  updatePriceDisplay();
-  // Update title
-  document.querySelector('.pw-title').textContent = `Tradephex — ${currentSymbol} Futures`;
-}
-
-function setTF(btn, tf) {
-  document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  // Regenerate candles with different volatility feel
-  candleData = generateCandles(currentSymbol, 60);
-  drawCandleChart();
-  updatePriceDisplay();
-}
-
-// Init chart
-function initChart() {
-  candleData = generateCandles(currentSymbol, 60);
-  drawCandleChart();
-  updatePriceDisplay();
-}
-
-// Live simulation - add new candle or update last candle
-setInterval(() => {
-  if (!candleData.length) return;
-  const last = candleData[candleData.length - 1];
-  const sym = SYMBOLS[currentSymbol];
-  const move = (Math.random() - 0.48) * sym.volatility * 0.3;
-  const newClose = last.close + move;
-  last.close = newClose;
-  last.high = Math.max(last.high, newClose);
-  last.low = Math.min(last.low, newClose);
-
-  // Every 10 ticks, add a new candle
-  if (Math.random() < 0.1) {
-    candleData.push({ open: newClose, high: newClose, low: newClose, close: newClose });
-    if (candleData.length > 60) candleData.shift();
-  }
-
-  drawCandleChart();
-  updatePriceDisplay();
-}, 600);
-
-// ── CURSOR ──
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursorRing');
-let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove', e => {
-  mx=e.clientX; my=e.clientY;
-  cursor.style.left=mx+'px'; cursor.style.top=my+'px';
-});
-(function animRing(){
-  rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12;
-  ring.style.left=rx+'px'; ring.style.top=ry+'px';
-  requestAnimationFrame(animRing);
-})();
-document.querySelectorAll('a,button,select,.feat,.stat-card,.market-card,.testi-card,.stp').forEach(el=>{
-  el.addEventListener('mouseenter',()=>ring.classList.add('hovering'));
-  el.addEventListener('mouseleave',()=>ring.classList.remove('hovering'));
-});
-
-// ── NAV ──
-window.addEventListener('scroll',()=>{
-  document.getElementById('mainNav').classList.toggle('scrolled', window.scrollY>80);
-});
-
-// ── TICKER ──
-const tickers=[
-  {name:'ES',price:'7,068.50',change:'+0.23%',up:true},
-  {name:'MES',price:'7,068.50',change:'+0.23%',up:true},
-  {name:'NQ',price:'19,482.75',change:'+0.41%',up:true},
-  {name:'MNQ',price:'19,482.75',change:'+0.41%',up:true},
-  {name:'YM',price:'41,628',change:'+0.18%',up:true},
-  {name:'MYM',price:'41,628',change:'+0.18%',up:true},
-  {name:'RTY',price:'2,048.40',change:'-0.11%',up:false},
-  {name:'M2K',price:'2,048.40',change:'-0.11%',up:false},
-  {name:'GC',price:'4,748.20',change:'+0.62%',up:true},
-  {name:'MGC',price:'4,748.20',change:'+0.62%',up:true},
-  {name:'SI',price:'76.55',change:'-0.18%',up:false},
-  {name:'SIL',price:'76.55',change:'-0.18%',up:false},
-  {name:'HG',price:'6.0170',change:'+0.54%',up:true},
-];
-const track=document.getElementById('tickerTrack');
-const makeItems=()=>tickers.map(t=>`<div class="ticker-item"><span class="ticker-name">${t.name}</span><span class="ticker-price">${t.price}</span><span class="ticker-change ${t.up?'up':'down'}">${t.change}</span></div>`).join('');
-track.innerHTML=makeItems()+makeItems();
-
-// ── PARTICLES ──
-const canvas=document.getElementById('particles');
-const ctx=canvas.getContext('2d');
-let pts=[];
-function resizeCanvas(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;}
-resizeCanvas();window.addEventListener('resize',()=>{resizeCanvas();initChart();});
-for(let i=0;i<60;i++) pts.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,vx:(Math.random()-0.5)*0.3,vy:(Math.random()-0.5)*0.3,r:Math.random()*1.5+0.5,a:Math.random()*0.4+0.1});
-(function drawParticles(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  pts.forEach(p=>{
-    p.x+=p.vx;p.y+=p.vy;
-    if(p.x<0||p.x>canvas.width)p.vx*=-1;
-    if(p.y<0||p.y>canvas.height)p.vy*=-1;
-    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fillStyle=`rgba(201,168,76,${p.a})`;ctx.fill();
-  });
-  pts.forEach((a,i)=>{pts.slice(i+1).forEach(b=>{
-    const d=Math.hypot(a.x-b.x,a.y-b.y);
-    if(d<120){ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.strokeStyle=`rgba(201,168,76,${0.06*(1-d/120)})`;ctx.lineWidth=0.5;ctx.stroke();}
-  });});
-  requestAnimationFrame(drawParticles);
-})();
-
-// ── REVEALS ──
-const reveals=document.querySelectorAll('.reveal');
-const io=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
-},{threshold:0.1});
-reveals.forEach(el=>io.observe(el));
-
-// ── PRICING TOGGLE ──
-let isAnnual=false;
-function toggleBilling(){
-  isAnnual=!isAnnual;
-  document.getElementById('billingToggle').classList.toggle('annual',isAnnual);
-  document.getElementById('monthlyLabel').classList.toggle('active',!isAnnual);
-  document.getElementById('annualLabel').classList.toggle('active',isAnnual);
-  document.getElementById('saveBadge').style.opacity=isAnnual?'1':'0';
-  document.getElementById('starterPrice').textContent=isAnnual?39:49;
-  document.getElementById('proPrice').textContent=isAnnual?79:99;
-  document.getElementById('elitePrice').textContent=isAnnual?159:199;
-  const p=isAnnual?'per month, billed annually':'per month, billed monthly';
-  ['starterPeriod','proPeriod','elitePeriod'].forEach(id=>document.getElementById(id).textContent=p);
-}
-
-// ── INIT ──
-window.addEventListener('load', () => {
-  setTimeout(initChart, 100);
-});
+const p=new URLSearchParams(location.search);
+if(p.get('eval')==='success'){toast('🎉 Eval purchased! Redirecting to dashboard...','#00E676');setTimeout(()=>window.location.href='/journal',2500);}
+if(p.get('canceled')==='true'){toast('Checkout canceled. No charge was made.','#FF9800');}
 </script>
 </body>
 </html>

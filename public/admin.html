@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tradephex Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--bg:#06060A;--s1:#0B0B12;--s2:#10101A;--gold:#C9A84C;--white:#E8E8F2;--gray:#606078;--green:#00E676;--red:#FF1744;--orange:#FF9800;--border:rgba(201,168,76,.12);--border2:rgba(201,168,76,.28);--borderb:rgba(255,255,255,.05);}
+body{background:var(--bg);color:var(--white);font-family:'DM Mono',monospace;font-size:12px;}
+::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--gold);}
+#app{display:flex;height:100vh;}
+nav{width:220px;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+.navLogo{padding:20px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;border-bottom:1px solid var(--border);}
+.navLogo span{color:var(--gold);}
+.navBadge{font-size:8px;letter-spacing:.12em;color:var(--red);margin-left:6px;}
+.navItem{padding:11px 18px;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--gray);transition:.12s;font-size:11px;}
+.navItem:hover,.navItem.on{background:rgba(201,168,76,.06);color:var(--white);}
+.navItem.on{border-left:2px solid var(--gold);}
+main{flex:1;overflow-y:auto;padding:28px 32px;}
+h1{font-family:'Barlow Condensed',sans-serif;font-size:26px;letter-spacing:.08em;margin-bottom:6px;}
+.sub{font-size:10px;color:var(--gray);margin-bottom:28px;}
+.statsRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:28px;}
+.statCard{background:var(--s1);border:1px solid var(--border);padding:16px 18px;}
+.statLabel{font-size:8px;letter-spacing:.1em;color:var(--gray);margin-bottom:5px;}
+.statVal{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:28px;}
+table{width:100%;border-collapse:collapse;font-size:11px;}
+th{text-align:left;padding:8px 12px;font-size:8px;letter-spacing:.1em;color:var(--gray);border-bottom:1px solid var(--border);}
+td{padding:10px 12px;border-bottom:1px solid var(--borderb);}
+tr:hover td{background:rgba(255,255,255,.02);}
+.badge{display:inline-block;padding:2px 8px;font-size:9px;letter-spacing:.06em;}
+.badge.active{background:rgba(0,230,118,.12);color:var(--green);}
+.badge.passed{background:rgba(201,168,76,.12);color:var(--gold);}
+.badge.failed{background:rgba(255,23,68,.12);color:var(--red);}
+.badge.pending{background:rgba(255,152,0,.12);color:var(--orange);}
+.badge.paid{background:rgba(0,230,118,.12);color:var(--green);}
+.actBtn{padding:4px 10px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;border-radius:2px;border:1px solid;transition:.12s;}
+.actBtn.approve{background:rgba(0,230,118,.12);border-color:rgba(0,230,118,.3);color:var(--green);}
+.actBtn.approve:hover{background:rgba(0,230,118,.2);}
+.actBtn.reject{background:rgba(255,23,68,.1);border-color:rgba(255,23,68,.3);color:var(--red);}
+.panel{background:var(--s1);border:1px solid var(--border);margin-bottom:24px;}
+.panelHead{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.panelHead h2{font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:.12em;}
+.panelBody{padding:0;}
+.tab{display:none;}.tab.active{display:block;}
+#toast{position:fixed;bottom:20px;right:20px;background:rgba(8,8,18,.97);border-left:3px solid var(--gold);padding:10px 16px;z-index:999;font-size:11px;border-radius:0 3px 3px 0;transform:translateX(120%);transition:transform .3s;}
+#toast.show{transform:none;}
+.searchRow{display:flex;gap:8px;margin-bottom:16px;}
+.searchRow input,.searchRow select{background:var(--s2);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:11px;padding:6px 10px;outline:none;border-radius:2px;}
+.searchRow input{flex:1;}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="app">
+<nav>
+  <div class="navLogo">TRADE<span>PHEX</span> <span class="navBadge">ADMIN</span></div>
+  <div class="navItem on" onclick="showTab('dashboard',this)">📊 Dashboard</div>
+  <div class="navItem" onclick="showTab('evals',this)">📋 Evaluations</div>
+  <div class="navItem" onclick="showTab('payouts',this)">💸 Payout Requests</div>
+  <div class="navItem" onclick="showTab('traders',this)">👥 Traders</div>
+  <div class="navItem" onclick="showTab('revenue',this)">💰 Revenue</div>
+  <div class="navItem" onclick="showTab('emails',this)">✉ Email Queue</div>
+  <div style="margin-top:auto;padding:14px 18px;border-top:1px solid var(--border);">
+    <div style="font-size:9px;color:var(--gray);">Logged in as</div>
+    <div style="font-size:11px;color:var(--white);margin-top:2px;" id="adminEmail">—</div>
+    <button onclick="signOut()" style="margin-top:8px;background:none;border:1px solid var(--borderb);color:var(--gray);font-size:10px;padding:4px 10px;cursor:pointer;width:100%;">Sign Out</button>
+  </div>
+</nav>
+
+<main>
+  <!-- DASHBOARD TAB -->
+  <div id="tab-dashboard" class="tab active">
+    <h1>ADMIN DASHBOARD</h1>
+    <div class="sub" id="lastRefresh">Loading...</div>
+    <div class="statsRow" id="statsRow">
+      <div class="statCard"><div class="statLabel">TOTAL REVENUE</div><div class="statVal" id="stat-revenue" style="color:var(--gold);">$0</div></div>
+      <div class="statCard"><div class="statLabel">ACTIVE EVALS</div><div class="statVal" id="stat-active" style="color:var(--blue);">0</div></div>
+      <div class="statCard"><div class="statLabel">PASSED</div><div class="statVal" id="stat-passed" style="color:var(--green);">0</div></div>
+      <div class="statCard"><div class="statLabel">FAILED</div><div class="statVal" id="stat-failed" style="color:var(--red);">0</div></div>
+      <div class="statCard"><div class="statLabel">PENDING PAYOUTS</div><div class="statVal" id="stat-payouts" style="color:var(--orange);">0</div></div>
+      <div class="statCard"><div class="statLabel">TOTAL TRADERS</div><div class="statVal" id="stat-traders">0</div></div>
+    </div>
+    <div class="panel">
+      <div class="panelHead"><h2>RECENT ACTIVITY</h2><button onclick="loadAll()" style="background:none;border:1px solid var(--borderb);color:var(--gray);font-size:10px;padding:4px 10px;cursor:pointer;">Refresh</button></div>
+      <div class="panelBody"><table><thead><tr><th>TIME</th><th>EVENT</th><th>USER</th><th>AMOUNT</th><th>STATUS</th></tr></thead><tbody id="recentActivity"><tr><td colspan="5" style="color:var(--gray);text-align:center;padding:20px;">Loading...</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- EVALS TAB -->
+  <div id="tab-evals" class="tab">
+    <h1>EVALUATIONS</h1>
+    <div class="sub">All active and completed evaluations.</div>
+    <div class="searchRow">
+      <input id="evalSearch" placeholder="Search by user or eval ID..." oninput="filterEvals()">
+      <select id="evalFilter" onchange="filterEvals()">
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="passed">Passed</option>
+        <option value="failed">Failed</option>
+      </select>
+    </div>
+    <div class="panel">
+      <div class="panelBody"><table><thead><tr><th>ID</th><th>USER</th><th>ACCOUNT</th><th>PHASE</th><th>NET P&L</th><th>MAX DD</th><th>DAYS</th><th>STATUS</th><th>STARTED</th><th>ACTION</th></tr></thead><tbody id="evalsTable"><tr><td colspan="10" style="color:var(--gray);text-align:center;padding:20px;">Loading...</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- PAYOUTS TAB -->
+  <div id="tab-payouts" class="tab">
+    <h1>PAYOUT REQUESTS</h1>
+    <div class="sub">Review and approve funded trader payouts.</div>
+    <div class="panel">
+      <div class="panelBody"><table><thead><tr><th>ID</th><th>TRADER</th><th>AMOUNT</th><th>METHOD</th><th>REQUESTED</th><th>STATUS</th><th>ACTION</th></tr></thead><tbody id="payoutsTable"><tr><td colspan="7" style="color:var(--gray);text-align:center;padding:20px;">Loading...</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- TRADERS TAB -->
+  <div id="tab-traders" class="tab">
+    <h1>TRADERS</h1>
+    <div class="sub">All registered users.</div>
+    <div class="panel">
+      <div class="panelBody"><table><thead><tr><th>EMAIL</th><th>NAME</th><th>JOINED</th><th>PLAN</th><th>EVALS</th><th>TOTAL PAID</th></tr></thead><tbody id="tradersTable"><tr><td colspan="6" style="color:var(--gray);text-align:center;padding:20px;">Loading...</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- REVENUE TAB -->
+  <div id="tab-revenue" class="tab">
+    <h1>REVENUE</h1>
+    <div class="sub">Stripe payment history.</div>
+    <div class="statsRow">
+      <div class="statCard"><div class="statLabel">THIS MONTH</div><div class="statVal" id="rev-month" style="color:var(--green);">$0</div></div>
+      <div class="statCard"><div class="statLabel">ALL TIME</div><div class="statVal" id="rev-total" style="color:var(--gold);">$0</div></div>
+      <div class="statCard"><div class="statLabel">AVG EVAL PRICE</div><div class="statVal" id="rev-avg">$0</div></div>
+      <div class="statCard"><div class="statLabel">PAYOUT OBLIGATIONS</div><div class="statVal" id="rev-payout" style="color:var(--orange);">$0</div></div>
+    </div>
+    <div class="panel">
+      <div class="panelBody"><table><thead><tr><th>DATE</th><th>PLAN</th><th>AMOUNT</th><th>EMAIL</th><th>STRIPE ID</th></tr></thead><tbody id="revenueTable"><tr><td colspan="5" style="color:var(--gray);text-align:center;padding:20px;">Loading...</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- EMAIL TAB -->
+  <div id="tab-emails" class="tab">
+    <h1>EMAIL QUEUE</h1>
+    <div class="sub">Pending and sent transactional emails.</div>
+    <div class="panel">
+      <div class="panelBody"><table><thead><tr><th>TO</th><th>TEMPLATE</th><th>SUBJECT</th><th>STATUS</th><th>CREATED</th><th>ACTION</th></tr></thead><tbody id="emailTable"><tr><td colspan="6" style="color:var(--gray);text-align:center;padding:20px;">Loading...</td></tr></tbody></table></div>
+    </div>
+  </div>
+</main>
+</div>
+
+<script type="module">
+import{createClient}from'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+const sb=createClient('https://esgfvgpdjxalhaofmwwt.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZ2Z2Z3BkanhhbGhhb2Ztd3d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODc0OTMsImV4cCI6MjA5MjQ2MzQ5M30.cTz_WCY9tTDQAw5yRq1XSjnvEueIypjdvOD2X9Bz1SA');
+
+// Auth check
+const{data:{session}}=await sb.auth.getSession();
+if(!session){window.location.href='/login';throw new Error('Not logged in');}
+document.getElementById('adminEmail').textContent=session.user.email;
+
+function toast(msg,col='var(--gold)'){const t=document.getElementById('toast');t.textContent=msg;t.style.borderLeftColor=col;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+window.toast=toast;
+
+// Tab switching
+window.showTab=(id,el)=>{
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.navItem').forEach(n=>n.classList.remove('on'));
+  document.getElementById('tab-'+id).classList.add('active');
+  el.classList.add('on');
+  if(id==='dashboard')loadDashboard();
+  else if(id==='evals')loadEvals();
+  else if(id==='payouts')loadPayouts();
+  else if(id==='traders')loadTraders();
+  else if(id==='revenue')loadRevenue();
+  else if(id==='emails')loadEmails();
+};
+
+// DASHBOARD
+async function loadDashboard(){
+  document.getElementById('lastRefresh').textContent='Last updated: '+new Date().toLocaleTimeString();
+  const[evalsR,payoutsR,tradersR]=await Promise.all([
+    sb.from('evaluations').select('*'),
+    sb.from('payout_requests').select('*').eq('status','pending'),
+    sb.from('profiles').select('id'),
+  ]);
+  const evals=evalsR.data||[];const payouts=payoutsR.data||[];const traders=tradersR.data||[];
+  const PRICES={'25000':149,'50000':249,'100000':399,'150000':599};
+  const revenue=evals.reduce((s,e)=>s+(PRICES[e.account_size]||0),0);
+  document.getElementById('stat-revenue').textContent='$'+revenue.toLocaleString();
+  document.getElementById('stat-active').textContent=evals.filter(e=>e.status==='active').length;
+  document.getElementById('stat-passed').textContent=evals.filter(e=>e.status==='passed').length;
+  document.getElementById('stat-failed').textContent=evals.filter(e=>e.status==='failed').length;
+  document.getElementById('stat-payouts').textContent=payouts.length;
+  document.getElementById('stat-traders').textContent=traders.length;
+  // Recent activity
+  const recent=[...evals].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,10);
+  document.getElementById('recentActivity').innerHTML=recent.length?recent.map(e=>`
+    <tr><td style="color:var(--gray);">${new Date(e.created_at).toLocaleDateString()}</td>
+    <td>Eval Purchased</td><td style="font-size:9px;">${e.user_id?.slice(0,8)||'—'}...</td>
+    <td style="color:var(--gold);">$${PRICES[e.account_size]||'?'}</td>
+    <td><span class="badge ${e.status}">${e.status}</span></td></tr>`).join('')
+    :'<tr><td colspan="5" style="color:var(--gray);text-align:center;padding:16px;">No activity yet.</td></tr>';
+}
+
+// EVALS
+let allEvals=[];
+async function loadEvals(){
+  const{data}=await sb.from('evaluations').select('*').order('created_at',{ascending:false});
+  allEvals=data||[];renderEvals(allEvals);
+}
+function renderEvals(list){
+  document.getElementById('evalsTable').innerHTML=list.length?list.map(e=>`
+    <tr><td style="font-size:9px;color:var(--gray);">${e.id?.slice(0,8)||'—'}</td>
+    <td style="font-size:9px;">${e.user_id?.slice(0,8)||'—'}...</td>
+    <td>$${(e.account_size||0).toLocaleString()}</td>
+    <td>${e.phase}</td>
+    <td style="color:${(e.net_pnl||0)>=0?'var(--green)':'var(--red)'};">${(e.net_pnl||0)>=0?'+':''}$${(e.net_pnl||0).toFixed(0)}</td>
+    <td style="color:var(--orange);">$${(e.max_drawdown||0).toFixed(0)}</td>
+    <td>${e.trading_days||0}</td>
+    <td><span class="badge ${e.status}">${e.status}</span></td>
+    <td style="font-size:9px;color:var(--gray);">${e.created_at?new Date(e.created_at).toLocaleDateString():'—'}</td>
+    <td>
+      ${e.status==='active'?`<button class="actBtn approve" onclick="passEval('${e.id}')">Pass</button> <button class="actBtn reject" onclick="failEval('${e.id}')">Fail</button>`:'—'}
+    </td></tr>`).join('')
+    :'<tr><td colspan="10" style="color:var(--gray);text-align:center;padding:16px;">No evaluations yet.</td></tr>';
+}
+window.filterEvals=()=>{
+  const q=document.getElementById('evalSearch').value.toLowerCase();
+  const f=document.getElementById('evalFilter').value;
+  renderEvals(allEvals.filter(e=>(!q||JSON.stringify(e).toLowerCase().includes(q))&&(!f||e.status===f)));
+};
+window.passEval=async(id)=>{
+  if(!confirm('Mark eval as PASSED?'))return;
+  await sb.from('evaluations').update({status:'passed'}).eq('id',id);
+  toast('Eval marked as passed','var(--green)');loadEvals();
+};
+window.failEval=async(id)=>{
+  if(!confirm('Mark eval as FAILED?'))return;
+  await sb.from('evaluations').update({status:'failed'}).eq('id',id);
+  toast('Eval marked as failed','var(--red)');loadEvals();
+};
+
+// PAYOUTS
+async function loadPayouts(){
+  const{data}=await sb.from('payout_requests').select('*').order('requested_at',{ascending:false}).catch(()=>({data:[]}));
+  const rows=data||[];
+  document.getElementById('payoutsTable').innerHTML=rows.length?rows.map(p=>`
+    <tr><td style="font-size:9px;color:var(--gray);">${p.id?.slice(0,8)||'—'}</td>
+    <td style="font-size:9px;">${p.user_id?.slice(0,8)||'—'}...</td>
+    <td style="color:var(--green);font-weight:600;">$${(p.amount_requested||0).toFixed(2)}</td>
+    <td>${p.payment_method||'—'}</td>
+    <td style="font-size:9px;color:var(--gray);">${p.requested_at?new Date(p.requested_at).toLocaleDateString():'—'}</td>
+    <td><span class="badge ${p.status}">${p.status}</span></td>
+    <td>${p.status==='pending'?`<button class="actBtn approve" onclick="approvePayout('${p.id}',${p.amount_requested})">Approve</button> <button class="actBtn reject" onclick="rejectPayout('${p.id}')">Reject</button>`:'—'}</td></tr>`).join('')
+    :'<tr><td colspan="7" style="color:var(--gray);text-align:center;padding:16px;">No payout requests yet.</td></tr>';
+}
+window.approvePayout=async(id,amount)=>{
+  if(!confirm(`Approve payout of $${amount}? This means you will send payment manually.`))return;
+  await sb.from('payout_requests').update({status:'approved',processed_at:new Date().toISOString()}).eq('id',id).catch(()=>{});
+  toast(`Payout approved — send $${amount} to trader`,'var(--green)');loadPayouts();loadDashboard();
+};
+window.rejectPayout=async(id)=>{
+  const reason=prompt('Reason for rejection:');if(!reason)return;
+  await sb.from('payout_requests').update({status:'rejected',rejection_reason:reason}).eq('id',id).catch(()=>{});
+  toast('Payout rejected','var(--red)');loadPayouts();
+};
+
+// TRADERS
+async function loadTraders(){
+  const{data}=await sb.from('profiles').select('*').order('created_at',{ascending:false});
+  const traders=data||[];
+  document.getElementById('tradersTable').innerHTML=traders.length?traders.map(t=>`
+    <tr><td>${t.email||'—'}</td>
+    <td>${t.display_name||'—'}</td>
+    <td style="font-size:9px;color:var(--gray);">${t.created_at?new Date(t.created_at).toLocaleDateString():'—'}</td>
+    <td><span class="badge ${t.plan==='eval_active'?'active':t.plan==='funded'?'passed':'pending'}">${t.plan||'free'}</span></td>
+    <td>—</td><td>—</td></tr>`).join('')
+    :'<tr><td colspan="6" style="color:var(--gray);text-align:center;padding:16px;">No traders yet.</td></tr>';
+}
+
+// REVENUE
+async function loadRevenue(){
+  const{data}=await sb.from('evaluations').select('account_size,created_at,user_id,stripe_session_id').order('created_at',{ascending:false});
+  const evals=data||[];
+  const PRICES={'25000':149,'50000':249,'100000':399,'150000':599};
+  const total=evals.reduce((s,e)=>s+(PRICES[e.account_size]||0),0);
+  const now=new Date();const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const month=evals.filter(e=>new Date(e.created_at)>=monthStart).reduce((s,e)=>s+(PRICES[e.account_size]||0),0);
+  const avg=evals.length?Math.round(total/evals.length):0;
+  document.getElementById('rev-total').textContent='$'+total.toLocaleString();
+  document.getElementById('rev-month').textContent='$'+month.toLocaleString();
+  document.getElementById('rev-avg').textContent='$'+avg;
+  document.getElementById('rev-payout').textContent='$'+(total*.15).toLocaleString();// Est 15% payout obligation
+  document.getElementById('revenueTable').innerHTML=evals.length?evals.map(e=>`
+    <tr><td style="font-size:9px;color:var(--gray);">${e.created_at?new Date(e.created_at).toLocaleDateString():'—'}</td>
+    <td>$${(e.account_size||0).toLocaleString()} Eval</td>
+    <td style="color:var(--gold);">$${PRICES[e.account_size]||'?'}</td>
+    <td style="font-size:9px;">${e.user_id?.slice(0,8)||'—'}...</td>
+    <td style="font-size:9px;color:var(--gray);">${e.stripe_session_id?.slice(0,18)||'—'}...</td></tr>`).join('')
+    :'<tr><td colspan="5" style="color:var(--gray);text-align:center;padding:16px;">No revenue yet.</td></tr>';
+}
+
+// EMAILS
+async function loadEmails(){
+  const{data}=await sb.from('email_log').select('*').order('created_at',{ascending:false}).limit(50).catch(()=>({data:[]}));
+  const emails=data||[];
+  document.getElementById('emailTable').innerHTML=emails.length?emails.map(e=>`
+    <tr><td>${e.to_email||'—'}</td>
+    <td style="font-size:9px;">${e.template||'—'}</td>
+    <td style="font-size:9px;">${e.subject||'—'}</td>
+    <td><span class="badge ${e.status==='sent'?'passed':e.status==='pending'?'active':'failed'}">${e.status}</span></td>
+    <td style="font-size:9px;color:var(--gray);">${e.created_at?new Date(e.created_at).toLocaleString():'—'}</td>
+    <td>${e.status==='pending'?`<button class="actBtn approve" onclick="sendEmail('${e.id}')">Send Now</button>`:'—'}</td></tr>`).join('')
+    :'<tr><td colspan="6" style="color:var(--gray);text-align:center;padding:16px;">No emails queued.</td></tr>';
+}
+window.sendEmail=async(id)=>{toast('Email sending not yet wired to Resend — add RESEND_API_KEY env var','var(--orange)');};
+
+window.loadAll=loadDashboard;
+window.signOut=async()=>{await sb.auth.signOut();window.location.href='/login';};
+
+// Load dashboard on start
+loadDashboard();
+</script>
+</body>
+</html>

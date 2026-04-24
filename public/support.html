@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tradephex — Contact Support</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--black:#060606;--surface:#0E0E0E;--surface2:#151515;--gold:#C9A84C;--gold-bright:#F0CF7A;--gold-dim:#6B5520;--white:#F5F5F5;--gray:#BBBBBB;--gray2:#888888;--gray3:#444444;--border:rgba(201,168,76,0.15);--border2:rgba(201,168,76,0.3);--green:#00E676;--red:#FF1744;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(201,168,76,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.04) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;mask-image:radial-gradient(ellipse at center,black 20%,transparent 80%);}
+nav{padding:0 60px;height:72px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(6,6,6,0.95);position:relative;z-index:1;}
+.nav-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;letter-spacing:0.1em;color:var(--white);text-decoration:none;}
+.nav-logo span{color:var(--gold);}
+.nav-right{display:flex;gap:20px;align-items:center;}
+.nav-right a{font-size:13px;color:var(--gray2);text-decoration:none;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.1em;text-transform:uppercase;}
+.nav-right a:hover{color:var(--gold);}
+.btn-gold{background:var(--gold);color:var(--black);padding:10px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;}
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:80px 24px;position:relative;z-index:1;}
+.support-wrap{width:100%;max-width:960px;display:grid;grid-template-columns:1fr 1.5fr;gap:60px;align-items:start;}
+.support-info{}
+.support-eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
+.support-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;letter-spacing:0.02em;line-height:1;text-transform:uppercase;color:var(--white);margin-bottom:20px;}
+.support-title span{color:var(--gold);}
+.support-desc{font-size:15px;color:var(--gray);line-height:1.8;font-weight:300;margin-bottom:40px;}
+.support-methods{display:flex;flex-direction:column;gap:0;}
+.support-method{display:flex;align-items:center;gap:16px;padding:18px 0;border-bottom:1px solid var(--border);}
+.support-method:last-child{border-bottom:none;}
+.method-icon{width:40px;height:40px;background:rgba(201,168,76,0.08);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.method-icon svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
+.method-label{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);margin-bottom:2px;}
+.method-value{font-family:'DM Mono',monospace;font-size:12px;color:var(--gray2);}
+.support-form{background:var(--surface);border:1px solid var(--border2);padding:40px;}
+.form-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);margin-bottom:28px;}
+.form-group{margin-bottom:20px;}
+.form-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;}
+.form-input{width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:12px 16px;outline:none;transition:border-color 0.2s;}
+.form-input:focus{border-color:var(--gold);}
+.form-input::placeholder{color:var(--gray3);}
+.form-select{width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:12px 16px;outline:none;appearance:none;cursor:pointer;transition:border-color 0.2s;}
+.form-select:focus{border-color:var(--gold);}
+.form-textarea{width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'Barlow',sans-serif;font-size:13px;padding:12px 16px;outline:none;resize:vertical;min-height:120px;transition:border-color 0.2s;}
+.form-textarea:focus{border-color:var(--gold);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.btn-submit{width:100%;background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.15em;text-transform:uppercase;padding:14px;cursor:pointer;transition:background 0.2s;margin-top:8px;}
+.btn-submit:hover{background:var(--gold-bright);}
+.btn-submit:disabled{opacity:0.5;cursor:not-allowed;}
+.success-msg{background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);color:var(--green);font-family:'DM Mono',monospace;font-size:11px;padding:12px 16px;margin-bottom:20px;display:none;}
+.success-msg.show{display:block;}
+.error-msg{background:rgba(255,23,68,0.08);border:1px solid rgba(255,23,68,0.2);color:var(--red);font-family:'DM Mono',monospace;font-size:11px;padding:12px 16px;margin-bottom:20px;display:none;}
+.error-msg.show{display:block;}
+footer{padding:24px 60px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;}
+.footer-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:0.1em;color:var(--white);}
+.footer-logo span{color:var(--gold);}
+.footer-copy{font-family:'DM Mono',monospace;font-size:10px;color:var(--gray3);}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo">TRADE<span>PHEX</span></a>
+  <div class="nav-right">
+    <a href="/journal">Dashboard</a>
+    <a href="/login" class="btn-gold">Log In</a>
+  </div>
+</nav>
+<main>
+  <div class="support-wrap">
+    <div class="support-info">
+      <div class="support-eyebrow">We're here to help</div>
+      <h1 class="support-title">CONTACT<br><span>SUPPORT</span></h1>
+      <p class="support-desc">Have a question, found a bug, or need help with your account? Fill out the form and we'll get back to you as fast as possible.</p>
+      <div class="support-methods">
+        <div class="support-method">
+          <div class="method-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div><div class="method-label">Email Support</div><div class="method-value">support@tradephex.com</div></div>
+        </div>
+        <div class="support-method">
+          <div class="method-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg></div>
+          <div><div class="method-label">Response Time</div><div class="method-value">Within 24 hours on business days</div></div>
+        </div>
+        <div class="support-method">
+          <div class="method-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <div><div class="method-label">Follow Us</div><div class="method-value">@tradephex on X, Instagram, YouTube</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="support-form">
+      <div class="form-title">Send a Message</div>
+      <div class="success-msg" id="successMsg">Message sent! We'll get back to you within 24 hours.</div>
+      <div class="error-msg" id="errorMsg"></div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input type="text" class="form-input" id="sf-firstname" placeholder="Brett">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input type="text" class="form-input" id="sf-lastname" placeholder="Miller">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" class="form-input" id="sf-email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <select class="form-select" id="sf-category">
+          <option value="">Select a category...</option>
+          <option>Account & Billing</option>
+          <option>Platform & Features</option>
+          <option>Trade Journal</option>
+          <option>Charts & Data</option>
+          <option>Login & Access</option>
+          <option>Bug Report</option>
+          <option>Feature Request</option>
+          <option>Upgrade / Downgrade Plan</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Subject</label>
+        <input type="text" class="form-input" id="sf-subject" placeholder="Brief description of your issue">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message</label>
+        <textarea class="form-textarea" id="sf-message" placeholder="Describe your question or issue in detail..."></textarea>
+      </div>
+      <button class="btn-submit" id="submitBtn" onclick="submitSupport()">Send Message</button>
+    </div>
+  </div>
+</main>
+<footer>
+  <div class="footer-logo">TRADE<span>PHEX</span></div>
+  <div class="footer-copy">© 2026 Tradephex · Execute. Analyze. Elevate.</div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://esgfvgpdjxalhaofmwwt.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZ2Z2Z3BkanhhbGhhb2Ztd3d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODc0OTMsImV4cCI6MjA5MjQ2MzQ5M30.cTz_WCY9tTDQAw5yRq1XSjnvEueIypjdvOD2X9Bz1SA';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function submitSupport() {
+  const firstName = document.getElementById('sf-firstname').value.trim();
+  const lastName = document.getElementById('sf-lastname').value.trim();
+  const email = document.getElementById('sf-email').value.trim();
+  const category = document.getElementById('sf-category').value;
+  const subject = document.getElementById('sf-subject').value.trim();
+  const message = document.getElementById('sf-message').value.trim();
+  const btn = document.getElementById('submitBtn');
+  const errEl = document.getElementById('errorMsg');
+
+  if (!firstName || !email || !category || !subject || !message) {
+    errEl.textContent = 'Please fill in all required fields.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  errEl.classList.remove('show');
+
+  try {
+    const { error } = await db.from('support_tickets').insert({
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      category,
+      subject,
+      message,
+      status: 'open',
+      created_at: new Date().toISOString()
+    });
+
+    if (error) throw error;
+
+    document.getElementById('successMsg').classList.add('show');
+    btn.textContent = 'Message Sent ✓';
+    document.getElementById('sf-firstname').value = '';
+    document.getElementById('sf-lastname').value = '';
+    document.getElementById('sf-email').value = '';
+    document.getElementById('sf-category').value = '';
+    document.getElementById('sf-subject').value = '';
+    document.getElementById('sf-message').value = '';
+  } catch(e) {
+    errEl.textContent = 'Something went wrong. Please email support@tradephex.com directly.';
+    errEl.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Send Message';
+  }
+}
+</script>
+</body>
+</html>

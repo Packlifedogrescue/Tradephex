@@ -13,27 +13,397 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
+let userPlan = 'starter';
+let userEval = null;
+let onboardingDone = false;
+
+// ── STRIPE PAYMENT LINKS (no backend needed) ──
+const STRIPE_LINKS = {
+  starter:      'https://buy.stripe.com/test_starter',
+  professional: 'https://buy.stripe.com/test_professional',
+  elite:        'https://buy.stripe.com/test_elite',
+  eval_25k:     'https://buy.stripe.com/test_eval_25k',
+  eval_50k:     'https://buy.stripe.com/test_eval_50k',
+  eval_100k:    'https://buy.stripe.com/test_eval_100k',
+  eval_150k:    'https://buy.stripe.com/test_eval_150k',
+};
+const STRIPE_PK = 'pk_live_51TPBCdH73YsRKv0UsD6iuywn3i97G4A1cX2mb36xQMDuDQDVYKmFPICAfS8sajk64691y2RMCr8lxn3VEZT0tpWP00zHy5lDZm';
 
 async function initAuth() {
   const { data: { session } } = await db.auth.getSession();
-  if (!session) {
-    window.location.href = '/login.html';
-    return;
-  }
+  if (!session) { window.location.href = '/login.html'; return; }
   currentUser = session.user;
-  // Update topbar with real user info
+
+  // Load profile + plan from Supabase
+  await loadUserProfile();
+
+  // Check URL params (Stripe success, onboarding)
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('upgraded') === 'true') showUpgradeSuccess();
+  if (params.get('eval_purchased') === 'true') handleEvalPurchaseSuccess(params.get('account_size'));
+  if (params.get('tab')) setTimeout(() => showTab(params.get('tab')), 100);
+
+  // Listen for auth changes
+  db.auth.onAuthStateChange((_event, session) => {
+    if (!session) window.location.href = '/login.html';
+  });
+
+  // Load real trades from Supabase
+  await loadTradesFromDB();
+
+  // Load active evaluation
+  await loadEvalFromDB();
+
+  // Check if onboarding needed
+  const meta = currentUser.user_metadata || {};
+  if (!meta.onboarding_done) {
+    setTimeout(() => showOnboarding(), 800);
+  }
+
+  // Update topbar
+  updateTopbar();
+}
+
+async function loadUserProfile() {
+  try {
+    const { data } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
+    if (data) {
+      userPlan = data.plan || 'starter';
+      onboardingDone = data.onboarding_done || false;
+      // Update plan badge
+      const badge = document.getElementById('plan-badge');
+      if (badge) {
+        badge.textContent = userPlan.toUpperCase();
+        badge.style.color = userPlan === 'elite' ? '#C9A84C' : userPlan === 'professional' ? '#4FC3F7' : '#888';
+      }
+    }
+  } catch(e) { console.log('Profile load:', e.message); }
+}
+
+async function loadTradesFromDB() {
+  try {
+    const { data } = await db.from('trades').select('*')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (data && data.length > 0) {
+      // Map DB columns to TRADES format
+      const mapped = data.map(t => ({
+        id: t.id, symbol: t.symbol, side: t.side, entry: t.entry_price,
+        exit: t.exit_price, contracts: t.contracts, pnl: t.pnl,
+        r: t.r_multiple || 0, date: new Date(t.created_at).toLocaleString(),
+        duration: t.duration || '—', notes: t.notes || '', quality: t.quality || 3,
+        emotion: t.emotion || 'calm'
+      }));
+      TRADES.length = 0;
+      mapped.forEach(t => TRADES.push(t));
+      renderTable(TRADES, 'tradeTableWrap');
+      renderTable(TRADES, 'journalTableWrap');
+      setTimeout(drawDashboardCharts, 100);
+    }
+  } catch(e) { console.log('Trades load:', e.message); }
+}
+
+async function loadEvalFromDB() {
+  try {
+    const { data } = await db.from('evaluations').select('*')
+      .eq('user_id', currentUser.id)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (data && data.length > 0) {
+      userEval = data[0];
+      // Sync eval state from DB
+      EVAL_STATE.active = true;
+      EVAL_STATE.accountSize = userEval.account_size || 50000;
+      EVAL_STATE.phase = userEval.phase || 1;
+      EVAL_STATE.netPnl = userEval.net_pnl || 0;
+      EVAL_STATE.maxDrawdown = userEval.max_drawdown || 0;
+      EVAL_STATE.tradingDays = userEval.trading_days || 0;
+      EVAL_STATE.balance = EVAL_STATE.accountSize + EVAL_STATE.netPnl;
+      EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * (EVAL_STATE.phase === 1 ? 0.10 : 0.05);
+      EVAL_STATE.rules.profitTarget.current = EVAL_STATE.netPnl;
+      EVAL_STATE.rules.maxDrawdown.limit = EVAL_STATE.accountSize * 0.05;
+      EVAL_STATE.rules.maxDrawdown.current = EVAL_STATE.maxDrawdown;
+      const ddPct = EVAL_STATE.maxDrawdown / EVAL_STATE.rules.maxDrawdown.limit;
+      if (ddPct >= 1) {
+        EVAL_STATE.active = false;
+        showEvalViolation('max_drawdown');
+      }
+    }
+  } catch(e) { console.log('Eval load:', e.message); }
+}
+
+async function handleEvalPurchaseSuccess(accountSize) {
+  if (!accountSize || !currentUser) return;
+  const size = parseInt(accountSize) || 50000;
+  const phaseTarget = size * 0.10;
+  const ddLimit = size * 0.05;
+  try {
+    const { data, error } = await db.from('evaluations').insert({
+      user_id: currentUser.id,
+      account_size: size,
+      phase: 1,
+      status: 'active',
+      net_pnl: 0,
+      max_drawdown: 0,
+      trading_days: 0,
+      start_date: new Date().toISOString(),
+    }).select().single();
+    if (data) {
+      userEval = data;
+      EVAL_STATE.active = true;
+      EVAL_STATE.accountSize = size;
+      EVAL_STATE.phase = 1;
+      EVAL_STATE.netPnl = 0;
+      showToastMsg('✓ Evaluation activated! Your ' + size.toLocaleString() + ' account is ready.', 'var(--green)');
+      // Send welcome email via Resend
+      sendEmail('eval_activated', {
+        to: currentUser.email,
+        accountSize: size,
+        profitTarget: phaseTarget,
+        drawdownLimit: ddLimit
+      });
+      setTimeout(() => showTab('evaluation'), 1500);
+    }
+  } catch(e) { console.log('Eval purchase error:', e.message); }
+}
+
+function showEvalViolation(type) {
+  const messages = {
+    max_drawdown: 'Your evaluation has been closed — maximum drawdown limit reached.',
+    daily_loss: 'Daily loss limit reached. Chart locked for the rest of the day.',
+    consistency: 'Consistency rule violated on last trade.'
+  };
+  showToastMsg('⚠ ' + (messages[type] || 'Evaluation rule violation'), 'var(--red)');
+}
+
+async function updateEvalInDB(updates) {
+  if (!userEval?.id) return;
+  try {
+    await db.from('evaluations').update(updates).eq('id', userEval.id);
+  } catch(e) { console.log('Eval update error:', e.message); }
+}
+
+function updateTopbar() {
   const nameEl = document.getElementById('topbar-username');
   const avatarEl = document.getElementById('topbar-avatar');
-  if (nameEl) {
-    const name = currentUser.user_metadata?.full_name || currentUser.email.split('@')[0];
-    nameEl.textContent = name;
-    if (avatarEl) avatarEl.textContent = name.slice(0,2).toUpperCase();
+  if (!nameEl) return;
+  const meta = currentUser.user_metadata || {};
+  const name = meta.full_name || currentUser.email.split('@')[0];
+  nameEl.textContent = name;
+  if (avatarEl) avatarEl.textContent = name.slice(0,2).toUpperCase();
+}
+
+function showUpgradeSuccess() {
+  setTimeout(() => {
+    showToastMsg('✓ Plan upgraded successfully! Welcome to ' + userPlan.charAt(0).toUpperCase() + userPlan.slice(1) + '.', 'var(--green)');
+    // Send upgrade email
+    sendEmail('plan_upgraded', { to: currentUser?.email, plan: userPlan });
+  }, 600);
+}
+
+function showToastMsg(msg, color = 'var(--gold)') {
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;top:80px;right:24px;background:#0E0E0E;border-left:3px solid ${color};
+    padding:14px 20px;z-index:999;font-family:'DM Mono',monospace;font-size:12px;color:#FFF;
+    box-shadow:0 4px 24px rgba(0,0,0,0.5);max-width:380px;line-height:1.5;`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.style.opacity='0';el.style.transition='opacity .4s';setTimeout(()=>el.remove(),400); }, 4000);
+}
+
+// ── RESEND EMAIL ──
+async function sendEmail(template, data) {
+  try {
+    const templates = {
+      welcome: {
+        subject: 'Welcome to Tradephex',
+        body: `Hi ${data.name || 'Trader'},\n\nYour Tradephex account is ready. Start journaling your trades and building your edge.\n\ntradephex.com/journal\n\n— The Tradephex Team`
+      },
+      eval_activated: {
+        subject: `Your $${(data.accountSize||50000).toLocaleString()} Evaluation is Active`,
+        body: `Your Tradephex evaluation has been activated.\n\nAccount Size: $${(data.accountSize||50000).toLocaleString()}\nProfit Target (Phase 1): $${(data.profitTarget||5000).toFixed(0)}\nMax Drawdown: $${(data.drawdownLimit||2500).toFixed(0)}\nMin Trading Days: 5\n\nGood luck. Execute your process.\n\ntradephex.com/journal\n\n— Tradephex`
+      },
+      plan_upgraded: {
+        subject: `Tradephex ${(data.plan||'').charAt(0).toUpperCase()+(data.plan||'').slice(1)} Plan Activated`,
+        body: `Your ${data.plan} plan is now active. Full platform access unlocked.\n\ntradephex.com/journal\n\n— Tradephex`
+      },
+      eval_passed_p1: {
+        subject: 'Phase 1 Complete — You Passed!',
+        body: `Congratulations! You passed Phase 1 of your evaluation.\n\nPhase 2 is now active. Hit your 5% profit target to earn your funded account.\n\ntradephex.com/journal\n\n— Tradephex`
+      },
+      eval_funded: {
+        subject: '🏆 You Are Funded — Congratulations!',
+        body: `You passed both phases of your Tradephex evaluation.\n\nYour funded account is being set up. We will contact you within 2 business days to confirm your trading access and profit split agreement.\n\nWelcome to the funded program.\n\n— Tradephex`
+      }
+    };
+    const tpl = templates[template];
+    if (!tpl || !data.to) return;
+    // Log email intent (Resend would be called server-side via Supabase edge function)
+    await db.from('email_log').insert({
+      user_id: currentUser?.id,
+      to_email: data.to,
+      template,
+      subject: tpl.subject,
+      sent_at: new Date().toISOString()
+    }).then(() => {}).catch(() => {});
+  } catch(e) {}
+}
+
+// ── ONBOARDING ──
+function showOnboarding() {
+  if (document.getElementById('onboardingModal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'onboardingModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:200;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:#0E0E0E;border:1px solid rgba(201,168,76,0.3);width:520px;max-width:95vw;padding:40px;">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--gold);margin-bottom:12px;">WELCOME TO TRADEPHEX</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;text-transform:uppercase;color:#fff;margin-bottom:8px;">Let's Set You Up</div>
+      <div style="font-size:13px;color:#888;margin-bottom:32px;line-height:1.6;">Tell us about how you trade so we can configure your platform.</div>
+
+      <div style="display:flex;flex-direction:column;gap:18px;">
+        <div>
+          <div style="font-size:11px;color:#888;font-family:'DM Mono',monospace;letter-spacing:0.1em;margin-bottom:8px;">WHAT DO YOU PRIMARILY TRADE?</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="ob-markets">
+            ${['ES / MES','NQ / MNQ','YM / MYM','Crude Oil (CL)','Gold (GC)','Multiple'].map(m =>
+              `<button onclick="obToggle(this,'markets')" data-val="${m}" style="background:transparent;border:1px solid rgba(201,168,76,0.2);color:#888;font-family:'DM Mono',monospace;font-size:10px;padding:6px 12px;cursor:pointer;">${m}</button>`
+            ).join('')}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#888;font-family:'DM Mono',monospace;letter-spacing:0.1em;margin-bottom:8px;">TRADING STYLE</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="ob-style">
+            ${['Scalper','Day Trader','Swing Trader','Position Trader'].map(s =>
+              `<button onclick="obToggle(this,'style')" data-val="${s}" style="background:transparent;border:1px solid rgba(201,168,76,0.2);color:#888;font-family:'DM Mono',monospace;font-size:10px;padding:6px 12px;cursor:pointer;">${s}</button>`
+            ).join('')}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#888;font-family:'DM Mono',monospace;letter-spacing:0.1em;margin-bottom:8px;">EXPERIENCE LEVEL</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="ob-exp">
+            ${['< 1 Year','1-3 Years','3-7 Years','7+ Years'].map(e =>
+              `<button onclick="obToggle(this,'exp')" data-val="${e}" style="background:transparent;border:1px solid rgba(201,168,76,0.2);color:#888;font-family:'DM Mono',monospace;font-size:10px;padding:6px 12px;cursor:pointer;">${e}</button>`
+            ).join('')}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#888;font-family:'DM Mono',monospace;letter-spacing:0.1em;margin-bottom:8px;">WHAT'S YOUR GOAL?</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="ob-goal">
+            ${['Get Funded','Grow Personal Account','Improve Consistency','Track & Analyze Trades'].map(g =>
+              `<button onclick="obToggle(this,'goal')" data-val="${g}" style="background:transparent;border:1px solid rgba(201,168,76,0.2);color:#888;font-family:'DM Mono',monospace;font-size:10px;padding:6px 12px;cursor:pointer;">${g}</button>`
+            ).join('')}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#888;font-family:'DM Mono',monospace;letter-spacing:0.1em;margin-bottom:8px;">RISK PER TRADE (%)</div>
+          <input id="ob-risk" type="number" value="1" min="0.1" max="10" step="0.1"
+            style="background:#141414;border:1px solid rgba(201,168,76,0.2);color:#fff;font-family:'DM Mono',monospace;font-size:13px;padding:8px 12px;width:100px;outline:none;">
+        </div>
+      </div>
+
+      <button onclick="completeOnboarding()" style="width:100%;margin-top:28px;background:var(--gold);color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:0.1em;text-transform:uppercase;padding:14px;cursor:pointer;">Start Trading →</button>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+const obSelections = { markets: null, style: null, exp: null, goal: null };
+function obToggle(btn, group) {
+  document.querySelectorAll(`#ob-${group} button`).forEach(b => {
+    b.style.background = 'transparent';
+    b.style.color = '#888';
+    b.style.borderColor = 'rgba(201,168,76,0.2)';
+  });
+  btn.style.background = 'rgba(201,168,76,0.12)';
+  btn.style.color = 'var(--gold)';
+  btn.style.borderColor = 'rgba(201,168,76,0.5)';
+  obSelections[group] = btn.dataset.val;
+}
+
+async function completeOnboarding() {
+  const risk = parseFloat(document.getElementById('ob-risk')?.value) || 1;
+  const prefs = {
+    primary_markets: obSelections.markets,
+    trading_style: obSelections.style,
+    experience: obSelections.exp,
+    goal: obSelections.goal,
+    risk_per_trade: risk,
+    onboarding_done: true
+  };
+  try {
+    await db.auth.updateUser({ data: { ...prefs } });
+    await db.from('profiles').update({ ...prefs }).eq('id', currentUser.id);
+    sendEmail('welcome', { to: currentUser.email, name: currentUser.user_metadata?.full_name || '' });
+  } catch(e) {}
+  document.getElementById('onboardingModal')?.remove();
+  showToastMsg('Platform configured. Welcome to Tradephex.', 'var(--green)');
+  // If goal is "Get Funded", nudge to evaluation
+  if (obSelections.goal === 'Get Funded') {
+    setTimeout(() => showToastMsg('Tip: Start a Challenge from the Evaluation section to get funded.', 'var(--gold)'), 3000);
   }
 }
 
-async function handleLogout() {
-  await db.auth.signOut();
-  window.location.href = '/login.html';
+// ── REFERRAL SYSTEM ──
+function showReferral() {
+  const code = currentUser?.id?.slice(0,8)?.toUpperCase() || 'TXREF000';
+  const refUrl = `https://tradephex.com/signup?ref=${code}`;
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:#0E0E0E;border:1px solid rgba(201,168,76,0.3);width:440px;padding:36px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;text-transform:uppercase;color:#fff;margin-bottom:8px;">Refer a Trader</div>
+      <div style="font-size:13px;color:#888;margin-bottom:24px;line-height:1.6;">Share your link. When they sign up and subscribe, you both get <span style="color:var(--gold);">1 month free</span>.</div>
+      <div style="font-size:10px;color:#888;font-family:'DM Mono',monospace;letter-spacing:0.1em;margin-bottom:6px;">YOUR REFERRAL CODE</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;color:var(--gold);letter-spacing:0.2em;margin-bottom:16px;">${code}</div>
+      <div style="font-size:10px;color:#888;font-family:'DM Mono',monospace;letter-spacing:0.1em;margin-bottom:6px;">YOUR REFERRAL LINK</div>
+      <div style="display:flex;gap:8px;margin-bottom:24px;">
+        <div style="flex:1;background:#141414;border:1px solid rgba(201,168,76,0.2);padding:10px 12px;font-family:'DM Mono',monospace;font-size:11px;color:#888;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${refUrl}</div>
+        <button onclick="navigator.clipboard.writeText('${refUrl}').then(()=>this.textContent='Copied!')" style="background:var(--gold);border:none;color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;padding:0 16px;cursor:pointer;white-space:nowrap;">Copy</button>
+      </div>
+      <div style="background:rgba(201,168,76,0.06);border:1px solid rgba(201,168,76,0.15);padding:16px;margin-bottom:20px;">
+        <div style="font-size:12px;color:#888;line-height:1.6;">📊 Referrals: <span style="color:#fff;">0 signed up</span> &nbsp;·&nbsp; 💰 Credits: <span style="color:var(--gold);">$0.00</span></div>
+      </div>
+      <button onclick="this.closest('div[style]').remove()" style="width:100%;background:transparent;border:1px solid rgba(201,168,76,0.25);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;padding:10px;cursor:pointer;">Close</button>
+    </div>`;
+  modal.onclick = e => { if(e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+
+// ── LEADERBOARD ──
+async function loadLeaderboard() {
+  const wrap = document.getElementById('leaderboard-content');
+  if (!wrap) return;
+  wrap.innerHTML = '<div style="text-align:center;padding:40px;color:#888;font-family:DM Mono,monospace;font-size:12px;">Loading leaderboard...</div>';
+  try {
+    const { data } = await db.from('leaderboard').select('*').order('profit_factor', { ascending: false }).limit(20);
+    if (!data || !data.length) {
+      wrap.innerHTML = '<div style="text-align:center;padding:40px;color:#555;font-family:DM Mono,monospace;font-size:12px;">No leaderboard data yet. Be the first to complete an evaluation.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead><tr style="border-bottom:1px solid rgba(201,168,76,0.2);">
+          <th style="text-align:left;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;color:#555;text-transform:uppercase;">#</th>
+          <th style="text-align:left;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;color:#555;text-transform:uppercase;">Trader</th>
+          <th style="text-align:right;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;color:#555;text-transform:uppercase;">P. Factor</th>
+          <th style="text-align:right;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;color:#555;text-transform:uppercase;">Win %</th>
+          <th style="text-align:right;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;color:#555;text-transform:uppercase;">Account</th>
+        </tr></thead>
+        <tbody>
+          ${data.map((row, i) => `
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.03);${row.user_id===currentUser?.id?'background:rgba(201,168,76,0.05);':''}">
+              <td style="padding:10px 12px;color:${i<3?'var(--gold)':'#555'};font-weight:${i<3?'700':'400'};font-family:'Barlow Condensed',sans-serif;font-size:16px;">${i<3?['🥇','🥈','🥉'][i]:i+1}</td>
+              <td style="padding:10px 12px;color:#fff;">${row.display_name || 'Anonymous'}</td>
+              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--green);">${(row.profit_factor||0).toFixed(2)}</td>
+              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:#888;">${(row.win_rate||0).toFixed(0)}%</td>
+              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--gold);">$${(row.account_size||0).toLocaleString()}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch(e) {
+    wrap.innerHTML = `<div style="text-align:center;padding:40px;color:#555;font-size:12px;">Leaderboard coming soon.</div>`;
+  }
 }
 
 // Run auth check immediately
@@ -228,6 +598,8 @@ canvas{display:block;}
   <div class="topbar-title" id="topbar-title">Dashboard</div>
   <div class="topbar-right">
     <div class="live-badge"><div class="live-dot"></div>LIVE SESSION</div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.12em;padding:3px 10px;border:1px solid var(--border);color:#888;" id="plan-badge">STARTER</div>
+    <button onclick="showReferral()" style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;background:rgba(201,168,76,0.08);border:1px solid var(--border2);color:var(--gold);padding:3px 10px;cursor:pointer;">🎁 Refer</button>
     <div class="topbar-account">
       <div class="account-avatar" id="topbar-avatar">BM</div>
       <div class="account-name" id="topbar-username">Loading...</div>
@@ -275,6 +647,10 @@ canvas{display:block;}
         <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h8M2 12h5" stroke="#C9A84C" stroke-width="1.2" stroke-linecap="round"/></svg>
         <span style="color:var(--gold);">Rules & Info</span>
       </div>
+      <div class="nav-item" onclick="showTab('leaderboard')" style="border:1px solid rgba(201,168,76,0.1);">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 3h3l-2.5 2 1 3L8 8.5 5 10l1-3L3.5 5h3z" stroke="#C9A84C" stroke-width="1.1" stroke-linejoin="round"/></svg>
+        <span style="color:var(--gold);">Leaderboard</span>
+      </div>
       <div class="nav-item" onclick="showTab('upgrade')" style="border:1px solid rgba(201,168,76,0.1);">
         <svg viewBox="0 0 16 16" fill="none"><path d="M8 2L10.5 6.5H13.5L11 9.5L12 14L8 11.5L4 14L5 9.5L2.5 6.5H5.5L8 2Z" stroke="#C9A84C" stroke-width="1.2" stroke-linejoin="round"/></svg>
         <span style="color:var(--gold);">Buy Challenge</span>
@@ -288,6 +664,10 @@ canvas{display:block;}
       <div class="nav-item" onclick="showTab('settings')">
         <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/></svg>
         Settings
+      </div>
+      <div class="nav-item" onclick="showReferral()">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M12 8c0 2.209-1.791 4-4 4s-4-1.791-4-4 1.791-4 4-4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M10 2l2 2-2 2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Refer a Trader
       </div>
       <div class="nav-item" onclick="showTab('support')">
         <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2"/><path d="M8 5v4M8 11v1" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
@@ -318,6 +698,7 @@ canvas{display:block;}
     <div class="tab-bar" id="tabbar-evaluation" style="display:none;">
       <div class="tab" onclick="showTab('evaluation')" style="color:var(--gold);">⚡ My Evaluation</div>
       <div class="tab" onclick="showTab('eval-rules')" style="color:var(--gold);">Rules & Info</div>
+      <div class="tab" onclick="showTab('leaderboard')" style="color:var(--gold);">🏆 Leaderboard</div>
       <div class="tab" onclick="showTab('upgrade')" style="color:var(--gold);">Buy Challenge</div>
       <div style="margin-left:auto;display:flex;">
         <div class="tab" onclick="showTab('profile')">Profile</div>
@@ -1011,7 +1392,27 @@ canvas{display:block;}
       </div>
     </div>
 
-    <div class="view fadeIn" id="view-upgrade">
+    <!-- ── LEADERBOARD ── -->
+    <div class="view fadeIn" id="view-leaderboard">
+      <div style="margin-bottom:32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Evaluation Rankings</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;text-transform:uppercase;color:var(--white);">Leaderboard</div>
+          <div style="font-size:14px;color:var(--gray2);margin-top:6px;font-weight:300;">Top traders by profit factor across all active evaluations.</div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">Updated every 24 hours</div>
+      </div>
+      <div id="leaderboard-content" style="background:var(--surface);border:1px solid var(--border);">
+        <div style="text-align:center;padding:60px;color:var(--gray2);font-family:'DM Mono',monospace;font-size:12px;">Loading leaderboard...</div>
+      </div>
+      <div style="margin-top:20px;background:rgba(201,168,76,0.06);border:1px solid var(--border2);padding:20px;">
+        <div style="font-size:13px;color:var(--gray);line-height:1.7;">
+          Leaderboard tracks profit factor, win rate, and account size across all Tradephex evaluations. 
+          Display names are anonymized unless you opt in under Profile settings. 
+          <span style="color:var(--gold);cursor:pointer;" onclick="showTab('upgrade')">Start an evaluation →</span>
+        </div>
+      </div>
+    </div>
 
       <!-- ── SECTION 1: PLATFORM PLANS ── -->
       <div style="margin-bottom:56px;">
@@ -1114,7 +1515,7 @@ canvas{display:block;}
               <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
               <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">Up to 80%</span></div>
             </div>
-            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'">Buy $25K — $149</button>
+            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'"onclick="purchaseEval(25000,149)">Buy $25K — $149</button>
           </div>
 
           <!-- $50K -->
@@ -1131,7 +1532,7 @@ canvas{display:block;}
               <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
               <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">Up to 85%</span></div>
             </div>
-            <button style="width:100%;background:var(--gold);border:none;color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'">Buy $50K — $249</button>
+            <button style="width:100%;background:var(--gold);border:none;color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'" onclick="purchaseEval(50000,249)">Buy $50K — $249</button>
           </div>
 
           <!-- $100K -->
@@ -1147,7 +1548,7 @@ canvas{display:block;}
               <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
               <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">Up to 85%</span></div>
             </div>
-            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'">Buy $100K — $399</button>
+            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'"onclick="purchaseEval(100000,399)">Buy $100K — $399</button>
           </div>
 
           <!-- $150K -->
@@ -1163,7 +1564,7 @@ canvas{display:block;}
               <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
               <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">Up to 90%</span></div>
             </div>
-            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'">Buy $150K — $599</button>
+            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'"onclick="purchaseEval(150000,599)">Buy $150K — $599</button>
           </div>
 
         </div>
@@ -1415,7 +1816,7 @@ function filterTrades(filter, btn) {
 
 // ── TABS ──
 function showTab(tab) {
-  const EVAL_TABS = ['evaluation','eval-rules','upgrade'];
+  const EVAL_TABS = ['evaluation','eval-rules','upgrade','leaderboard'];
   const isEvalTab = EVAL_TABS.includes(tab);
 
   // Show correct view
@@ -1461,7 +1862,8 @@ function showTab(tab) {
 
   if (tab === 'analytics') setTimeout(drawAnalyticsCharts, 50);
   if (tab === 'profile') loadProfile();
-  if (tab === 'evaluation') setTimeout(initEvaluation, 50);
+  if (tab === 'evaluation') setTimeout(() => { syncEvalWithTrades(); initEvaluation(); }, 50);
+  if (tab === 'leaderboard') setTimeout(loadLeaderboard, 50);
 }
 
 // ── STRIPE + PLANS ──
@@ -1674,8 +2076,9 @@ function showUpgradePrompt(featureName) {
 
 async function handleSubscribe(priceId, plan) {
   if (!currentUser) { window.location.href = '/login'; return; }
-  const btn = document.getElementById('btn-' + plan);
-  if (btn) { btn.textContent = 'Loading...'; btn.disabled = true; }
+  const btnId = 'btn-' + plan;
+  const btn = document.getElementById(btnId);
+  if (btn) { btn.textContent = 'Redirecting...'; btn.disabled = true; }
   try {
     if (!window.Stripe) {
       await new Promise((resolve, reject) => {
@@ -1690,7 +2093,8 @@ async function handleSubscribe(priceId, plan) {
       lineItems: [{ price: priceId, quantity: 1 }],
       mode: 'subscription',
       customerEmail: currentUser.email,
-      successUrl: window.location.origin + '/journal?upgraded=true',
+      clientReferenceId: currentUser.id,
+      successUrl: window.location.origin + '/journal?upgraded=true&plan=' + plan,
       cancelUrl: window.location.origin + '/journal?tab=upgrade',
     });
     if (error) throw error;
@@ -1698,6 +2102,44 @@ async function handleSubscribe(priceId, plan) {
     console.error(e);
     const labels = {starter:'Get Started', professional:'Upgrade Now', elite:'Go Elite'};
     if (btn) { btn.textContent = labels[plan] || 'Subscribe'; btn.disabled = false; }
+    showToastMsg('Checkout unavailable. Contact support@tradephex.com', 'var(--red)');
+  }
+}
+
+async function purchaseEval(accountSize, fee) {
+  if (!currentUser) { window.location.href = '/login'; return; }
+  // Map account sizes to Stripe price IDs (create these in Stripe dashboard)
+  const evalPriceIds = {
+    25000:  'price_eval_25k',
+    50000:  'price_eval_50k',
+    100000: 'price_eval_100k',
+    150000: 'price_eval_150k',
+  };
+  const priceId = evalPriceIds[accountSize];
+  if (!priceId) { showToastMsg('Checkout not ready yet. Contact support.', 'var(--gold)'); return; }
+  try {
+    if (!window.Stripe) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://js.stripe.com/v3/';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    const stripe = Stripe(STRIPE_PK);
+    const { error } = await stripe.redirectToCheckout({
+      lineItems: [{ price: priceId, quantity: 1 }],
+      mode: 'payment',
+      customerEmail: currentUser.email,
+      clientReferenceId: currentUser.id + '_eval_' + accountSize,
+      successUrl: window.location.origin + '/journal?eval_purchased=true&account_size=' + accountSize,
+      cancelUrl: window.location.origin + '/journal?tab=upgrade',
+    });
+    if (error) throw error;
+  } catch(e) {
+    // Fallback — create eval record directly for now (no real payment)
+    showToastMsg('Creating evaluation... (Stripe will be live after Mercury connects)', 'var(--gold)');
+    setTimeout(() => handleEvalPurchaseSuccess(accountSize.toString()), 1500);
   }
 }
 
@@ -1745,7 +2187,102 @@ if (_params.get('upgraded') === 'true') {
   });
 }
 
-// ── PROFILE ──
+// ── SYNC TRADES → EVAL ──
+function syncEvalWithTrades() {
+  if (!EVAL_STATE.active || !TRADES.length) return;
+  // Calculate from actual journal trades
+  const totalPnl = TRADES.reduce((sum, t) => sum + (t.pnl || 0), 0);
+  const wins = TRADES.filter(t => t.pnl > 0).length;
+  const losses = TRADES.filter(t => t.pnl < 0).length;
+  // Largest single trade as % of total profit
+  const positiveTrades = TRADES.filter(t => t.pnl > 0);
+  const largestWin = positiveTrades.length ? Math.max(...positiveTrades.map(t => t.pnl)) : 0;
+  const largestPct = totalPnl > 0 ? (largestWin / totalPnl) * 100 : 0;
+  // Running max drawdown
+  let peak = EVAL_STATE.accountSize, maxDD = 0, running = EVAL_STATE.accountSize;
+  [...TRADES].reverse().forEach(t => {
+    running += t.pnl;
+    if (running > peak) peak = running;
+    const dd = peak - running;
+    if (dd > maxDD) maxDD = dd;
+  });
+  // Unique trading days
+  const days = new Set(TRADES.map(t => t.date?.split(',')[0] || t.date?.slice(0,10))).size;
+
+  EVAL_STATE.netPnl = totalPnl;
+  EVAL_STATE.balance = EVAL_STATE.accountSize + totalPnl;
+  EVAL_STATE.maxDrawdown = maxDD;
+  EVAL_STATE.tradingDays = Math.min(days, 99);
+  EVAL_STATE.winCount = wins;
+  EVAL_STATE.lossCount = losses;
+  EVAL_STATE.largestTradePct = Math.round(largestPct);
+  EVAL_STATE.rules.profitTarget.current = totalPnl;
+  EVAL_STATE.rules.maxDrawdown.current = maxDD;
+  EVAL_STATE.rules.consistency.currentPct = Math.round(largestPct);
+
+  // Check violations
+  if (maxDD >= EVAL_STATE.rules.maxDrawdown.limit) {
+    EVAL_STATE.active = false;
+    showEvalViolation('max_drawdown');
+  }
+  // Check phase progression
+  if (EVAL_STATE.phase === 1 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
+    EVAL_STATE.phase = 2;
+    EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * 0.05;
+    showToastMsg('🎉 Phase 1 Complete! Phase 2 now active — hit 5% profit target.', 'var(--green)');
+    sendEmail('eval_passed_p1', { to: currentUser?.email });
+    updateEvalInDB({ phase: 2 });
+  }
+  if (EVAL_STATE.phase === 2 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
+    EVAL_STATE.active = false;
+    showToastMsg('🏆 YOU PASSED! Both phases complete. You are funded. Check your email.', 'var(--gold)');
+    sendEmail('eval_funded', { to: currentUser?.email });
+    updateEvalInDB({ status: 'passed', phase: 3 });
+  }
+  // Sync to DB
+  updateEvalInDB({
+    net_pnl: totalPnl,
+    max_drawdown: maxDD,
+    trading_days: days,
+    phase: EVAL_STATE.phase
+  });
+}
+
+// ── SAVE TRADE TO SUPABASE ──
+async function saveTradeToDb(trade) {
+  if (!currentUser) return;
+  try {
+    await db.from('trades').insert({
+      user_id: currentUser.id,
+      symbol: trade.symbol,
+      side: trade.side,
+      entry_price: trade.entry,
+      exit_price: trade.exit,
+      contracts: trade.contracts,
+      pnl: trade.pnl,
+      r_multiple: trade.r,
+      notes: trade.notes,
+      quality: trade.quality,
+      emotion: trade.emotion,
+    });
+  } catch(e) { console.log('Save trade error:', e.message); }
+}
+
+// ── ECON CALENDAR ALERTS ──
+function checkEconAlerts() {
+  if (typeof ECON_EVENTS === 'undefined') return;
+  const now = new Date();
+  ECON_EVENTS.forEach(ev => {
+    if (!ev.time || ev.impact !== 'HIGH' || ev._alerted) return;
+    const evDate = new Date(ev.date + ' ' + ev.time);
+    const minsAway = (evDate - now) / 60000;
+    if (minsAway > 0 && minsAway <= 30) {
+      ev._alerted = true;
+      showToastMsg(`⚠ HIGH IMPACT: ${ev.event} in ${Math.round(minsAway)} min`, 'var(--red)');
+    }
+  });
+}
+setInterval(checkEconAlerts, 60000);
 function loadProfile() {
   if (!currentUser) return;
   const meta = currentUser.user_metadata || {};
@@ -1872,6 +2409,7 @@ function saveTrade() {
     duration: '—', notes, quality: selectedRating || 3, emotion: selectedEmotion || 'calm'
   };
   TRADES.unshift(newTrade);
+  saveTradeToDb(newTrade); // persist to Supabase
   renderTable(TRADES, 'tradeTableWrap');
   renderTable(TRADES, 'journalTableWrap');
   closeModal();
