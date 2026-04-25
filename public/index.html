@@ -62,7 +62,7 @@ h2{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(32p
 .pPrice{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:42px;color:var(--gold);line-height:1;margin-bottom:14px;}
 .pPrice span{font-size:13px;color:var(--gray);}
 .pList{list-style:none;margin-bottom:18px;}
-.pList li{font-size:10px;color:var(--gray);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:6px;}
+.pList li{font-size:13px;color:var(--gray);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:6px;}
 .pList li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;}
 .pList li b{color:var(--white);}
 .buyBtn{width:100%;padding:10px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;cursor:pointer;border:none;transition:.15s;position:relative;}
@@ -77,7 +77,7 @@ h2{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(32p
 .step{background:var(--bg);padding:28px 24px;position:relative;}
 .stepN{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:rgba(201,168,76,.12);position:absolute;top:16px;right:16px;}
 .step h3{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:.06em;margin-bottom:6px;color:var(--gold);}
-.step p{font-size:10px;color:var(--gray);line-height:1.7;}
+.step p{font-size:13px;color:var(--gray);line-height:1.7;}
 
 /* RULES TABLE */
 .rulesSection{padding:72px 5%;}
@@ -107,7 +107,7 @@ h2{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(32p
 footer{background:var(--s1);border-top:1px solid var(--border);padding:32px 5%;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;}
 .fLogo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;}
 .fLogo span{color:var(--gold);}
-.fLinks{display:flex;gap:16px;font-size:10px;color:var(--gray);flex-wrap:wrap;}
+.fLinks{display:flex;gap:16px;font-size:13px;color:var(--gray);flex-wrap:wrap;}
 .fLinks a:hover{color:var(--white);}
 .disc{width:100%;font-size:8px;color:rgba(255,255,255,.18);line-height:1.6;border-top:1px solid rgba(255,255,255,.04);padding-top:16px;margin-top:8px;}
 
@@ -178,34 +178,34 @@ footer{background:var(--s1);border-top:1px solid var(--border);padding:32px 5%;d
     <div style="background:rgba(201,168,76,.07);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;">
       <div style="text-align:left;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.08em;">🎯 EVALUATION PROGRAM</div>
-        <div style="font-size:10px;color:var(--gray);margin-top:2px;">One-time fee · Full platform included · No monthly charge during eval</div>
+        <div style="font-size:13px;color:var(--gray);margin-top:2px;">One-time fee · Full platform included · No monthly charge during eval</div>
       </div>
-      <div style="font-size:10px;color:var(--green);font-weight:600;white-space:nowrap;">Up to 90% profit split</div>
+      <div style="font-size:13px;color:var(--green);font-weight:600;white-space:nowrap;">Up to 90% profit split</div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;background:var(--border);">
-      <div style="background:var(--bg);padding:22px 20px;">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--border);">
+        <div style="background:var(--bg);padding:22px 20px;text-align:center;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$25,000</div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$149<span style="font-size:12px;color:var(--gray);"> once</span></div>
-        <div style="font-size:10px;color:var(--gray);line-height:1.8;">10% target · 5% DD · 80% split<br>5 min trading days · No time limit</div>
+        <div style="font-size:13px;color:var(--gray);line-height:1.8;">10% target · 5% DD · 80% split<br>5 min trading days · No time limit</div>
         <button class="buyBtn out" style="margin-top:14px;" onclick="buyEval('25k',this)">START EVAL →</button>
       </div>
-      <div style="background:var(--s1);padding:22px 20px;">
+      <div style="background:var(--s1);padding:22px 20px;text-align:center;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$50,000</div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$249<span style="font-size:12px;color:var(--gray);"> once</span></div>
-        <div style="font-size:10px;color:var(--gray);line-height:1.8;">10% target · 5% DD · 85% split<br>5 min trading days · No time limit</div>
+        <div style="font-size:13px;color:var(--gray);line-height:1.8;">10% target · 5% DD · 85% split<br>5 min trading days · No time limit</div>
         <button class="buyBtn out" style="margin-top:14px;" onclick="buyEval('50k',this)">START EVAL →</button>
       </div>
-      <div style="background:var(--bg);padding:22px 20px;position:relative;border-top:2px solid var(--gold);">
+      <div style="background:var(--bg);padding:22px 20px;padding-top:28px;position:relative;box-shadow:inset 0 3px 0 var(--gold);text-align:center;">
         <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:8px;letter-spacing:.15em;padding:2px 10px;">POPULAR</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;margin-top:8px;">$100,000</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$100,000</div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$399<span style="font-size:12px;color:var(--gray);"> once</span></div>
-        <div style="font-size:10px;color:var(--gray);line-height:1.8;">8% target · 5% DD · 85% split<br>5 min trading days · No time limit</div>
+        <div style="font-size:13px;color:var(--gray);line-height:1.8;">8% target · 5% DD · 85% split<br>5 min trading days · No time limit</div>
         <button class="buyBtn gold" style="margin-top:14px;" onclick="buyEval('100k',this)">START EVAL →</button>
       </div>
-      <div style="background:var(--s1);padding:22px 20px;">
+      <div style="background:var(--s1);padding:22px 20px;text-align:center;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$150,000</div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$599<span style="font-size:12px;color:var(--gray);"> once</span></div>
-        <div style="font-size:10px;color:var(--gray);line-height:1.8;">8% target · 5% DD · <span style="color:var(--green);font-weight:600;">90% split</span><br>5 min trading days · No time limit</div>
+        <div style="font-size:13px;color:var(--gray);line-height:1.8;">8% target · 5% DD · <span style="color:var(--green);font-weight:600;">90% split</span><br>5 min trading days · No time limit</div>
         <button class="buyBtn out" style="margin-top:14px;" onclick="buyEval('150k',this)">START EVAL →</button>
       </div>
     </div>
@@ -214,28 +214,28 @@ footer{background:var(--s1);border-top:1px solid var(--border);padding:32px 5%;d
     <div style="background:rgba(79,195,247,.05);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;">
       <div style="text-align:left;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.08em;">📈 CHART PLATFORM</div>
-        <div style="font-size:10px;color:var(--gray);margin-top:2px;">Footprint candles · Order flow · Market profile · Pattern recognition · 6 layouts</div>
+        <div style="font-size:13px;color:var(--gray);margin-top:2px;">Footprint candles · Order flow · Market profile · Pattern recognition · 6 layouts</div>
       </div>
-      <div style="font-size:10px;color:var(--green);font-weight:600;white-space:nowrap;">Free during active eval</div>
+      <div style="font-size:13px;color:var(--green);font-weight:600;white-space:nowrap;">Free during active eval</div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:var(--border);">
       <div style="background:var(--bg);padding:20px;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Trader</div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;margin-bottom:10px;">$29<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:10px;color:var(--gray);line-height:1.9;">✓ All chart types + footprint<br>✓ Order flow delta<br>✓ 4-chart layout<br>✓ Drawing tools + S/R</div>
-        <a href="/signup?plan=trader"><button class="buyBtn out" style="margin-top:14px;font-size:10px;">GET TRADER PLAN</button></a>
+        <div style="font-size:13px;color:var(--gray);line-height:1.9;">✓ All chart types + footprint<br>✓ Order flow delta<br>✓ 4-chart layout<br>✓ Drawing tools + S/R</div>
+        <a href="/signup?plan=trader"><button class="buyBtn out" style="margin-top:14px;font-size:13px;">GET TRADER PLAN</button></a>
       </div>
       <div style="background:var(--s1);padding:20px;border-left:1px solid var(--border);border-right:1px solid var(--border);">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Pro</div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;margin-bottom:10px;">$79<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:10px;color:var(--gray);line-height:1.9;">✓ Everything in Trader<br>✓ 6-chart layout<br>✓ Market profile (TPO)<br>✓ Journal included</div>
-        <a href="/signup?plan=pro"><button class="buyBtn out" style="margin-top:14px;font-size:10px;">GET PRO PLAN</button></a>
+        <div style="font-size:13px;color:var(--gray);line-height:1.9;">✓ Everything in Trader<br>✓ 6-chart layout<br>✓ Market profile (TPO)<br>✓ Journal included</div>
+        <a href="/signup?plan=pro"><button class="buyBtn out" style="margin-top:14px;font-size:13px;">GET PRO PLAN</button></a>
       </div>
       <div style="background:var(--bg);padding:20px;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Elite</div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;margin-bottom:10px;">$149<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:10px;color:var(--gray);line-height:1.9;">✓ Everything in Pro<br>✓ Priority support<br>✓ API access<br>✓ Leaderboard + analytics</div>
-        <a href="/signup?plan=elite"><button class="buyBtn out" style="margin-top:14px;font-size:10px;">GET ELITE PLAN</button></a>
+        <div style="font-size:13px;color:var(--gray);line-height:1.9;">✓ Everything in Pro<br>✓ Priority support<br>✓ API access<br>✓ Leaderboard + analytics</div>
+        <a href="/signup?plan=elite"><button class="buyBtn out" style="margin-top:14px;font-size:13px;">GET ELITE PLAN</button></a>
       </div>
     </div>
 
@@ -243,36 +243,59 @@ footer{background:var(--s1);border-top:1px solid var(--border);padding:32px 5%;d
     <div style="background:rgba(0,230,118,.04);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;">
       <div style="text-align:left;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.08em;">📓 TRADE JOURNAL</div>
-        <div style="font-size:10px;color:var(--gray);margin-top:2px;">Session analytics · Win rate by symbol · Avg winner vs loser · Streak tracking</div>
+        <div style="font-size:13px;color:var(--gray);margin-top:2px;">Session analytics · Win rate by symbol · Avg winner vs loser · Streak tracking</div>
       </div>
-      <div style="font-size:10px;color:var(--green);font-weight:600;white-space:nowrap;">Included with eval + Pro+</div>
+      <div style="font-size:13px;color:var(--green);font-weight:600;white-space:nowrap;">Included with eval + Pro+</div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--border);">
       <div style="background:var(--bg);padding:20px;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Journal Standalone</div>
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;margin-bottom:10px;">$19<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:10px;color:var(--gray);line-height:1.9;">✓ Full trade history<br>✓ Session P&L (morning/lunch/close)<br>✓ Win rate by symbol<br>✓ Avg winner vs loser + expectancy</div>
-        <a href="/signup?plan=journal"><button class="buyBtn out" style="margin-top:14px;font-size:10px;">GET JOURNAL</button></a>
+        <div style="font-size:13px;color:var(--gray);line-height:1.9;">✓ Full trade history<br>✓ Session P&L (morning/lunch/close)<br>✓ Win rate by symbol<br>✓ Avg winner vs loser + expectancy</div>
+        <a href="/signup?plan=journal"><button class="buyBtn out" style="margin-top:14px;font-size:13px;">GET JOURNAL</button></a>
       </div>
-      <div style="background:var(--s1);padding:20px;border-left:1px solid var(--border);">
+      <div style="background:var(--s1);padding:20px;border-left:1px solid var(--border);text-align:center;">
         <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Chart + Journal Bundle</div>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;">
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;justify-content:center;">
           <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;">$39<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-          <div style="font-size:11px;color:var(--gray);text-decoration:line-through;">$48</div>
+          <div style="font-size:13px;color:var(--gray);text-decoration:line-through;">$48</div>
         </div>
-        <div style="font-size:10px;color:var(--gray);line-height:1.9;">✓ Full chart platform (Trader tier)<br>✓ Full journal included<br>✓ Save $9/month vs buying separate<br>✓ Best value for active traders</div>
-        <a href="/signup?plan=bundle"><button class="buyBtn gold" style="margin-top:14px;font-size:10px;">GET BUNDLE — SAVE $9/MO</button></a>
+        <div style="font-size:13px;color:var(--gray);line-height:1.9;">✓ Full chart platform (Trader tier)<br>✓ Full journal included<br>✓ Save $9/month vs buying separate<br>✓ Best value for active traders</div>
+        <a href="/signup?plan=bundle"><button class="buyBtn gold" style="margin-top:14px;font-size:13px;">GET BUNDLE — SAVE $9/MO</button></a>
       </div>
     </div>
 
     <!-- BOTTOM NOTE -->
     <div style="background:rgba(201,168,76,.04);border-top:1px solid var(--border);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-      <span style="font-size:10px;color:var(--gray);">✓ All plans include full platform access &nbsp;·&nbsp; ✓ Cancel anytime &nbsp;·&nbsp; ✓ Chart is free during active evaluation</span>
-      <span style="font-size:10px;color:var(--gray);">Secure checkout via Stripe</span>
+      <span style="font-size:13px;color:var(--gray);">✓ All plans include full platform access &nbsp;·&nbsp; ✓ Cancel anytime &nbsp;·&nbsp; ✓ Chart is free during active evaluation</span>
+      <span style="font-size:13px;color:var(--gray);">Secure checkout via Stripe</span>
+    </div>
+    <!-- TRUST BADGES -->
+    <div style="display:flex;justify-content:center;align-items:center;gap:24px;padding:18px 24px;border-top:1px solid rgba(255,255,255,.04);flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:7px 14px;border-radius:3px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#26A69A" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--white);letter-spacing:.06em;">SSL SECURED</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:7px 14px;border-radius:3px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6772E5" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--white);letter-spacing:.06em;">STRIPE SECURED</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:7px 14px;border-radius:3px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--white);letter-spacing:.06em;">INSTANT ACTIVATION</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:7px 14px;border-radius:3px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--white);letter-spacing:.06em;">5-DAY PAYOUTS</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:7px 14px;border-radius:3px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#26A69A" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--white);letter-spacing:.06em;">NO TIME LIMIT</span>
+      </div>
     </div>
 
   </div>
-  <p style="font-size:10px;color:var(--gray);margin-top:16px;">Reset fees start at $49 if you need to retry an evaluation.</p>
+  <p style="font-size:13px;color:var(--gray);margin-top:16px;">Reset fees start at $49 if you need to retry an evaluation.</p>
 </section>
 
 <!-- HOW IT WORKS -->
@@ -301,6 +324,77 @@ footer{background:var(--s1);border-top:1px solid var(--border);padding:32px 5%;d
         <tr><td>$50,000</td><td class="gold">$249</td><td>$5,000 (10%)</td><td>$2,500 (5%)</td><td>$2,500</td><td>$1,000</td><td>5</td><td class="green">85%</td></tr>
         <tr style="background:rgba(201,168,76,.03);"><td>$100,000</td><td class="gold">$399</td><td>$8,000 (8%)</td><td>$5,000 (5%)</td><td>$5,000</td><td>$2,000</td><td>5</td><td class="green">85%</td></tr>
         <tr><td>$150,000</td><td class="gold">$599</td><td>$12,000 (8%)</td><td>$7,500 (5%)</td><td>$7,500</td><td>$3,000</td><td>5</td><td class="green">90%</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- COMPARISON TABLE -->
+<section style="padding:72px 5%;background:var(--bg);border-top:1px solid var(--border);">
+  <div style="text-align:center;margin-bottom:36px;">
+    <div class="sectionLabel">Why Tradephex</div>
+    <h2>HOW WE STACK UP</h2>
+    <p style="font-size:13px;color:var(--gray);margin-top:8px;">See how Tradephex compares to the competition.</p>
+  </div>
+  <div style="max-width:860px;margin:0 auto;overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:13px;">
+      <thead>
+        <tr style="border-bottom:1px solid rgba(201,168,76,.3);">
+          <th style="padding:12px 16px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.15em;color:var(--gold);">FEATURE</th>
+          <th style="padding:12px 16px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.1em;color:var(--gold);background:rgba(201,168,76,.06);border-left:1px solid rgba(201,168,76,.2);border-right:1px solid rgba(201,168,76,.2);">TRADEPHEX</th>
+          <th style="padding:12px 16px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.15em;color:var(--gray);">FTMO</th>
+          <th style="padding:12px 16px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.15em;color:var(--gray);">TOPSTEP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+          <td style="padding:12px 16px;color:var(--white);">Starting Price</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--gold);font-weight:700;background:rgba(201,168,76,.04);border-left:1px solid rgba(201,168,76,.1);border-right:1px solid rgba(201,168,76,.1);">$149</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--gray);">$155</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--gray);">$165/mo</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+          <td style="padding:12px 16px;color:var(--white);">Profit Split</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--green);font-weight:700;background:rgba(201,168,76,.04);border-left:1px solid rgba(201,168,76,.1);border-right:1px solid rgba(201,168,76,.1);">Up to 90%</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--gray);">Up to 90%</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--gray);">Up to 90%</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+          <td style="padding:12px 16px;color:var(--white);">Time Limit</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--green);font-weight:700;background:rgba(201,168,76,.04);border-left:1px solid rgba(201,168,76,.1);border-right:1px solid rgba(201,168,76,.1);">None</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--gray);">30 days</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--gray);">None</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+          <td style="padding:12px 16px;color:var(--white);">Built-in Chart Platform</td>
+          <td style="padding:12px 16px;text-align:center;background:rgba(201,168,76,.04);border-left:1px solid rgba(201,168,76,.1);border-right:1px solid rgba(201,168,76,.1);"><span style="color:var(--green);font-size:16px;">✓</span></td>
+          <td style="padding:12px 16px;text-align:center;"><span style="color:var(--red);font-size:16px;">✗</span></td>
+          <td style="padding:12px 16px;text-align:center;"><span style="color:var(--red);font-size:16px;">✗</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+          <td style="padding:12px 16px;color:var(--white);">Footprint Candles</td>
+          <td style="padding:12px 16px;text-align:center;background:rgba(201,168,76,.04);border-left:1px solid rgba(201,168,76,.1);border-right:1px solid rgba(201,168,76,.1);"><span style="color:var(--green);font-size:16px;">✓</span></td>
+          <td style="padding:12px 16px;text-align:center;"><span style="color:var(--red);font-size:16px;">✗</span></td>
+          <td style="padding:12px 16px;text-align:center;"><span style="color:var(--red);font-size:16px;">✗</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+          <td style="padding:12px 16px;color:var(--white);">Order Flow / DOM</td>
+          <td style="padding:12px 16px;text-align:center;background:rgba(201,168,76,.04);border-left:1px solid rgba(201,168,76,.1);border-right:1px solid rgba(201,168,76,.1);"><span style="color:var(--green);font-size:16px;">✓</span></td>
+          <td style="padding:12px 16px;text-align:center;"><span style="color:var(--red);font-size:16px;">✗</span></td>
+          <td style="padding:12px 16px;text-align:center;"><span style="color:var(--red);font-size:16px;">✗</span></td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+          <td style="padding:12px 16px;color:var(--white);">Trade Journal Included</td>
+          <td style="padding:12px 16px;text-align:center;background:rgba(201,168,76,.04);border-left:1px solid rgba(201,168,76,.1);border-right:1px solid rgba(201,168,76,.1);"><span style="color:var(--green);font-size:16px;">✓</span></td>
+          <td style="padding:12px 16px;text-align:center;"><span style="color:var(--red);font-size:16px;">✗</span></td>
+          <td style="padding:12px 16px;text-align:center;color:var(--gray);font-size:11px;">Paid add-on</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 16px;color:var(--white);">Payout Speed</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--green);font-weight:700;background:rgba(201,168,76,.04);border-left:1px solid rgba(201,168,76,.1);border-right:1px solid rgba(201,168,76,.1);">5 Days</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--gray);">1-2 Days</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--gray);">7 Days</td>
+        </tr>
       </tbody>
     </table>
   </div>
