@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eval Rules & Info — Tradephex</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Barlow:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black:#0A0A0F; --surface:#111118; --s1:#13131A; --s2:#1A1A24;
+  --gold:#C9A84C; --gold-bright:#F0CF7A; --gold-dim:#6B5520;
+  --white:#F5F5F5; --gray:#BBBBBB; --gray2:#888888; --gray3:#555555;
+  --border:rgba(201,168,76,0.12); --border2:rgba(201,168,76,0.25);
+  --green:#00E676; --red:#FF1744;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;}
+
+/* NAV */
+nav{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 32px;gap:32px;position:sticky;top:0;z-index:100;}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:.1em;color:var(--white);text-decoration:none;}
+.logo span{color:var(--gold);}
+.nav-links{display:flex;gap:24px;margin-left:auto;align-items:center;}
+.nav-links a{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.12em;color:var(--gray2);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+.nav-links a:hover{color:var(--white);}
+.nav-btn{background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.1em;padding:8px 20px;border:none;cursor:pointer;text-decoration:none;}
+
+/* HERO */
+.hero{padding:72px 5% 48px;border-bottom:1px solid var(--border);}
+.section-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--gold);margin-bottom:12px;text-transform:uppercase;}
+.hero h1{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:52px;line-height:1;color:var(--white);text-transform:uppercase;margin-bottom:16px;}
+.hero p{font-size:15px;color:var(--gray2);max-width:600px;line-height:1.7;}
+
+/* TABS */
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 5%;background:var(--surface);}
+.tab{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--gray2);padding:16px 24px;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.tab:hover{color:var(--white);}
+
+/* CONTENT */
+.content{padding:48px 5%;max-width:1100px;}
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* SECTION HEADERS */
+.sec-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;text-transform:uppercase;color:var(--white);margin-bottom:6px;}
+.sec-sub{font-size:13px;color:var(--gray2);margin-bottom:32px;line-height:1.6;}
+
+/* ACCOUNT TABLE */
+.acct-table{width:100%;border-collapse:collapse;margin-bottom:48px;}
+.acct-table th{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--gold);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border2);}
+.acct-table td{padding:14px 16px;font-size:14px;border-bottom:1px solid var(--border);color:var(--gray);}
+.acct-table td:first-child{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--white);}
+.acct-table td.gold{color:var(--gold);font-family:'DM Mono',monospace;}
+.acct-table td.green{color:var(--green);font-family:'DM Mono',monospace;}
+.acct-table tr:hover td{background:rgba(201,168,76,.03);}
+
+/* RULES GRID */
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--border);margin-bottom:48px;}
+.rule-card{background:var(--surface);padding:28px 24px;}
+.rule-icon{font-size:24px;margin-bottom:12px;}
+.rule-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;letter-spacing:.08em;text-transform:uppercase;color:var(--white);margin-bottom:6px;}
+.rule-val{font-family:'DM Mono',monospace;font-size:20px;color:var(--gold);margin-bottom:10px;}
+.rule-desc{font-size:13px;color:var(--gray2);line-height:1.6;}
+
+/* ALERT BOX */
+.alert{background:rgba(201,168,76,.06);border:1px solid var(--border2);padding:20px 24px;margin-bottom:32px;display:flex;gap:14px;align-items:flex-start;}
+.alert-icon{font-size:18px;flex-shrink:0;margin-top:2px;}
+.alert-text{font-size:13px;color:var(--gray);line-height:1.7;}
+.alert-text strong{color:var(--white);}
+
+.alert.green{background:rgba(0,230,118,.05);border-color:rgba(0,230,118,.2);}
+.alert.red{background:rgba(255,23,68,.05);border-color:rgba(255,23,68,.2);}
+
+/* FAQ */
+.faq-item{border-bottom:1px solid var(--border);padding:20px 0;}
+.faq-q{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--white);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;}
+.faq-q::after{content:'+';color:var(--gold);font-size:20px;flex-shrink:0;}
+.faq-q.open::after{content:'−';}
+.faq-a{font-size:13px;color:var(--gray2);line-height:1.7;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;}
+.faq-a.open{max-height:300px;padding-top:12px;}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--border);margin:40px 0;}
+.phase-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;padding:3px 10px;border:1px solid var(--border2);color:var(--gold);margin-bottom:20px;}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:32px 5%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-top:auto;}
+footer .logo{font-size:16px;}
+footer p{font-size:11px;color:var(--gray3);}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">TRADE<span>PHEX</span></a>
+  <div class="nav-links">
+    <a href="/#pricing">Pricing</a>
+    <a href="/rules" style="color:var(--gold);">Rules</a>
+    <a href="/#faq">FAQ</a>
+    <a href="/journal">Platform</a>
+    <a href="/login">Log In</a>
+    <a href="/signup" class="nav-btn">GET FUNDED →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="section-label">Tradephex Program</div>
+  <h1>Rules &<br>Program Info</h1>
+  <p>One phase. Clear rules. No tricks. Pass your Evaluation and trade on a funded sim account. Here's exactly what you need to know.</p>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('eval')">Evaluation Rules</div>
+  <div class="tab" onclick="switchTab('funded')">Funded Trader Rules</div>
+  <div class="tab" onclick="switchTab('payouts')">Payouts</div>
+  <div class="tab" onclick="switchTab('faq')">FAQ</div>
+</div>
+
+<!-- EVAL PANEL -->
+<div class="content">
+<div class="panel active" id="panel-eval">
+
+  <div class="phase-badge">PHASE — EVALUATION</div>
+  <div class="sec-title">Evaluation Rules</div>
+  <div class="sec-sub">Hit your profit target without violating any limits. Trade at least 5 days. No single day can exceed 40% of your total profit. No time limit.</div>
+
+  <div class="alert">
+    <div class="alert-icon">📋</div>
+    <div class="alert-text"><strong>One Phase Only.</strong> Pass your evaluation and you go straight to a funded account. No Phase 2. No extra hoops. Just prove your edge and we'll back you.</div>
+  </div>
+
+  <!-- RULES GRID -->
+  <div class="rules-grid">
+    <div class="rule-card">
+      <div class="rule-icon">🎯</div>
+      <div class="rule-name">Profit Target</div>
+      <div class="rule-val">6%</div>
+      <div class="rule-desc">Hit your account's profit target to pass. $50K, $100K, and $150K accounts all require 6%.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">📉</div>
+      <div class="rule-name">Max Drawdown</div>
+      <div class="rule-val">4%</div>
+      <div class="rule-desc">Your account equity cannot drop more than 4% from the starting balance at any point. Hitting this limit ends your evaluation.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">📅</div>
+      <div class="rule-name">Daily Loss Limit</div>
+      <div class="rule-val">2%</div>
+      <div class="rule-desc">You cannot lose more than 2% of your starting account balance in a single trading day. The day resets at market open.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">📆</div>
+      <div class="rule-name">Minimum Trading Days</div>
+      <div class="rule-val">5 Days</div>
+      <div class="rule-desc">You must trade at least 5 separate days before you can pass. Days with at least one executed trade count toward this requirement.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">⏱️</div>
+      <div class="rule-name">Time Limit</div>
+      <div class="rule-val">None</div>
+      <div class="rule-desc">Take as long as you need. Your monthly subscription keeps your eval active. There's no deadline pressure — trade at your own pace.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">✅</div>
+      <div class="rule-name">Consistency Rule</div>
+      <div class="rule-val">40% Max</div>
+      <div class="rule-desc">No single trading day can account for more than 40% of your total profit. This applies during both eval and funded accounts. It forces consistent trading rather than one lucky day carrying your results.</div>
+    </div>
+  </div>
+
+  <!-- ACCOUNT SIZE TABLE -->
+  <div class="sec-title">Account Sizes & Targets</div>
+  <div class="sec-sub" style="margin-bottom:20px;">Choose the account size that matches your trading style and risk tolerance.</div>
+
+  <table class="acct-table">
+    <thead>
+      <tr>
+        <th>Account Size</th>
+        <th>Intraday/EOD Monthly</th>
+        <th>Profit Target</th>
+        <th>Max Drawdown</th>
+        <th>Daily Loss Limit</th>
+        <th>Min Days</th>
+        <th>Profit Split</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>$50,000</td>
+        <td class="gold">$79–$149/mo</td>
+        <td class="green">$3,000</td>
+        <td style="color:var(--red);font-family:'DM Mono',monospace;">$2,000</td>
+        <td style="color:var(--red);font-family:'DM Mono',monospace;">Max 10</td>
+        <td>5</td>
+        <td class="green">85%</td>
+      </tr>
+      <tr style="background:rgba(201,168,76,.03);">
+        <td>$100,000 ⭐</td>
+        <td class="gold">$149–$249/mo</td>
+        <td class="green">$6,000</td>
+        <td style="color:var(--red);font-family:'DM Mono',monospace;">$4,000</td>
+        <td style="color:var(--red);font-family:'DM Mono',monospace;">Max 10</td>
+        <td>5</td>
+        <td class="green">85%</td>
+      </tr>
+      <tr>
+        <td>$150,000</td>
+        <td class="gold">$199–$349/mo</td>
+        <td class="green">$9,000</td>
+        <td style="color:var(--red);font-family:'DM Mono',monospace;">$6,000</td>
+        <td style="color:var(--red);font-family:'DM Mono',monospace;">Max 15</td>
+        <td>5</td>
+        <td class="green">90%</td>
+      </tr>
+    </tbody>
+  </table>
+
+
+  <div class="divider"></div>
+  <div class="sec-title">Intraday vs EOD — What's the Difference?</div>
+  <div class="sec-sub">Choose the eval type that matches your trading style.</div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin-bottom:32px;">
+    <div style="background:var(--surface);padding:28px 24px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.08em;margin-bottom:12px;">&#x26A1; INTRADAY EVAL</div>
+      <div style="font-size:13px;color:var(--gray2);line-height:1.8;margin-bottom:16px;">Drawdown is tracked in real-time including open trades. If your account equity dips below the 4% limit even for one second — including unrealized losses — the rule is breached immediately.</div>
+      <div style="font-size:13px;color:var(--gray2);line-height:1.8;"><strong style="color:var(--white);">Best for:</strong> Scalpers and day traders who close positions quickly and manage risk intraday.</div>
+      <div style="margin-top:16px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">$50K: $79/mo &nbsp;&middot;&nbsp; $100K: $149/mo &nbsp;&middot;&nbsp; $150K: $199/mo</div>
+    </div>
+    <div style="background:var(--surface);padding:28px 24px;border-left:2px solid var(--gold);">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.08em;margin-bottom:12px;">&#x1F319; EOD EVAL</div>
+      <div style="font-size:13px;color:var(--gray2);line-height:1.8;margin-bottom:16px;">Drawdown is calculated only on your closed P&amp;L at 4PM ET. Open trade fluctuations do not matter unless they are realized by the close. You can hold through intraday swings without fear.</div>
+      <div style="font-size:13px;color:var(--gray2);line-height:1.8;"><strong style="color:var(--white);">Best for:</strong> Traders who hold through pullbacks or have wider stops and need breathing room intraday.</div>
+      <div style="margin-top:16px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gold);">$50K: $149/mo &nbsp;&middot;&nbsp; $100K: $249/mo &nbsp;&middot;&nbsp; $150K: $349/mo</div>
+    </div>
+  </div>
+
+  <div class="alert">
+    <div class="alert-icon">&#x1F4CC;</div>
+    <div class="alert-text"><strong>Both Evaluation types become EOD Funded Accounts.</strong> Regardless of which Evaluation type you pass, your Funded Account uses EOD drawdown rules. Open trades do not count against your drawdown until the 4:00 PM ET close.</div>
+  </div>
+
+  <div class="alert red">
+    <div class="alert-icon">⚠️</div>
+    <div class="alert-text"><strong>Violation = Evaluation Closed.</strong> Hitting your max drawdown or daily loss limit will immediately close your evaluation. A reset fee applies to start a new evaluation on the same account size.</div>
+  </div>
+
+</div>
+
+<!-- FUNDED PANEL -->
+<div class="panel" id="panel-funded">
+
+  <div class="phase-badge">FUNDED ACCOUNT</div>
+  <div class="sec-title">Funded Trader Rules</div>
+  <div class="sec-sub">You passed. You're now on a funded sim account. The consistency rule and payout frequency rules apply — trade consistently and request your profit split every 10 trading days.</div>
+
+
+
+  <div class="rules-grid">
+    <div class="rule-card">
+      <div class="rule-icon">📊</div>
+      <div class="rule-name">Consistency Rule</div>
+      <div class="rule-val">40% Max</div>
+      <div class="rule-desc">No single trading day can account for more than 40% of your total profit when requesting a payout. This ensures your results are repeatable, not a one-day lucky trade.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">📉</div>
+      <div class="rule-name">Max Drawdown</div>
+      <div class="rule-val">4%</div>
+      <div class="rule-desc">Same as evaluation — your equity cannot drop more than 4% from your funded account balance at any point. Hitting this limit closes your funded account.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">📅</div>
+      <div class="rule-name">Daily Loss Limit</div>
+      <div class="rule-val">2%</div>
+      <div class="rule-desc">You cannot lose more than 2% of your funded account balance in a single day. This protects both you and us from large single-day losses.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">💰</div>
+      <div class="rule-name">Payout Minimum</div>
+      <div class="rule-val">$100</div>
+      <div class="rule-desc">Minimum payout request is $100. Payouts are processed within 5 business days via bank transfer or PayPal.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">📆</div>
+      <div class="rule-name">Payout Frequency</div>
+      <div class="rule-val">Every 10 Trading Days</div>
+      <div class="rule-desc">Payout requests can be submitted once every 10 trading days. This ensures payouts are based on confirmed, consistent closed profits before funds are released.</div>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="sec-title">The 40% Consistency Rule — Explained</div>
+  <div class="sec-sub">Here's exactly how it works with a real example.</div>
+
+  <div class="alert">
+    <div class="alert-icon">📘</div>
+    <div class="alert-text">
+      <strong>Example:</strong> You've made $5,000 total profit and want to request a payout.<br><br>
+      Your best single day was $1,800.<br>
+      40% of $5,000 = $2,000.<br>
+      $1,800 is under $2,000 — <strong style="color:var(--green);">you pass the consistency check.</strong><br><br>
+      If your best day was $2,500 — that's 50% of your total profit — <strong style="color:var(--red);">the payout would be blocked</strong> until you've made more profit on other days to bring that percentage down below 40%.
+    </div>
+  </div>
+
+</div>
+
+<!-- PAYOUTS PANEL -->
+<div class="panel" id="panel-payouts">
+
+  <div class="phase-badge">FUNDED ACCOUNTS</div>
+  <div class="sec-title">Payouts</div>
+  <div class="sec-sub">Fast, simple, no games. Here's how getting paid works.</div>
+
+  <div class="rules-grid">
+    <div class="rule-card">
+      <div class="rule-icon">⚡</div>
+      <div class="rule-name">Processing Time</div>
+      <div class="rule-val">5 Business Days</div>
+      <div class="rule-desc">All payout requests are reviewed and processed within 5 business days of submission.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">💳</div>
+      <div class="rule-name">Payment Methods</div>
+      <div class="rule-val">Bank / PayPal</div>
+      <div class="rule-desc">We support bank transfer (ACH) and PayPal. Select your preferred method in your dashboard settings.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">💵</div>
+      <div class="rule-name">Minimum Payout</div>
+      <div class="rule-val">$100</div>
+      <div class="rule-desc">The minimum payout request amount is $100. There is no maximum — withdraw as much profit as you've earned.</div>
+    </div>
+    <div class="rule-card">
+      <div class="rule-icon">📊</div>
+      <div class="rule-name">Profit Split</div>
+      <div class="rule-val">80–90%</div>
+      <div class="rule-desc">You keep 80-90% of all profits depending on your account size. The $150K account earns the maximum 90% split.</div>
+    </div>
+  </div>
+
+  <div class="alert">
+    <div class="alert-icon">ℹ️</div>
+    <div class="alert-text"><strong>Payout Checklist.</strong> Before requesting a payout, make sure: (1) you have at least $100 in profit, (2) no single day exceeds 40% of your total profit, (3) you're not currently in a drawdown violation. All three must be clear for a payout to be approved.</div>
+  </div>
+
+</div>
+
+<!-- FAQ PANEL -->
+<div class="panel" id="panel-faq">
+
+  <div class="sec-title">Frequently Asked Questions</div>
+  <div class="sec-sub">Can't find your answer? Email us at <a href="mailto:support@tradephex.com" style="color:var(--gold);">support@tradephex.com</a></div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">What happens if I fail my evaluation?</div>
+    <div class="faq-a">If you hit your max drawdown or daily loss limit, your evaluation closes. You can restart with a reset fee — which is lower than the original subscription price. Your account size and rules stay the same.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Is there a time limit on the evaluation?</div>
+    <div class="faq-a">No. Your monthly subscription keeps your evaluation active for as long as you're subscribed. Take the time you need — there's no deadline.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Can I trade news events?</div>
+    <div class="faq-a">Yes. There are no restrictions on when you can trade. You can hold through news events, trade during NFP, FOMC — whatever your strategy calls for.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Can I use automated trading or EAs?</div>
+    <div class="faq-a">Yes, automated strategies are allowed. However, account sharing or using the same strategy across multiple accounts is not permitted and will result in account termination.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Can I hold trades overnight or over the weekend?</div>
+    <div class="faq-a">No. All positions must be closed by 4:00 PM ET each trading day. Any open positions at the close will count against your EOD drawdown calculation. Overnight and weekend holds are not permitted on either Evaluation or Funded accounts.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">What markets can I trade?</div>
+    <div class="faq-a">The Tradephex platform supports ES/MES, NQ/MNQ, YM/MYM, Crude Oil (CL), Gold (GC), and more. Full instrument list is available inside the platform.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">When does the consistency rule kick in?</div>
+    <div class="faq-a">The 40% consistency rule only applies to funded accounts when requesting a payout. There is no consistency rule during the evaluation phase.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">How do I request a payout?</div>
+    <div class="faq-a">Once you're funded, go to your dashboard → My Evaluation → Request Payout. Enter the amount, select your payment method, and submit. You'll receive a confirmation email and payment within 5 business days.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">Can I cancel my subscription?</div>
+    <div class="faq-a">Yes, cancel anytime from your account settings. If you cancel mid-month, your evaluation remains active until the end of your billing period. Cancelling closes your evaluation — it cannot be resumed after cancellation.</div>
+  </div>
+
+</div>
+</div><!-- end content -->
+
+<footer>
+  <a href="/" class="logo">TRADE<span>PHEX</span></a>
+  <div style="display:flex;gap:24px;">
+    <a href="/terms" style="font-size:12px;color:var(--gray3);text-decoration:none;">Terms</a>
+    <a href="/privacy" style="font-size:12px;color:var(--gray3);text-decoration:none;">Privacy</a>
+    <a href="/refund" style="font-size:12px;color:var(--gray3);text-decoration:none;">Refunds</a>
+    <a href="/support" style="font-size:12px;color:var(--gray3);text-decoration:none;">Support</a>
+  </div>
+  <p>© 2026 Tradephex LLC. All rights reserved.</p>
+</footer>
+
+<script>
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + id).classList.add('active');
+}
+
+function toggleFaq(el) {
+  const ans = el.nextElementSibling;
+  el.classList.toggle('open');
+  ans.classList.toggle('open');
+}
+</script>
+</body>
+</html>

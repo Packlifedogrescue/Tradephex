@@ -121,9 +121,9 @@ async function loadEvalFromDB() {
       EVAL_STATE.maxDrawdown = userEval.max_drawdown || 0;
       EVAL_STATE.tradingDays = userEval.trading_days || 0;
       EVAL_STATE.balance = EVAL_STATE.accountSize + EVAL_STATE.netPnl;
-      EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * (EVAL_STATE.phase === 1 ? 0.10 : 0.05);
+      EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * 0.06;
       EVAL_STATE.rules.profitTarget.current = EVAL_STATE.netPnl;
-      EVAL_STATE.rules.maxDrawdown.limit = EVAL_STATE.accountSize * 0.05;
+      EVAL_STATE.rules.maxDrawdown.limit = EVAL_STATE.accountSize * 0.04;
       EVAL_STATE.rules.maxDrawdown.current = EVAL_STATE.maxDrawdown;
       const ddPct = EVAL_STATE.maxDrawdown / EVAL_STATE.rules.maxDrawdown.limit;
       if (ddPct >= 1) {
@@ -137,8 +137,8 @@ async function loadEvalFromDB() {
 async function handleEvalPurchaseSuccess(accountSize) {
   if (!accountSize || !currentUser) return;
   const size = parseInt(accountSize) || 50000;
-  const phaseTarget = size * 0.10;
-  const ddLimit = size * 0.05;
+  const phaseTarget = size * 0.06;
+  const ddLimit = size * 0.04;
   try {
     const { data, error } = await db.from('evaluations').insert({
       user_id: currentUser.id,
@@ -223,15 +223,15 @@ async function sendEmail(template, data) {
       },
       eval_activated: {
         subject: `Your $${(data.accountSize||50000).toLocaleString()} Evaluation is Active`,
-        body: `Your Tradephex evaluation has been activated.\n\nAccount Size: $${(data.accountSize||50000).toLocaleString()}\nProfit Target (Phase 1): $${(data.profitTarget||5000).toFixed(0)}\nMax Drawdown: $${(data.drawdownLimit||2500).toFixed(0)}\nMin Trading Days: 5\n\nGood luck. Execute your process.\n\ntradephex.com/journal\n\n— Tradephex`
+        body: `Your Tradephex evaluation has been activated.\n\nAccount Size: $${(data.accountSize||50000).toLocaleString()}\nProfit Target (6%): $${(data.profitTarget||3000).toFixed(0)}\nMax Drawdown (4%): $${(data.drawdownLimit||2000).toFixed(0)}\nMin Trading Days: 5\n40% Consistency Rule applies\nAll positions close by 4:00 PM ET\n\nGood luck. Execute your process.\n\ntradephex.com/journal\n\n— Tradephex`
       },
       plan_upgraded: {
         subject: `Tradephex ${(data.plan||'').charAt(0).toUpperCase()+(data.plan||'').slice(1)} Plan Activated`,
         body: `Your ${data.plan} plan is now active. Full platform access unlocked.\n\ntradephex.com/journal\n\n— Tradephex`
       },
       eval_passed_p1: {
-        subject: 'Phase 1 Complete — You Passed!',
-        body: `Congratulations! You passed Phase 1 of your evaluation.\n\nPhase 2 is now active. Hit your 5% profit target to earn your funded account.\n\ntradephex.com/journal\n\n— Tradephex`
+        subject: 'Evaluation Complete — You Passed!',
+        body: `Congratulations! You passed your Evaluation.\n\nYour Funded Account is now active. Pay the one-time $150 activation fee to begin your funded sim account and start requesting payouts.\n\ntradephex.com/journal\n\n— Tradephex`
       },
       eval_funded: {
         subject: '🏆 You Are Funded — Congratulations!',
@@ -1934,9 +1934,9 @@ function initEvaluation() {
 
   // Rules list
   const rules = [
-    { label: 'Profit Target (10%)', status: e.netPnl >= e.rules.profitTarget.required, 
+    { label: 'Profit Target (6%)', status: e.netPnl >= e.rules.profitTarget.required, 
       detail: `+$${e.netPnl.toFixed(0)} of $${e.rules.profitTarget.required.toLocaleString()} required` },
-    { label: 'Max Drawdown (5%)', status: e.maxDrawdown < e.rules.maxDrawdown.limit,
+    { label: 'Max Drawdown (4%)', status: e.maxDrawdown < e.rules.maxDrawdown.limit,
       detail: `$${e.maxDrawdown} used — $${(e.rules.maxDrawdown.limit - e.maxDrawdown).toFixed(0)} remaining` },
     { label: 'Daily Loss Limit (2%)', status: e.dailyLoss < e.rules.dailyLoss.limit,
       detail: e.dailyLoss === 0 ? 'No losses today' : `$${e.dailyLoss} of $${e.rules.dailyLoss.limit} used` },
@@ -2228,8 +2228,7 @@ function syncEvalWithTrades() {
   // Check phase progression
   if (EVAL_STATE.phase === 1 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
     EVAL_STATE.phase = 2;
-    EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * 0.05;
-    showToastMsg('🎉 Phase 1 Complete! Phase 2 now active — hit 5% profit target.', 'var(--green)');
+    showToastMsg('🎉 Evaluation Complete! Pay the $150 activation fee to go funded.', 'var(--green)');
     sendEmail('eval_passed_p1', { to: currentUser?.email });
     updateEvalInDB({ phase: 2 });
   }
