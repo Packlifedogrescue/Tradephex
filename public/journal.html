@@ -1064,6 +1064,15 @@ canvas{display:block;}
       <!-- Active eval state -->
       <div id="eval-active">
 
+        <!-- FUNDED ACTIVATION BANNER — shows only when passed -->
+        <div id="funded-activation-banner" style="display:none;background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.05));border:1px solid rgba(201,168,76,.5);padding:24px 28px;margin-bottom:24px;display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;color:var(--gold);letter-spacing:.05em;">🏆 YOU PASSED YOUR EVALUATION!</div>
+            <div style="font-size:13px;color:var(--gray);margin-top:6px;line-height:1.7;">Pay the one-time $150 activation fee to unlock your Funded Account and start requesting payouts.</div>
+          </div>
+          <button onclick="activateFundedAccount()" style="background:var(--gold);color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:.1em;text-transform:uppercase;padding:14px 32px;cursor:pointer;white-space:nowrap;">ACTIVATE FUNDED — $150 →</button>
+        </div>
+
         <!-- Header row -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
           <div>
@@ -2075,6 +2084,31 @@ async function purchaseEval(accountSize, fee) {
   }
 }
 
+async function activateFundedAccount() {
+  if (!currentUser) { window.location.href = '/login'; return; }
+  try {
+    if (!window.Stripe) {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://js.stripe.com/v3/';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+    const stripe = Stripe(STRIPE_PK);
+    const res = await fetch('/api/activate-funded', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: currentUser.id, email: currentUser.email }),
+    });
+    const { url, error } = await res.json();
+    if (error) throw new Error(error);
+    window.location.href = url;
+  } catch(e) {
+    showToastMsg('Error: ' + e.message, 'var(--red)');
+  }
+}
+
 async function submitSupport() {
   const category = document.getElementById('support-category').value;
   const subject = document.getElementById('support-subject').value.trim();
@@ -2164,11 +2198,16 @@ function syncEvalWithTrades() {
     sendEmail('eval_passed_p1', { to: currentUser?.email });
     updateEvalInDB({ phase: 2 });
   }
-  if (EVAL_STATE.phase === 2 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
+  if (EVAL_STATE.phase >= 1 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
     EVAL_STATE.active = false;
-    showToastMsg('🏆 YOU PASSED! Both phases complete. You are funded. Check your email.', 'var(--gold)');
+    showToastMsg('🏆 YOU PASSED! Evaluation complete. Activate your funded account from the dashboard.', 'var(--gold)');
     sendEmail('eval_funded', { to: currentUser?.email });
     updateEvalInDB({ status: 'passed', phase: 3 });
+    // Show funded activation banner
+    const banner = document.getElementById('funded-activation-banner');
+    if(banner) { banner.style.display = 'flex'; }
+    const badge = document.getElementById('eval-status-badge');
+    if(badge) { badge.innerHTML = '🏆 PASSED'; badge.style.cssText = "font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.15em;padding:8px 20px;border:1px solid rgba(201,168,76,.5);background:rgba(201,168,76,.15);color:#C9A84C;"; }
   }
   // Sync to DB
   updateEvalInDB({
