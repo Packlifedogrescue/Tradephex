@@ -481,6 +481,10 @@ select.sym:hover{border-color:var(--border2);}
   <div class="bsep"></div>
   <button onclick="const s=SYM[sym],p=(bars[bars.length-1]?.c||0);document.getElementById('dLP').value=p.toFixed(s.t<1?2:0);placeOrder('limit','buy')" style="background:rgba(38,166,154,.08);border:1px solid rgba(38,166,154,.3);color:#26A69A;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;padding:3px 8px;cursor:pointer;border-radius:2px;white-space:nowrap;">BUY BID</button>
   <button onclick="const s=SYM[sym],p=(bars[bars.length-1]?.c||0);document.getElementById('dLP').value=p.toFixed(s.t<1?2:0);placeOrder('limit','sell')" style="background:rgba(239,83,80,.08);border:1px solid rgba(239,83,80,.3);color:#EF5350;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;padding:3px 8px;cursor:pointer;border-radius:2px;white-space:nowrap;">SELL BID</button>
+  <div style="margin-left:12px;padding:0 10px;border-left:1px solid rgba(255,255,255,.08);">
+    <span style="font-size:8px;color:rgba(255,255,255,.4);letter-spacing:.08em;margin-right:4px;">OPEN P&L</span>
+    <span id="tbUnrealizedPnl" style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:rgba(255,255,255,.3);">—</span>
+  </div>
   <!-- POSITION CONTROLS — only when in a trade -->
   <div id="tbPos" style="display:none;align-items:center;gap:3px;border-left:1px solid rgba(255,255,255,.08);padding-left:6px;">
     <div id="tb_side" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;"></div>
@@ -496,6 +500,11 @@ select.sym:hover{border-color:var(--border2);}
 <!-- Legacy LP IDs kept for updateLivePnl compatibility -->
 <span id="lpPanel" style="display:none;"></span>
 <span id="lp_sym" style="display:none;"></span>
+<span id="lp_side" style="display:none;"></span>
+<span id="lp_entry" style="display:none;"></span>
+<span id="lp_ticks" style="display:none;"></span>
+<span id="lp_pnl" style="display:none;"></span>
+<span id="lp_tv" style="display:none;"></span>
 <span id="lp_tv" style="display:none;"></span>
 <span id="lp_cv" style="display:none;"></span>
 <span id="lp_last" style="display:none;"></span>
@@ -1755,6 +1764,8 @@ function updateLivePnl(){
   const panel=document.getElementById('lpPanel');if(!panel)return;
   if(domPos.qty===0){
     document.getElementById('tbPos').style.display='none';
+    const tbPnlEl=document.getElementById('tbUnrealizedPnl');
+    if(tbPnlEl){tbPnlEl.textContent='—';tbPnlEl.style.color='rgba(255,255,255,.3)';}
     return;
   }
   document.getElementById('tbPos').style.display='flex';
@@ -1764,24 +1775,31 @@ function updateLivePnl(){
   if(pnl>posEntry.mfe)posEntry.mfe=pnl;if(pnl<posEntry.mae)posEntry.mae=pnl;
   const col=pnl>=0?'var(--green)':'var(--red)',sCol=isLong?'var(--green)':'var(--red)';
   const dur=posEntry.time?Math.floor((Date.now()-posEntry.time)/1000)+'s':'—';
-  document.getElementById('lp_sym').textContent=sym+' · '+s.name;
+  const safe=(id,fn)=>{const el=document.getElementById(id);if(el)fn(el);};
+  safe('lp_sym',el=>el.textContent=sym+' · '+s.name);
   const sideHtml=`<span style="color:${sCol};">${isLong?'▲ LONG':'▼ SHORT'} ${Math.abs(domPos.qty)}</span>`;
-  document.getElementById('lp_side').innerHTML=sideHtml;
-  document.getElementById('tb_side').innerHTML=sideHtml;
-  document.getElementById('lp_entry').textContent=domPos.avg.toFixed(2);
-  document.getElementById('tb_entry').textContent=domPos.avg.toFixed(2);
-  document.getElementById('lp_last').textContent=last.toFixed(2);
+  safe('lp_side',el=>el.innerHTML=sideHtml);
+  safe('tb_side',el=>el.innerHTML=sideHtml);
+  safe('lp_entry',el=>el.textContent=domPos.avg.toFixed(2));
+  safe('tb_entry',el=>el.textContent=domPos.avg.toFixed(2));
+  safe('lp_last',el=>el.textContent=last.toFixed(2));
   const ticksHtml=`<span style="color:${col};">${ticks>=0?'+':''}${ticks.toFixed(1)}</span>`;
-  document.getElementById('lp_ticks').innerHTML=ticksHtml;
-  document.getElementById('tb_ticks').innerHTML=ticksHtml;
+  safe('lp_ticks',el=>el.innerHTML=ticksHtml);
+  safe('tb_ticks',el=>el.innerHTML=ticksHtml);
   const pnlHtml=`<span style="color:${col};">${pnl>=0?'+':''}$${pnl.toFixed(2)}</span>`;
-  document.getElementById('lp_pnl').innerHTML=pnlHtml;
-  document.getElementById('tb_pnl').innerHTML=pnlHtml;
-  document.getElementById('lp_mfe').textContent='+$'+posEntry.mfe.toFixed(2);
-  document.getElementById('lp_mae').textContent='-$'+Math.abs(posEntry.mae).toFixed(2);
-  document.getElementById('lp_tv').textContent='$'+s.tv+'/tick';
-  document.getElementById('lp_dur').textContent=dur;
-  document.getElementById('lp_cv').textContent='$'+Math.round(Math.abs(domPos.qty)*last*(s.tv/s.t)).toLocaleString();
+  safe('lp_pnl',el=>el.innerHTML=pnlHtml);
+  safe('tb_pnl',el=>el.innerHTML=pnlHtml);
+  safe('lp_mfe',el=>el.textContent='+$'+posEntry.mfe.toFixed(2));
+  safe('lp_mae',el=>el.textContent='-$'+Math.abs(posEntry.mae).toFixed(2));
+  safe('lp_tv',el=>el.textContent='$'+s.tv+'/tick');
+  safe('lp_dur',el=>el.textContent=dur);
+  safe('lp_cv',el=>el.textContent='$'+Math.round(Math.abs(domPos.qty)*last*(s.tv/s.t)).toLocaleString());
+  // Update toolbar open P&L display
+  const tbPnlEl=document.getElementById('tbUnrealizedPnl');
+  if(tbPnlEl){
+    tbPnlEl.textContent=(pnl>=0?'+':'')+' $'+pnl.toFixed(2);
+    tbPnlEl.style.color=col;
+  }
 }
 
 // ════════════════════════════════════════════════
@@ -1894,6 +1912,18 @@ function checkRiskLimitsRealTime(){
   const isLong=domPos.qty>0;
   const ticks=(last-domPos.avg)/s.t*(isLong?1:-1);
   const unrealizedPnl=ticks*s.tv*Math.abs(domPos.qty);
+  // Update toolbar open P&L display
+  const tbPnlEl = document.getElementById('tbUnrealizedPnl');
+  if (tbPnlEl) {
+    if (domPos.qty !== 0) {
+      const pnlStr = (unrealizedPnl >= 0 ? '+' : '') + '$' + unrealizedPnl.toFixed(2);
+      tbPnlEl.textContent = pnlStr;
+      tbPnlEl.style.color = unrealizedPnl >= 0 ? '#00E676' : '#FF1744';
+    } else {
+      tbPnlEl.textContent = '—';
+      tbPnlEl.style.color = 'rgba(255,255,255,.3)';
+    }
+  }
 
   const acct=50000;
   const ddLimit=acct*.05;    // $2,500
