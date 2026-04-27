@@ -136,20 +136,50 @@ footer{background:var(--s1);border-top:1px solid var(--border);padding:32px 5%;d
 </nav>
 
 <!-- HERO -->
-<section class="hero">
-  <div class="heroBg"></div>
-  <h1>PROVE YOUR EDGE.<br><em>GET FUNDED.</em></h1>
-  <p class="heroSub">The only prop firm that gives you professional tools during your eval — footprint candles, order flow delta, AI trade scoring. Built in. No extra cost.</p>
-  <div class="heroCtas">
-    <a href="#pricing"><button class="btnPrimary" style="padding:14px 36px;font-size:14px;">START YOUR EVAL FROM $79 →</button></a>
+<div style="position:relative;width:100%;height:620px;overflow:hidden;background:#06060A;" id="heroWrap">
+<canvas id="heroCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
+<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;text-align:center;padding:0 24px;">
+  <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:72px;line-height:1;color:#fff;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px;">TRADE<span style="color:#C9A84C;">PHEX</span></div>
+  <div style="width:180px;height:1.5px;background:linear-gradient(90deg,transparent,#C9A84C,transparent);margin:14px auto 18px;"></div>
+  <div id="typewriter" style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:32px;min-height:38px;"></div>
+  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+    <a href="/evaluations"><button style="background:#C9A84C;color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;letter-spacing:0.12em;padding:14px 36px;cursor:pointer;text-transform:uppercase;">START EVAL FROM $79 →</button></a>
+    <a href="/rules"><button style="background:transparent;color:#C9A84C;border:1px solid rgba(201,168,76,0.4);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.12em;padding:14px 28px;cursor:pointer;text-transform:uppercase;">VIEW RULES</button></a>
   </div>
-  <div class="statsRow">
-    <div class="stat"><div class="n">$150K</div><div class="l">MAX ACCOUNT</div></div>
-    <div class="stat"><div class="n">90%</div><div class="l">PROFIT SPLIT</div></div>
-    <div class="stat"><div class="n">$79</div><div class="l">STARTS FROM</div></div>
-    <div class="stat"><div class="n">5</div><div class="l">DAY PAYOUTS</div></div>
+  <div style="display:flex;gap:48px;margin-top:40px;flex-wrap:wrap;justify-content:center;">
+    <div style="text-align:center;"><div id="stat1" style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:#C9A84C;">$0K</div><div style="font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-top:3px;">Max Account</div></div>
+    <div style="text-align:center;"><div id="stat2" style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:#C9A84C;">$0</div><div style="font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-top:3px;">Starts From</div></div>
+    <div style="text-align:center;"><div id="stat3" style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:#C9A84C;">0</div><div style="font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-top:3px;">Day Payouts</div></div>
   </div>
-</section>
+</div>
+<script>
+const c=document.getElementById('heroCanvas');
+const ctx=c.getContext('2d');
+let t=0,particles=[],dataStreams=[],candles=[];
+let mouseX=0.5,mouseY=0.5;
+document.getElementById('heroWrap').addEventListener('mousemove',e=>{const r=e.currentTarget.getBoundingClientRect();mouseX=(e.clientX-r.left)/r.width;mouseY=(e.clientY-r.top)/r.height;});
+function resize(){c.width=c.offsetWidth*(window.devicePixelRatio||1);c.height=c.offsetHeight*(window.devicePixelRatio||1);ctx.scale(window.devicePixelRatio||1,window.devicePixelRatio||1);initParticles();initStreams();initCandles();}
+function initCandles(){candles=[];let p=7200;for(let i=0;i<50;i++){const o=p+(Math.random()-.5)*18,cl=o+(Math.random()-.5)*24,h=Math.max(o,cl)+Math.random()*10,l=Math.min(o,cl)-Math.random()*10;candles.push({open:o,close:cl,high:h,low:l});p=cl;}}
+function initParticles(){particles=[];for(let i=0;i<65;i++)particles.push({x:Math.random()*c.offsetWidth,y:Math.random()*c.offsetHeight,vy:-(Math.random()*.4+.1),vx:(Math.random()-.5)*.15,r:Math.random()*1.8+.3,a:Math.random()*.5+.1,life:Math.random()});}
+function initStreams(){dataStreams=[];const cols=Math.floor(c.offsetWidth/90);for(let i=0;i<cols;i++)dataStreams.push({x:(i/cols)*c.offsetWidth+45,y:Math.random()*c.offsetHeight,speed:Math.random()*.6+.2,vals:Array.from({length:8},()=>(7100+Math.random()*200).toFixed(2)),alpha:Math.random()*.06+.02});}
+function drawCandles(){const w=c.offsetWidth,h=c.offsetHeight,cw=10,gap=5,total=Math.floor(w/(cw+gap))+4,pMin=7120,pMax=7280,pY=p=>h*.82-((p-pMin)/(pMax-pMin))*(h*.52),scrollX=(t*.3)%(cw+gap);for(let i=0;i<total;i++){const cd=candles[(i+Math.floor(t*.3/(cw+gap)))%candles.length],x=-scrollX+i*(cw+gap),isUp=cd.close>=cd.open,a=.10,col=isUp?`rgba(0,230,118,${a})`:`rgba(255,68,68,${a})`,wc=isUp?`rgba(0,230,118,${a*.6})`:`rgba(255,68,68,${a*.6})`,top=pY(Math.max(cd.open,cd.close)),bot=pY(Math.min(cd.open,cd.close));ctx.strokeStyle=wc;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+cw/2,pY(cd.high));ctx.lineTo(x+cw/2,pY(cd.low));ctx.stroke();ctx.fillStyle=col;ctx.fillRect(x,top,cw,Math.max(bot-top,1.5));}}
+function drawRays(){const w=c.offsetWidth,h=c.offsetHeight,cx=w/2+(mouseX-.5)*30,cy=h*.42+(mouseY-.5)*20;for(let i=0;i<12;i++){const angle=(i/12)*Math.PI*2+t*.003,pulse=.5+.5*Math.sin(t*.018+i),grad=ctx.createLinearGradient(cx,cy,cx+Math.cos(angle)*700,cy+Math.sin(angle)*700);grad.addColorStop(0,`rgba(201,168,76,${.07*pulse})`);grad.addColorStop(.4,`rgba(201,168,76,${.025*pulse})`);grad.addColorStop(1,'rgba(201,168,76,0)');ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,700,angle-.07,angle+.07);ctx.closePath();ctx.fillStyle=grad;ctx.fill();}const g=ctx.createRadialGradient(cx,cy,0,cx,cy,270),pulse=.7+.3*Math.sin(t*.025);g.addColorStop(0,`rgba(201,168,76,${.08*pulse})`);g.addColorStop(.5,`rgba(201,168,76,${.02*pulse})`);g.addColorStop(1,'rgba(201,168,76,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}
+function drawGrid(){const w=c.offsetWidth,h=c.offsetHeight,ox=(mouseX-.5)*15,oy=(mouseY-.5)*10,vx=w/2+ox,vy=h*.42+oy;ctx.strokeStyle='rgba(201,168,76,0.035)';ctx.lineWidth=1;for(let i=0;i<=14;i++){const x=(i/14)*w;ctx.beginPath();ctx.moveTo(vx,vy);ctx.lineTo(x,h);ctx.stroke();}for(let i=0;i<7;i++){const p=i/7,yy=vy+(h-vy)*(p*p),xs=(w*.5)*p;ctx.beginPath();ctx.moveTo(vx-xs,yy);ctx.lineTo(vx+xs,yy);ctx.stroke();}}
+function drawHorizon(){const y=c.offsetHeight*.72,g=ctx.createLinearGradient(0,y-1,0,y+60);g.addColorStop(0,'rgba(201,168,76,0.15)');g.addColorStop(1,'rgba(201,168,76,0)');ctx.fillStyle=g;ctx.fillRect(0,y-1,c.offsetWidth,60);}
+function drawDataStreams(){ctx.font='9px monospace';dataStreams.forEach(s=>{s.y+=s.speed;if(s.y>c.offsetHeight+120){s.y=-120;s.vals=s.vals.map(()=>(7100+Math.random()*200).toFixed(2));}s.vals.forEach((v,i)=>{const yy=s.y+i*16;if(yy<0||yy>c.offsetHeight)return;ctx.fillStyle=`rgba(201,168,76,${s.alpha})`;ctx.fillText(v,s.x,yy);});});}
+function drawParticles(){const ox=(mouseX-.5)*8,oy=(mouseY-.5)*8;particles.forEach(p=>{p.x+=p.vx+ox*.002;p.y+=p.vy+oy*.002;p.life+=.003;if(p.y<-10||p.life>1){p.y=c.offsetHeight+5;p.x=Math.random()*c.offsetWidth;p.life=0;}const fade=Math.sin(p.life*Math.PI);ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(201,168,76,${p.a*fade})`;ctx.fill();});}
+function drawVignette(){const w=c.offsetWidth,h=c.offsetHeight,g=ctx.createRadialGradient(w/2,h/2,h*.2,w/2,h/2,h*.85);g.addColorStop(0,'rgba(6,6,10,0)');g.addColorStop(1,'rgba(6,6,10,0.88)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}
+function loop(){t++;const w=c.offsetWidth,h=c.offsetHeight;ctx.fillStyle='#06060A';ctx.fillRect(0,0,w,h);drawCandles();drawDataStreams();drawGrid();drawRays();drawHorizon();drawParticles();drawVignette();requestAnimationFrame(loop);}
+resize();window.addEventListener('resize',resize);loop();
+const phrases=['Prove Your Edge.','Get Funded.','Execute. Analyze. Elevate.'];
+let pi=0,ci=0,deleting=false;const tw=document.getElementById('typewriter');
+function typeStep(){const phrase=phrases[pi];if(!deleting){ci++;tw.textContent=phrase.slice(0,ci);if(ci>=phrase.length){deleting=true;setTimeout(typeStep,2200);return;}}else{ci--;tw.textContent=phrase.slice(0,ci);if(ci<=0){deleting=false;pi=(pi+1)%phrases.length;setTimeout(typeStep,400);return;}}setTimeout(typeStep,deleting?40:90);}
+setTimeout(typeStep,800);
+function countUpK(id,target,duration){const el=document.getElementById(id),start=Date.now();function step(){const p=Math.min((Date.now()-start)/duration,1),ease=1-Math.pow(1-p,3),val=Math.round(ease*target);el.textContent='$'+val+'K';if(p<1)requestAnimationFrame(step);else el.textContent='$150K';}step();}
+function countUp(id,target,prefix,suffix,duration){const el=document.getElementById(id),start=Date.now();function step(){const p=Math.min((Date.now()-start)/duration,1),ease=1-Math.pow(1-p,3),val=Math.round(ease*target);el.textContent=prefix+val+suffix;if(p<1)requestAnimationFrame(step);else el.textContent=prefix+target+suffix;}step();}
+setTimeout(()=>{countUpK('stat1',150,1400);countUp('stat2',79,'$','',900);countUp('stat3',5,'','',700);},400);
+</script>
+</div>
 
 <!-- FEATURES STRIP -->
 <div class="featStrip">
