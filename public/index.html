@@ -16,7 +16,7 @@ a{color:inherit;text-decoration:none;}
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(6,6,10,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);z-index:100;display:flex;align-items:center;padding:0 5%;justify-content:space-between;}
-.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;letter-spacing:.08em;}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;letter-spacing:.08em;}
 .logo span{color:var(--gold);}
 .navLinks{display:flex;gap:24px;font-size:11px;color:var(--gray);}
 .navLinks a:hover{color:var(--white);transition:.15s;}
@@ -124,10 +124,10 @@ footer{background:var(--s1);border-top:1px solid var(--border);padding:32px 5%;d
 <nav>
   <div class="logo">TRADE<span>PHEX</span></div>
   <div class="navLinks">
-    <a href="#pricing">Pricing</a>
-    <a href="#how">How It Works</a>
-    <a href="#faq">FAQ</a>
-    <a href="/eval-chart">Platform</a>
+    <a href="/evaluations">Evaluations</a>
+    <a href="/journal-plans">Journal</a>
+    <a href="/charting">Charting</a>
+    <a href="/rules">Rules</a>
   </div>
   <div class="navCta">
     <a href="/login"><button class="btnOutline">Log In</button></a>
@@ -138,12 +138,10 @@ footer{background:var(--s1);border-top:1px solid var(--border);padding:32px 5%;d
 <!-- HERO -->
 <section class="hero">
   <div class="heroBg"></div>
-  <div class="badge">NOW ACCEPTING APPLICATIONS</div>
   <h1>PROVE YOUR EDGE.<br><em>GET FUNDED.</em></h1>
   <p class="heroSub">The only prop firm that gives you professional tools during your eval — footprint candles, order flow delta, AI trade scoring. Built in. No extra cost.</p>
   <div class="heroCtas">
     <a href="#pricing"><button class="btnPrimary" style="padding:14px 36px;font-size:14px;">START YOUR EVAL FROM $79 →</button></a>
-    <a href="/eval-chart"><button class="btnOutline" style="padding:14px 24px;font-size:13px;">TRY THE PLATFORM FREE</button></a>
   </div>
   <div class="statsRow">
     <div class="stat"><div class="n">$150K</div><div class="l">MAX ACCOUNT</div></div>
@@ -174,187 +172,7 @@ footer{background:var(--s1);border-top:1px solid var(--border);padding:32px 5%;d
   <!-- OUTER BOX -->
   <div style="max-width:1060px;margin:0 auto;border:1px solid var(--border2);border-radius:4px;overflow:hidden;">
 
-    <!-- SECTION HEADER: INTRADAY EVAL -->
-    <div style="background:rgba(201,168,76,.07);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;">
-      <div style="text-align:left;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.08em;">&#x26A1; INTRADAY EVALUATION</div>
-        <div style="font-size:13px;color:var(--gray);margin-top:2px;">Real-time drawdown tracking &middot; All positions closed by 4PM ET &middot; Full platform included</div>
-      </div>
-      <div style="font-size:13px;color:var(--green);font-weight:600;white-space:nowrap;">Up to 90% profit split</div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:var(--border);">
-      <div style="background:var(--bg);padding:22px 20px;text-align:center;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$50,000</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$79<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray);line-height:1.8;">6% target &middot; 4% DD &middot; 80% split<br>5 min days &middot; 40% consistency &middot; Max 5 contracts</div>
-        <button class="buyBtn out" style="margin-top:14px;" onclick="buyEval('intraday-50k',this)">START EVAL &rarr;</button>
-      </div>
-      <div style="background:var(--bg);padding:22px 20px;padding-top:28px;position:relative;box-shadow:inset 0 3px 0 var(--gold);text-align:center;">
-        <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:8px;letter-spacing:.15em;padding:2px 10px;">POPULAR</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$100,000</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$149<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray);line-height:1.8;">6% target &middot; 4% DD &middot; 85% split<br>5 min days &middot; 40% consistency &middot; Max 10 contracts</div>
-        <button class="buyBtn gold" style="margin-top:14px;" onclick="buyEval('intraday-100k',this)">START EVAL &rarr;</button>
-      </div>
-      <div style="background:var(--s1);padding:22px 20px;text-align:center;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$150,000</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$199<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray);line-height:1.8;">6% target &middot; 4% DD &middot; <span style="color:var(--green);font-weight:600;">90% split</span><br>5 min days &middot; 40% consistency &middot; Max 15 contracts</div>
-        <button class="buyBtn out" style="margin-top:14px;" onclick="buyEval('intraday-150k',this)">START EVAL &rarr;</button>
-      </div>
-    </div>
-
-    <!-- SECTION HEADER: EOD EVAL -->
-    <div style="background:rgba(201,168,76,.07);border-top:1px solid var(--border2);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;">
-      <div style="text-align:left;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.08em;">&#x1F319; EOD EVALUATION</div>
-        <div style="font-size:13px;color:var(--gray);margin-top:2px;">Drawdown on closed P&amp;L at 4PM ET only &middot; Open trades don't count &middot; Full platform included</div>
-      </div>
-      <div style="font-size:13px;color:var(--gold);font-weight:600;white-space:nowrap;">More flexibility &middot; Higher price</div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:var(--border);">
-      <div style="background:var(--bg);padding:22px 20px;text-align:center;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$50,000</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$149<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray);line-height:1.8;">6% target &middot; 4% EOD DD &middot; 80% split<br>5 min days &middot; 40% consistency &middot; Max 5 contracts</div>
-        <button class="buyBtn out" style="margin-top:14px;" onclick="buyEval('eod-50k',this)">START EVAL &rarr;</button>
-      </div>
-      <div style="background:var(--bg);padding:22px 20px;padding-top:28px;position:relative;box-shadow:inset 0 3px 0 var(--gold);text-align:center;">
-        <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:8px;letter-spacing:.15em;padding:2px 10px;">POPULAR</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$100,000</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$249<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray);line-height:1.8;">6% target &middot; 4% EOD DD &middot; 85% split<br>5 min days &middot; 40% consistency &middot; Max 10 contracts</div>
-        <button class="buyBtn gold" style="margin-top:14px;" onclick="buyEval('eod-100k',this)">START EVAL &rarr;</button>
-      </div>
-      <div style="background:var(--s1);padding:22px 20px;text-align:center;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;margin-bottom:2px;">$150,000</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:var(--gold);line-height:1;margin-bottom:12px;">$349<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray);line-height:1.8;">6% target &middot; 4% EOD DD &middot; <span style="color:var(--green);font-weight:600;">90% split</span><br>5 min days &middot; 40% consistency &middot; Max 15 contracts</div>
-        <button class="buyBtn out" style="margin-top:14px;" onclick="buyEval('eod-150k',this)">START EVAL &rarr;</button>
-      </div>
-    </div>
-
-
-        <!-- SECTION HEADER: CHART -->
-    <div style="background:rgba(79,195,247,.05);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;">
-      <div style="text-align:left;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.08em;">📈 CHART PLATFORM</div>
-        <div style="font-size:13px;color:var(--gray);margin-top:2px;">Footprint candles · Order flow · Market profile · Pattern recognition · 6 layouts</div>
-      </div>
-      <div style="font-size:13px;color:var(--green);font-weight:600;white-space:nowrap;">Free during active eval</div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;background:var(--border);">
-      <div style="background:var(--bg);padding:20px;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Trader</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;margin-bottom:10px;">$29<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray);line-height:1.9;">✓ All chart types + footprint<br>✓ Order flow delta<br>✓ 4-chart layout<br>✓ Drawing tools + S/R</div>
-        <a href="/signup?plan=trader"><button class="buyBtn out" style="margin-top:14px;font-size:13px;">GET TRADER PLAN</button></a>
-      </div>
-      <div style="background:var(--s1);padding:20px;border-left:1px solid var(--border);border-right:1px solid var(--border);">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Pro</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;margin-bottom:10px;">$79<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray);line-height:1.9;">✓ Everything in Trader<br>✓ 6-chart layout<br>✓ Market profile (TPO)<br>✓ Journal included</div>
-        <a href="/signup?plan=pro"><button class="buyBtn out" style="margin-top:14px;font-size:13px;">GET PRO PLAN</button></a>
-      </div>
-      <div style="background:var(--bg);padding:20px;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Elite</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;margin-bottom:10px;">$149<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray);line-height:1.9;">✓ Everything in Pro<br>✓ Priority support<br>✓ API access<br>✓ Leaderboard + analytics</div>
-        <a href="/signup?plan=elite"><button class="buyBtn out" style="margin-top:14px;font-size:13px;">GET ELITE PLAN</button></a>
-      </div>
-    </div>
-
-    <!-- SECTION HEADER: JOURNAL -->
-    <div style="background:rgba(0,230,118,.04);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;">
-      <div style="text-align:left;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;letter-spacing:.08em;">📓 TRADE JOURNAL</div>
-        <div style="font-size:13px;color:var(--gray);margin-top:2px;">Session analytics · Win rate by symbol · Avg winner vs loser · Streak tracking</div>
-      </div>
-      <div style="font-size:13px;color:var(--green);font-weight:600;white-space:nowrap;">Included with eval + Pro+</div>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;background:var(--border);">
-      <div style="background:var(--bg);padding:20px;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Journal Standalone</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;margin-bottom:10px;">$19<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray);line-height:1.9;">✓ Full trade history<br>✓ Session P&L (morning/lunch/close)<br>✓ Win rate by symbol<br>✓ Avg winner vs loser + expectancy</div>
-        <a href="/signup?plan=journal"><button class="buyBtn out" style="margin-top:14px;font-size:13px;">GET JOURNAL</button></a>
-      </div>
-      <div style="background:var(--s1);padding:20px;border-left:1px solid var(--border);text-align:center;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;margin-bottom:2px;">Chart + Journal Bundle</div>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px;justify-content:center;">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;">$39<span style="font-size:12px;color:var(--gray);">/mo</span></div>
-          <div style="font-size:13px;color:var(--gray);text-decoration:line-through;">$48</div>
-        </div>
-        <div style="font-size:13px;color:var(--gray);line-height:1.9;">✓ Full chart platform (Trader tier)<br>✓ Full journal included<br>✓ Save $9/month vs buying separate<br>✓ Best value for active traders</div>
-        <a href="/signup?plan=bundle"><button class="buyBtn gold" style="margin-top:14px;font-size:13px;">GET BUNDLE — SAVE $9/MO</button></a>
-      </div>
-    </div>
-
-    <!-- BOTTOM NOTE -->
-    <div style="background:rgba(201,168,76,.04);border-top:1px solid var(--border);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-      <span style="font-size:13px;color:var(--gray);">✓ All plans include full platform access &nbsp;·&nbsp; ✓ Cancel anytime &nbsp;·&nbsp; ✓ Chart is free during active evaluation</span>
-      <span style="font-size:13px;color:var(--gray);">Secure checkout via Stripe</span>
-    </div>
-    <!-- TRUST BADGES -->
-    <div style="display:flex;justify-content:center;align-items:center;gap:24px;padding:18px 24px;border-top:1px solid rgba(255,255,255,.04);flex-wrap:wrap;">
-      <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:7px 14px;border-radius:3px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#26A69A" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--white);letter-spacing:.06em;">SSL SECURED</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:7px 14px;border-radius:3px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6772E5" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--white);letter-spacing:.06em;">STRIPE SECURED</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:7px 14px;border-radius:3px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--white);letter-spacing:.06em;">INSTANT ACTIVATION</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:7px 14px;border-radius:3px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--white);letter-spacing:.06em;">5-DAY PAYOUTS</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);padding:7px 14px;border-radius:3px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#26A69A" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;color:var(--white);letter-spacing:.06em;">NO TIME LIMIT</span>
-      </div>
-    </div>
-
-  </div>
-  <p style="font-size:13px;color:var(--gray);margin-top:16px;">Reset fees start at $49 if you need to retry an evaluation.</p>
-</section>
-
-<!-- HOW IT WORKS -->
-<section class="howSection" id="how">
-  <div class="sectionLabel">The Process</div>
-  <h2>FOUR STEPS TO FUNDED</h2>
-  <div class="steps">
-    <div class="step"><div class="stepN">1</div><h3>SUBSCRIBE</h3><p>Choose your account size. Subscribe monthly. Access the full Tradephex platform instantly — professional tools no other prop firm gives you during your eval.</p></div>
-    <div class="step"><div class="stepN">2</div><h3>PASS YOUR EVAL</h3><p>Hit your 6% profit target while staying within drawdown limits. Minimum 5 trading days. No single day can exceed 40% of your total profit. All positions close by 4PM ET. Rule tracking built into the platform.</p></div>
-    <div class="step"><div class="stepN">3</div><h3>GET FUNDED</h3><p>Pass once and you're funded — no Phase 2. Your subscription ends and you start trading with Tradephex capital immediately.</p></div>
-    <div class="step"><div class="stepN">4</div><h3>GET PAID</h3><p>Request your profit split anytime from your dashboard. We pay within 5 business days via PayPal or ACH. Keep up to 90% of every dollar you make.</p></div>
-  </div>
-</section>
-
-<!-- RULES TABLE -->
-<section class="rulesSection">
-  <div class="sectionLabel">Eval Rules</div>
-  <h2>CLEAR RULES. NO SURPRISES.</h2>
-  <div style="overflow-x:auto;margin-top:28px;">
-    <table class="rulesTable" style="display:table;">
-      <thead><tr>
-        <th>ACCOUNT</th><th>INTRADAY/EOD MONTHLY</th><th>PROFIT TARGET</th><th>MAX DRAWDOWN</th><th>MIN DAYS</th><th>SPLIT</th>
-      </tr></thead>
-      <tbody>
-        <tr><td>$50,000</td><td class="gold">$79 / $149</td><td>$3,000 (6%)</td><td>$2,000 (4%)</td><td>5</td><td class="green">80%</td></tr>
-        <tr style="background:rgba(201,168,76,.03);"><td>$100,000 ⭐</td><td class="gold">$149 / $249</td><td>$6,000 (6%)</td><td>$4,000 (4%)</td><td>5</td><td class="green">85%</td></tr>
-        <tr><td>$150,000</td><td class="gold">$199 / $349</td><td>$9,000 (6%)</td><td>$6,000 (4%)</td><td>5</td><td class="green">90%</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-
-
+    
 <!-- CTA -->
 <section class="ctaSection">
   <div class="sectionLabel">Ready?</div>
@@ -370,7 +188,6 @@ footer{background:var(--s1);border-top:1px solid var(--border);padding:32px 5%;d
   <div><div class="fLogo">TRADE<span>PHEX</span></div></div>
   <div class="fLinks">
     <a href="/journal">Dashboard</a>
-    <a href="/eval-chart">Platform</a>
     <a href="/terms">Terms</a>
     <a href="/privacy">Privacy</a>
     <a href="/risk">Risk Disclosure</a>
