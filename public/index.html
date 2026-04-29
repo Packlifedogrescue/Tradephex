@@ -4,154 +4,276 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tradephex — Elite Futures Prop Firm</title>
-<meta name="description" content="The only prop firm that gives you professional trading tools during your evaluation. Footprint candles, order flow delta, AI trade scoring. Get funded from $149.">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="description" content="The only prop firm with professional trading tools built into the platform. Footprint candles, order flow delta, AI trade scoring. Get funded from $79/mo.">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
-:root{--bg:#06060A;--s1:#0B0B12;--s2:#10101A;--gold:#C9A84C;--gold2:#E8C870;--white:#FFFFFF;--gray:#B0B0C8;--green:#00E676;--red:#FF1744;--border:rgba(201,168,76,.12);--border2:rgba(201,168,76,.28);}
+:root{--bg:#06060A;--s1:#0B0B12;--s2:#10101A;--gold:#C9A84C;--gold2:#E8C870;--white:#FFFFFF;--gray:#B0B0C8;--gray2:#888899;--green:#00E676;--red:#FF1744;--border:rgba(201,168,76,.12);--border2:rgba(201,168,76,.28);}
 html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--white);font-family:'DM Mono',monospace;overflow-x:hidden;}
+body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;overflow-x:hidden;}
 ::-webkit-scrollbar{width:3px;background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--gold);}
 a{color:inherit;text-decoration:none;}
 
-/* NAV */
 nav{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(6,6,10,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);z-index:100;display:flex;align-items:center;padding:0 5%;justify-content:space-between;}
-.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;letter-spacing:.08em;}
+.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;letter-spacing:.08em;color:var(--white);}
 .logo span{color:var(--gold);}
-.navLinks{display:flex;gap:24px;font-size:11px;color:var(--gray);}
-.navLinks a:hover{color:var(--white);transition:.15s;}
-.navCta{display:flex;gap:8px;}
-.btnOutline{padding:7px 16px;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:.08em;cursor:pointer;background:transparent;transition:.15s;}
-.btnOutline:hover{background:rgba(201,168,76,.08);}
-.btnPrimary{padding:7px 18px;background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;cursor:pointer;border:none;transition:.15s;}
+.navLinks{display:flex;gap:24px;align-items:center;}
+.navLinks a{color:var(--gray);font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:14px;letter-spacing:.06em;transition:.15s;}
+.navLinks a:hover,.navLinks a.active{color:var(--white);}
+.btnPrimary{padding:10px 22px;background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;letter-spacing:.1em;cursor:pointer;border:none;transition:.15s;display:inline-block;}
 .btnPrimary:hover{background:var(--gold2);}
+.btnOutline{padding:10px 22px;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.08em;cursor:pointer;background:transparent;transition:.15s;display:inline-block;}
+.btnOutline:hover{background:rgba(201,168,76,.08);}
+.mobileToggle{display:none;background:none;border:none;color:var(--gold);font-size:24px;cursor:pointer;}
 
-/* HERO */
-.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 5% 60px;position:relative;overflow:hidden;}
-.heroBg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 55% at 50% 45%,rgba(201,168,76,.07) 0%,transparent 70%);pointer-events:none;}
-.badge{display:inline-flex;align-items:center;gap:6px;background:rgba(201,168,76,.1);border:1px solid var(--border2);padding:4px 14px;font-size:9px;letter-spacing:.18em;color:var(--gold);margin-bottom:22px;}
-.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--gold);animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-h1{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(52px,9vw,104px);line-height:.92;letter-spacing:-.01em;margin-bottom:18px;}
-h1 em{color:var(--gold);font-style:normal;}
-.heroSub{font-size:clamp(12px,1.8vw,15px);color:var(--gray);max-width:500px;line-height:1.7;margin-bottom:32px;}
-.heroCtas{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:56px;}
-.statsRow{display:flex;gap:48px;flex-wrap:wrap;justify-content:center;border-top:1px solid rgba(255,255,255,.05);padding-top:40px;}
-.stat .n{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:38px;color:var(--gold);}
-.stat .l{font-size:9px;letter-spacing:.15em;color:var(--gray);margin-top:2px;}
+.heroWrap{position:relative;width:100%;height:680px;overflow:hidden;background:#06060A;margin-top:58px;}
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%;}
+.heroContent{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;text-align:center;padding:0 24px;}
+.heroLogo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(48px,8vw,72px);line-height:1;color:#fff;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px;}
+.heroLogo span{color:var(--gold);}
+.heroDivider{width:180px;height:1.5px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:14px auto 18px;}
+#typewriter{font-family:'Barlow Condensed',sans-serif;font-size:clamp(20px,3.2vw,32px);font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:36px;min-height:42px;}
+.heroCtas{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:40px;}
+.heroBigBtn{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:0.12em;padding:16px 38px;cursor:pointer;text-transform:uppercase;border:none;}
+.heroBigBtn.gold{background:var(--gold);color:#000;}
+.heroBigBtn.outline{background:transparent;color:var(--gold);border:1px solid rgba(201,168,76,0.4);font-weight:700;}
+.heroStats{display:flex;gap:48px;flex-wrap:wrap;justify-content:center;}
+.heroStat .num{font-family:'Barlow Condensed',sans-serif;font-size:38px;font-weight:800;color:var(--gold);}
+.heroStat .lbl{font-size:12px;letter-spacing:0.2em;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-top:4px;}
 
-/* FEATURES STRIP */
-.featStrip{background:var(--s1);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:28px 5%;display:flex;gap:0;overflow-x:auto;justify-content:center;flex-wrap:wrap;}
-.feat{display:flex;align-items:center;gap:8px;padding:6px 20px;border-right:1px solid rgba(255,255,255,.05);white-space:nowrap;}
+.featStrip{background:var(--s1);border-bottom:1px solid var(--border);padding:28px 5%;display:flex;gap:0;justify-content:center;flex-wrap:wrap;}
+.feat{display:flex;align-items:center;gap:10px;padding:10px 24px;border-right:1px solid rgba(255,255,255,.05);white-space:nowrap;}
 .feat:last-child{border-right:none;}
-.feat .ico{font-size:15px;}
-.feat span{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--white);}
-.feat .pill{font-size:7px;letter-spacing:.1em;padding:1px 5px;background:rgba(201,168,76,.15);color:var(--gold);border:1px solid var(--border);margin-left:4px;}
+.feat .ico{font-size:18px;}
+.feat span{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:600;letter-spacing:.04em;color:var(--white);}
+.feat .pill{font-size:10px;letter-spacing:.1em;padding:2px 7px;background:rgba(201,168,76,.15);color:var(--gold);border:1px solid var(--border);}
 
-/* PRICING */
-.pricingSection{padding:72px 5%;text-align:center;}
-.sectionLabel{font-size:9px;letter-spacing:.2em;color:var(--gold);margin-bottom:10px;}
-h2{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(32px,5vw,52px);margin-bottom:10px;line-height:1.05;}
-.sectionSub{font-size:12px;color:var(--gray);margin-bottom:40px;}
-.pricingGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;max-width:980px;margin:0 auto 24px;}
-.pCard{background:var(--s1);border:1px solid var(--border);padding:24px 20px;text-align:left;transition:.2s;position:relative;}
-.pCard:hover{border-color:var(--border2);transform:translateY(-2px);}
-.pCard.pop{border-color:var(--gold);}
-.popBadge{position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:9px;letter-spacing:.15em;padding:2px 12px;}
-.pSize{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;margin-bottom:3px;}
-.pPrice{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:42px;color:var(--gold);line-height:1;margin-bottom:14px;}
-.pPrice span{font-size:13px;color:var(--gray);}
-.pList{list-style:none;margin-bottom:18px;}
-.pList li{font-size:13px;color:var(--gray);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:6px;}
-.pList li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;}
-.pList li b{color:var(--white);}
-.buyBtn{width:100%;padding:10px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;cursor:pointer;border:none;transition:.15s;position:relative;}
-.buyBtn.gold{background:var(--gold);color:#000;}.buyBtn.gold:hover{background:var(--gold2);}
-.buyBtn.out{background:transparent;border:1px solid var(--border2);color:var(--gold);}.buyBtn.out:hover{background:rgba(201,168,76,.08);}
-.buyBtn .spin{display:none;width:12px;height:12px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:sp .6s linear infinite;margin:0 auto;}
-@keyframes sp{to{transform:rotate(360deg)}}
+section{padding:80px 5%;}
+.sectionLabel{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.2em;color:var(--gold);margin-bottom:14px;text-align:center;}
+h2{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(40px,5.5vw,58px);text-transform:uppercase;line-height:1.05;text-align:center;margin-bottom:14px;}
+.sectionSub{font-size:17px;color:var(--gray);text-align:center;margin-bottom:52px;max-width:640px;margin-left:auto;margin-right:auto;line-height:1.7;}
 
-/* HOW IT WORKS */
-.howSection{background:var(--s1);padding:72px 5%;}
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--border);margin-top:36px;}
-.step{background:var(--bg);padding:28px 24px;position:relative;}
-.stepN{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:rgba(201,168,76,.12);position:absolute;top:16px;right:16px;}
-.step h3{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;letter-spacing:.06em;margin-bottom:6px;color:var(--gold);}
-.step p{font-size:13px;color:var(--gray);line-height:1.7;}
+.productsGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);max-width:1100px;margin:0 auto;}
+.product{background:var(--s1);padding:36px 32px;text-align:left;display:flex;flex-direction:column;}
+.product .icon{font-size:36px;margin-bottom:14px;}
+.product .label{font-family:'DM Mono',monospace;font-size:12px;letter-spacing:.2em;color:var(--gold);margin-bottom:10px;}
+.product h3{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;letter-spacing:.06em;margin-bottom:8px;text-transform:uppercase;}
+.product .desc{font-size:15px;color:var(--gray);line-height:1.7;margin-bottom:22px;min-height:46px;}
+.product .price{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;color:var(--gold);line-height:1;margin-bottom:8px;}
+.product .price small{font-size:16px;color:var(--gray2);font-weight:400;}
+.product .priceNote{font-size:13px;color:var(--green);margin-bottom:22px;}
+.product .features{list-style:none;margin-bottom:26px;flex-grow:1;}
+.product .features li{font-size:15px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:10px;}
+.product .features li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;}
+.product.featured{background:var(--bg);position:relative;box-shadow:inset 0 3px 0 var(--gold);}
+.product.featured::before{content:'MOST POPULAR';position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:.15em;padding:4px 16px;}
 
-/* RULES TABLE */
-.rulesSection{padding:72px 5%;}
-.rulesTable{width:100%;border-collapse:collapse;font-size:11px;overflow-x:auto;display:block;}
-.rulesTable th{text-align:left;padding:8px 12px;font-size:8px;letter-spacing:.1em;color:var(--gray);border-bottom:1px solid var(--border);white-space:nowrap;}
-.rulesTable td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap;}
-.rulesTable tr:hover td{background:rgba(255,255,255,.02);}
-.green{color:var(--green);}
-.gold{color:var(--gold);}
+.howSection{background:var(--s1);}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);max-width:1100px;margin:0 auto;}
+.step{background:var(--bg);padding:36px 30px;position:relative;}
+.stepN{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:54px;color:rgba(201,168,76,.14);position:absolute;top:18px;right:18px;line-height:1;}
+.step h3{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;letter-spacing:.06em;margin-bottom:10px;color:var(--gold);text-transform:uppercase;}
+.step p{font-size:15px;color:var(--gray);line-height:1.7;}
 
-/* FAQ */
-.faqSection{background:var(--s1);padding:72px 5%;}
-.faqWrap{max-width:680px;margin:32px auto 0;}
-.faqItem{border-bottom:1px solid var(--border);padding:16px 0;}
-.faqQ{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;letter-spacing:.03em;}
+.faqSection{background:var(--s1);}
+.faqWrap{max-width:760px;margin:0 auto;}
+.faqItem{border-bottom:1px solid var(--border);padding:18px 0;}
+.faqQ{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;letter-spacing:.03em;}
 .faqQ:hover{color:var(--gold);}
-.faqQ span{color:var(--gold);font-size:14px;transition:.2s;}
-.faqA{font-size:11px;color:var(--gray);line-height:1.8;max-height:0;overflow:hidden;transition:max-height .3s,padding .3s;}
-.faqItem.open .faqA{max-height:160px;padding-top:10px;}
-.faqItem.open .faqQ span{transform:rotate(45deg);}
+.faqQ .plus{color:var(--gold);font-size:18px;transition:.2s;}
+.faqA{font-size:13px;color:var(--gray2);line-height:1.8;max-height:0;overflow:hidden;transition:max-height .3s ease,padding .3s;}
+.faqItem.open .faqA{max-height:200px;padding-top:12px;}
+.faqItem.open .faqQ .plus{transform:rotate(45deg);}
 
-/* CTA */
-.ctaSection{padding:80px 5%;text-align:center;background:linear-gradient(135deg,rgba(201,168,76,.06),transparent 60%,rgba(0,230,118,.03));}
-.ctaSection h2{font-size:clamp(36px,6vw,68px);margin-bottom:12px;}
+.ctaSection{padding:96px 5%;text-align:center;background:linear-gradient(135deg,rgba(201,168,76,.08),transparent 60%,rgba(0,230,118,.04));}
+.ctaSection h2{font-size:clamp(40px,7vw,72px);margin-bottom:14px;}
+.ctaSection p{font-size:16px;color:var(--gray);margin-bottom:36px;max-width:560px;margin-left:auto;margin-right:auto;line-height:1.7;}
 
-/* FOOTER */
-footer{background:var(--s1);border-top:1px solid var(--border);padding:32px 5%;display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;}
-.fLogo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;}
-.fLogo span{color:var(--gold);}
-.fLinks{display:flex;gap:16px;font-size:13px;color:var(--gray);flex-wrap:wrap;}
-.fLinks a:hover{color:var(--white);}
-.disc{width:100%;font-size:8px;color:rgba(255,255,255,.18);line-height:1.6;border-top:1px solid rgba(255,255,255,.04);padding-top:16px;margin-top:8px;}
+footer{background:var(--s1);border-top:1px solid var(--border);padding:44px 5% 28px;display:flex;flex-wrap:wrap;gap:24px;justify-content:space-between;align-items:center;}
+footer .fLinks{display:flex;gap:22px;flex-wrap:wrap;}
+footer .fLinks a{font-size:14px;color:rgba(255,255,255,.5);transition:.15s;}
+footer .fLinks a:hover{color:var(--white);}
+footer .copy{font-size:13px;color:rgba(255,255,255,.3);}
+.disc{width:100%;font-size:11px;color:rgba(255,255,255,.25);line-height:1.7;border-top:1px solid rgba(255,255,255,.04);padding-top:18px;margin-top:10px;}
 
-/* TOAST */
-#toast{position:fixed;bottom:20px;right:20px;background:rgba(8,8,18,.97);border-left:3px solid var(--gold);color:var(--white);padding:10px 16px;font-size:11px;z-index:999;border-radius:0 3px 3px 0;transform:translateX(140%);transition:transform .3s cubic-bezier(.22,.61,.36,1);box-shadow:0 4px 20px rgba(0,0,0,.6);}
+#toast{position:fixed;bottom:20px;right:20px;background:rgba(8,8,18,.97);border-left:3px solid var(--gold);color:var(--white);padding:12px 18px;font-size:13px;z-index:999;border-radius:0 3px 3px 0;transform:translateX(140%);transition:transform .3s cubic-bezier(.22,.61,.36,1);box-shadow:0 4px 20px rgba(0,0,0,.6);}
 #toast.show{transform:none;}
 
-@media(max-width:640px){.navLinks{display:none;}.statsRow{gap:24px;}.featStrip{justify-content:flex-start;}.pricingGrid{grid-template-columns:1fr;}}
+@media(max-width:780px){
+  .navLinks{position:fixed;top:58px;left:0;right:0;background:rgba(6,6,10,.98);flex-direction:column;padding:20px;gap:14px;display:none;border-bottom:1px solid var(--border);}
+  .navLinks.open{display:flex;}
+  .mobileToggle{display:block;}
+  .productsGrid{grid-template-columns:1fr;}
+  .steps{grid-template-columns:1fr 1fr;}
+  .heroStats{gap:24px;}
+  section{padding:56px 5%;}
+}
+@media(max-width:480px){
+  .steps{grid-template-columns:1fr;}
+  .featStrip{justify-content:flex-start;overflow-x:auto;}
+}
 </style>
 </head>
 <body>
 <div id="toast"></div>
 
 <nav>
-  <div class="logo">TRADE<span>PHEX</span></div>
+  <a href="/" class="logo">TRADE<span>PHEX</span></a>
+  <button class="mobileToggle" onclick="document.querySelector('.navLinks').classList.toggle('open')">☰</button>
   <div class="navLinks">
     <a href="/evaluations">Evaluations</a>
     <a href="/journal-plans">Journal</a>
     <a href="/charting">Charting</a>
     <a href="/rules">Rules</a>
-  </div>
-  <div class="navCta">
-    <a href="/login"><button class="btnOutline">Log In</button></a>
-    <a href="#pricing"><button class="btnPrimary">GET FUNDED →</button></a>
+    <a href="/login">Log In</a>
+    <a href="/signup" class="btnPrimary">GET FUNDED →</a>
   </div>
 </nav>
 
-<!-- HERO -->
-<div style="position:relative;width:100%;height:620px;overflow:hidden;background:#06060A;" id="heroWrap">
-<canvas id="heroCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
-<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;text-align:center;padding:0 24px;">
-  <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:72px;line-height:1;color:#fff;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:2px;">TRADE<span style="color:#C9A84C;">PHEX</span></div>
-  <div style="width:180px;height:1.5px;background:linear-gradient(90deg,transparent,#C9A84C,transparent);margin:14px auto 18px;"></div>
-  <div id="typewriter" style="font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:700;color:rgba(255,255,255,0.85);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:32px;min-height:38px;"></div>
-  <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
-    <a href="/evaluations"><button style="background:#C9A84C;color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;letter-spacing:0.12em;padding:14px 36px;cursor:pointer;text-transform:uppercase;">START EVAL FROM $79 →</button></a>
-    <a href="/rules"><button style="background:transparent;color:#C9A84C;border:1px solid rgba(201,168,76,0.4);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.12em;padding:14px 28px;cursor:pointer;text-transform:uppercase;">VIEW RULES</button></a>
-  </div>
-  <div style="display:flex;gap:48px;margin-top:40px;flex-wrap:wrap;justify-content:center;">
-    <div style="text-align:center;"><div id="stat1" style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:#C9A84C;">$0K</div><div style="font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-top:3px;">Max Account</div></div>
-    <div style="text-align:center;"><div id="stat2" style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:#C9A84C;">$0</div><div style="font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-top:3px;">Starts From</div></div>
-    <div style="text-align:center;"><div id="stat3" style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:#C9A84C;">0</div><div style="font-size:10px;letter-spacing:0.2em;color:rgba(255,255,255,0.4);text-transform:uppercase;margin-top:3px;">Day Payouts</div></div>
+<div class="heroWrap" id="heroWrap">
+  <canvas id="heroCanvas"></canvas>
+  <div class="heroContent">
+    <div class="heroLogo">TRADE<span>PHEX</span></div>
+    <div class="heroDivider"></div>
+    <div id="typewriter"></div>
+    <div class="heroCtas">
+      <a href="/evaluations"><button class="heroBigBtn gold">START EVAL FROM $79/MO →</button></a>
+      <a href="/rules"><button class="heroBigBtn outline">VIEW RULES</button></a>
+    </div>
+    <div class="heroStats">
+      <div class="heroStat"><div class="num" id="stat1">$0K</div><div class="lbl">Max Account</div></div>
+      <div class="heroStat"><div class="num" id="stat2">$0</div><div class="lbl">Starts From</div></div>
+      <div class="heroStat"><div class="num" id="stat3">0</div><div class="lbl">Day Payouts</div></div>
+    </div>
   </div>
 </div>
+
+<div class="featStrip">
+  <div class="feat"><span class="ico">👣</span><span>Footprint Candles</span><div class="pill">EXCLUSIVE</div></div>
+  <div class="feat"><span class="ico">Δ</span><span>Order Flow Delta</span><div class="pill">EXCLUSIVE</div></div>
+  <div class="feat"><span class="ico">📊</span><span>Market Profile</span><div class="pill">EXCLUSIVE</div></div>
+  <div class="feat"><span class="ico">⭐</span><span>AI Trade Scoring</span><div class="pill">EXCLUSIVE</div></div>
+  <div class="feat"><span class="ico">📐</span><span>Pattern Recognition</span></div>
+  <div class="feat"><span class="ico">🐋</span><span>Iceberg Detection</span></div>
+  <div class="feat"><span class="ico">⏮</span><span>Replay Mode</span></div>
+  <div class="feat"><span class="ico">🔢</span><span>6 Chart Layouts</span></div>
+</div>
+
+<section id="products">
+  <div class="sectionLabel">Three Ways To Use Tradephex</div>
+  <h2>One Platform. Three Products.</h2>
+  <p class="sectionSub">Pass an evaluation to get funded. Or subscribe to use the platform standalone. Or grab the journal to track and improve your trading.</p>
+
+  <div class="productsGrid">
+    <div class="product">
+      <div class="icon">🎯</div>
+      <div class="label">EVALUATION PROGRAM</div>
+      <h3>Get Funded</h3>
+      <div class="desc">Hit your profit target while staying within drawdown. Pass and get funded up to 90% profit split.</div>
+      <div class="price">$79<small>/mo</small></div>
+      <div class="priceNote">✓ Full platform included</div>
+      <ul class="features">
+        <li>$50K, $100K, $150K accounts</li>
+        <li>Intraday or EOD drawdown</li>
+        <li>Up to 90% profit split</li>
+        <li>5 business day payouts</li>
+        <li>Real-time risk enforcement</li>
+      </ul>
+      <a href="/evaluations"><button class="btnOutline" style="width:100%;padding:14px;font-size:15px;">VIEW EVALUATIONS →</button></a>
+    </div>
+
+    <div class="product featured">
+      <div class="icon">📈</div>
+      <div class="label">CHART PLATFORM</div>
+      <h3>Trade Standalone</h3>
+      <div class="desc">Footprint candles, order flow, market profile, AI scoring — all built in. No third-party tools needed.</div>
+      <div class="price">$29<small>/mo</small></div>
+      <div class="priceNote">✓ Free during active eval</div>
+      <ul class="features">
+        <li>Footprint candles + order flow</li>
+        <li>Market profile (TPO)</li>
+        <li>Pattern recognition</li>
+        <li>AI trade scoring</li>
+        <li>Up to 6-chart layouts</li>
+      </ul>
+      <a href="/charting"><button class="btnPrimary" style="width:100%;padding:14px;font-size:15px;">VIEW CHART PLANS →</button></a>
+    </div>
+
+    <div class="product">
+      <div class="icon">📓</div>
+      <div class="label">TRADE JOURNAL</div>
+      <h3>Track & Improve</h3>
+      <div class="desc">Session analytics, win rate by symbol, expectancy, streak tracking. Auto-syncs from the chart.</div>
+      <div class="price">$19<small>/mo</small></div>
+      <div class="priceNote">✓ Included with all evals</div>
+      <ul class="features">
+        <li>Auto-sync from chart</li>
+        <li>Session P&L breakdown</li>
+        <li>Win rate by symbol</li>
+        <li>Avg winner vs loser</li>
+        <li>Streak tracking + tilt alerts</li>
+      </ul>
+      <a href="/journal-plans"><button class="btnOutline" style="width:100%;padding:14px;font-size:15px;">VIEW JOURNAL PLANS →</button></a>
+    </div>
+  </div>
+</section>
+
+<section class="howSection" id="how">
+  <div class="sectionLabel">The Process</div>
+  <h2>Four Steps To Funded</h2>
+  <p class="sectionSub">No catches. No hidden fees. Just trade well and get paid.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="stepN">1</div>
+      <h3>Choose Your Eval</h3>
+      <p>Pick an account size and rule set. Intraday for active traders or EOD for swing-style. Pay the monthly fee and get instant access.</p>
+    </div>
+    <div class="step">
+      <div class="stepN">2</div>
+      <h3>Trade The Sim</h3>
+      <p>Use the full Tradephex platform with footprint, order flow, and market profile — all included. Hit your profit target without breaching drawdown.</p>
+    </div>
+    <div class="step">
+      <div class="stepN">3</div>
+      <h3>Get Funded</h3>
+      <p>Pass the evaluation, get a funded sim account. Trade real-money-equivalent size with the same rules and consistency requirements.</p>
+    </div>
+    <div class="step">
+      <div class="stepN">4</div>
+      <h3>Get Paid</h3>
+      <p>Request payout from your dashboard. We pay within 5 business days via PayPal, ACH, or crypto. Up to 90% profit split.</p>
+    </div>
+  </div>
+</section>
+
+<section class="ctaSection">
+  <div class="sectionLabel">Ready?</div>
+  <h2>Start Your Eval Today</h2>
+  <p>Join traders using professional-grade tools to get funded. The only prop firm that gives you what the pros use — built right into the platform.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <a href="/evaluations"><button class="btnPrimary" style="padding:18px 48px;font-size:17px;">GET FUNDED FROM $79/MO →</button></a>
+    <a href="/charting"><button class="btnOutline" style="padding:18px 32px;font-size:16px;">TRY THE PLATFORM</button></a>
+  </div>
+</section>
+
+<footer>
+  <a href="/" class="logo">TRADE<span>PHEX</span></a>
+  <div class="fLinks">
+    <a href="/evaluations">Evaluations</a>
+    <a href="/charting">Charting</a>
+    <a href="/journal-plans">Journal</a>
+    <a href="/rules">Rules</a>
+    <a href="/terms">Terms</a>
+    <a href="/privacy">Privacy</a>
+    <a href="/risk">Risk</a>
+    <a href="/refund">Refund</a>
+    <a href="/support">Support</a>
+  </div>
+  <p class="copy">© 2026 Tradephex LLC.</p>
+  <div class="disc">Tradephex LLC is not a registered broker-dealer or investment adviser. All trading on the Tradephex platform uses simulated market data and does not involve real money or real financial instruments. Participation constitutes enrollment in a skills assessment program only. Trading futures involves substantial risk of loss.</div>
+</footer>
+
 <script>
 const c=document.getElementById('heroCanvas');
 const ctx=c.getContext('2d');
@@ -164,90 +286,24 @@ function initParticles(){particles=[];for(let i=0;i<65;i++)particles.push({x:Mat
 function initStreams(){dataStreams=[];const cols=Math.floor(c.offsetWidth/90);for(let i=0;i<cols;i++)dataStreams.push({x:(i/cols)*c.offsetWidth+45,y:Math.random()*c.offsetHeight,speed:Math.random()*.6+.2,vals:Array.from({length:8},()=>(7100+Math.random()*200).toFixed(2)),alpha:Math.random()*.06+.02});}
 function drawCandles(){const w=c.offsetWidth,h=c.offsetHeight,cw=10,gap=5,total=Math.floor(w/(cw+gap))+4,pMin=7120,pMax=7280,pY=p=>h*.82-((p-pMin)/(pMax-pMin))*(h*.52),scrollX=(t*.3)%(cw+gap);for(let i=0;i<total;i++){const cd=candles[(i+Math.floor(t*.3/(cw+gap)))%candles.length],x=-scrollX+i*(cw+gap),isUp=cd.close>=cd.open,a=.10,col=isUp?`rgba(0,230,118,${a})`:`rgba(255,68,68,${a})`,wc=isUp?`rgba(0,230,118,${a*.6})`:`rgba(255,68,68,${a*.6})`,top=pY(Math.max(cd.open,cd.close)),bot=pY(Math.min(cd.open,cd.close));ctx.strokeStyle=wc;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x+cw/2,pY(cd.high));ctx.lineTo(x+cw/2,pY(cd.low));ctx.stroke();ctx.fillStyle=col;ctx.fillRect(x,top,cw,Math.max(bot-top,1.5));}}
 function drawRays(){const w=c.offsetWidth,h=c.offsetHeight,cx=w/2+(mouseX-.5)*30,cy=h*.42+(mouseY-.5)*20;for(let i=0;i<12;i++){const angle=(i/12)*Math.PI*2+t*.003,pulse=.5+.5*Math.sin(t*.018+i),grad=ctx.createLinearGradient(cx,cy,cx+Math.cos(angle)*700,cy+Math.sin(angle)*700);grad.addColorStop(0,`rgba(201,168,76,${.07*pulse})`);grad.addColorStop(.4,`rgba(201,168,76,${.025*pulse})`);grad.addColorStop(1,'rgba(201,168,76,0)');ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,700,angle-.07,angle+.07);ctx.closePath();ctx.fillStyle=grad;ctx.fill();}const g=ctx.createRadialGradient(cx,cy,0,cx,cy,270),pulse=.7+.3*Math.sin(t*.025);g.addColorStop(0,`rgba(201,168,76,${.08*pulse})`);g.addColorStop(.5,`rgba(201,168,76,${.02*pulse})`);g.addColorStop(1,'rgba(201,168,76,0)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}
-function drawGrid(){const w=c.offsetWidth,h=c.offsetHeight,ox=(mouseX-.5)*15,oy=(mouseY-.5)*10,vx=w/2+ox,vy=h*.42+oy;ctx.strokeStyle='rgba(201,168,76,0.035)';ctx.lineWidth=1;for(let i=0;i<=14;i++){const x=(i/14)*w;ctx.beginPath();ctx.moveTo(vx,vy);ctx.lineTo(x,h);ctx.stroke();}for(let i=0;i<7;i++){const p=i/7,yy=vy+(h-vy)*(p*p),xs=(w*.5)*p;ctx.beginPath();ctx.moveTo(vx-xs,yy);ctx.lineTo(vx+xs,yy);ctx.stroke();}}
+function drawGrid(){const w=c.offsetWidth,h=c.offsetHeight,vx=w/2+(mouseX-.5)*15,vy=h*.42+(mouseY-.5)*10;ctx.strokeStyle='rgba(201,168,76,0.035)';ctx.lineWidth=1;for(let i=0;i<=14;i++){const x=(i/14)*w;ctx.beginPath();ctx.moveTo(vx,vy);ctx.lineTo(x,h);ctx.stroke();}for(let i=0;i<7;i++){const p=i/7,yy=vy+(h-vy)*(p*p),xs=(w*.5)*p;ctx.beginPath();ctx.moveTo(vx-xs,yy);ctx.lineTo(vx+xs,yy);ctx.stroke();}}
 function drawHorizon(){const y=c.offsetHeight*.72,g=ctx.createLinearGradient(0,y-1,0,y+60);g.addColorStop(0,'rgba(201,168,76,0.15)');g.addColorStop(1,'rgba(201,168,76,0)');ctx.fillStyle=g;ctx.fillRect(0,y-1,c.offsetWidth,60);}
 function drawDataStreams(){ctx.font='9px monospace';dataStreams.forEach(s=>{s.y+=s.speed;if(s.y>c.offsetHeight+120){s.y=-120;s.vals=s.vals.map(()=>(7100+Math.random()*200).toFixed(2));}s.vals.forEach((v,i)=>{const yy=s.y+i*16;if(yy<0||yy>c.offsetHeight)return;ctx.fillStyle=`rgba(201,168,76,${s.alpha})`;ctx.fillText(v,s.x,yy);});});}
 function drawParticles(){const ox=(mouseX-.5)*8,oy=(mouseY-.5)*8;particles.forEach(p=>{p.x+=p.vx+ox*.002;p.y+=p.vy+oy*.002;p.life+=.003;if(p.y<-10||p.life>1){p.y=c.offsetHeight+5;p.x=Math.random()*c.offsetWidth;p.life=0;}const fade=Math.sin(p.life*Math.PI);ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(201,168,76,${p.a*fade})`;ctx.fill();});}
 function drawVignette(){const w=c.offsetWidth,h=c.offsetHeight,g=ctx.createRadialGradient(w/2,h/2,h*.2,w/2,h/2,h*.85);g.addColorStop(0,'rgba(6,6,10,0)');g.addColorStop(1,'rgba(6,6,10,0.88)');ctx.fillStyle=g;ctx.fillRect(0,0,w,h);}
 function loop(){t++;const w=c.offsetWidth,h=c.offsetHeight;ctx.fillStyle='#06060A';ctx.fillRect(0,0,w,h);drawCandles();drawDataStreams();drawGrid();drawRays();drawHorizon();drawParticles();drawVignette();requestAnimationFrame(loop);}
 resize();window.addEventListener('resize',resize);loop();
+
 const phrases=['Prove Your Edge.','Get Funded.','Execute. Analyze. Elevate.'];
 let pi=0,ci=0,deleting=false;const tw=document.getElementById('typewriter');
 function typeStep(){const phrase=phrases[pi];if(!deleting){ci++;tw.textContent=phrase.slice(0,ci);if(ci>=phrase.length){deleting=true;setTimeout(typeStep,2200);return;}}else{ci--;tw.textContent=phrase.slice(0,ci);if(ci<=0){deleting=false;pi=(pi+1)%phrases.length;setTimeout(typeStep,400);return;}}setTimeout(typeStep,deleting?40:90);}
 setTimeout(typeStep,800);
+
 function countUpK(id,target,duration){const el=document.getElementById(id),start=Date.now();function step(){const p=Math.min((Date.now()-start)/duration,1),ease=1-Math.pow(1-p,3),val=Math.round(ease*target);el.textContent='$'+val+'K';if(p<1)requestAnimationFrame(step);else el.textContent='$150K';}step();}
 function countUp(id,target,prefix,suffix,duration){const el=document.getElementById(id),start=Date.now();function step(){const p=Math.min((Date.now()-start)/duration,1),ease=1-Math.pow(1-p,3),val=Math.round(ease*target);el.textContent=prefix+val+suffix;if(p<1)requestAnimationFrame(step);else el.textContent=prefix+target+suffix;}step();}
-setTimeout(()=>{countUpK('stat1',150,1400);countUp('stat2',79,'$','',900);countUp('stat3',5,'','',700);},400);
-</script>
-</div>
-
-<!-- FEATURES STRIP -->
-<div class="featStrip">
-  <div class="feat"><span class="ico">👣</span><span>Footprint Candles</span><div class="pill">EXCLUSIVE</div></div>
-  <div class="feat"><span class="ico">Δ</span><span>Order Flow Delta</span><div class="pill">EXCLUSIVE</div></div>
-  <div class="feat"><span class="ico">📊</span><span>Market Profile (TPO)</span><div class="pill">EXCLUSIVE</div></div>
-  <div class="feat"><span class="ico">⭐</span><span>AI Trade Scoring</span><div class="pill">EXCLUSIVE</div></div>
-  <div class="feat"><span class="ico">📐</span><span>Pattern Recognition</span></div>
-  <div class="feat"><span class="ico">🐋</span><span>Iceberg Detection</span></div>
-  <div class="feat"><span class="ico">⏮</span><span>Replay Mode</span></div>
-  <div class="feat"><span class="ico">6</span><span>Chart Layouts</span></div>
-</div>
-
-<!-- ALL PRODUCTS -->
-<section class="pricingSection" id="pricing">
-  <div class="sectionLabel">Everything We Offer</div>
-  <h2>ONE PLATFORM. THREE WAYS IN.</h2>
-  <p class="sectionSub">Start with an eval. Stay for the chart. Grow with the journal.</p>
-
-  <!-- OUTER BOX -->
-  <div style="max-width:1060px;margin:0 auto;border:1px solid var(--border2);border-radius:4px;overflow:hidden;">
-
-    
-<!-- CTA -->
-<section class="ctaSection">
-  <div class="sectionLabel">Ready?</div>
-  <h2>START YOUR EVAL TODAY</h2>
-  <p style="font-size:12px;color:var(--gray);margin-bottom:28px;">Join traders using professional-grade tools to get funded.</p>
-  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-    <a href="#pricing"><button class="btnPrimary" style="padding:16px 44px;font-size:15px;">GET FUNDED FROM $79 →</button></a>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div><div class="fLogo">TRADE<span>PHEX</span></div></div>
-  <div class="fLinks">
-    <a href="/journal">Dashboard</a>
-    <a href="/terms">Terms</a>
-    <a href="/privacy">Privacy</a>
-    <a href="/risk">Risk Disclosure</a>
-    <a href="/refund">Refunds</a>
-    <a href="/support">Support</a>
-  </div>
-  <div class="disc">Tradephex LLC is not a registered broker-dealer or investment adviser. All trading on the Tradephex platform uses simulated market data and does not involve real money or real financial instruments. Participation constitutes enrollment in a skills assessment program only. Trading futures involves substantial risk of loss.</div>
-</footer>
-
-<script>
-const SB_URL='https://esgfvgpdjxalhaofmwwt.supabase.co';
-const SB_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZ2Z2Z3BkanhhbGhhb2Ztd3d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODc0OTMsImV4cCI6MjA5MjQ2MzQ5M30.cTz_WCY9tTDQAw5yRq1XSjnvEueIypjdvOD2X9Bz1SA';
+setTimeout(()=>{countUpK('stat1',150,1400);countUp('stat2',79,'$','/mo',900);countUp('stat3',5,'','',700);},400);
 
 function toast(msg,col='var(--gold)'){const t=document.getElementById('toast');t.textContent=msg;t.style.borderLeftColor=col;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),4000);}
-
-async function buyEval(plan,btn){
-  const{createClient}=await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
-  const sb=createClient(SB_URL,SB_ANON);
-  const{data:{session}}=await sb.auth.getSession();
-  if(!session){localStorage.setItem('pendingPlan',plan);window.location.href='/signup?redirect=checkout&plan='+plan;return;}
-  const label=btn.textContent;
-  btn.innerHTML='<div class="spin" style="display:block;"></div>';btn.disabled=true;
-  try{
-    const res=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({plan,user_id:session.user.id,email:session.user.email})});
-    const data=await res.json();
-    if(data.url){window.location.href=data.url;}
-    else{toast('Error: '+(data.error||'Unknown'),'#FF1744');btn.textContent=label;btn.disabled=false;}
-  }catch(e){toast('Something went wrong. Try again.','#FF1744');btn.textContent=label;btn.disabled=false;}
-}
-
 const p=new URLSearchParams(location.search);
 if(p.get('eval')==='success'){toast('🎉 Eval purchased! Redirecting to dashboard...','#00E676');setTimeout(()=>window.location.href='/journal',2500);}
 if(p.get('canceled')==='true'){toast('Checkout canceled. No charge was made.','#FF9800');}
