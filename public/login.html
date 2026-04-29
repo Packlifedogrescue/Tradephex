@@ -118,10 +118,21 @@ const SUPABASE_URL = 'https://esgfvgpdjxalhaofmwwt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZ2Z2Z3BkanhhbGhhb2Ztd3d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODc0OTMsImV4cCI6MjA5MjQ2MzQ5M30.cTz_WCY9tTDQAw5yRq1XSjnvEueIypjdvOD2X9Bz1SA';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Get redirect target from URL (defaults to /journal)
+function getRedirectTarget() {
+  const params = new URLSearchParams(window.location.search);
+  const target = params.get('redirect');
+  // Only allow same-origin redirects (security: prevent open redirect attacks)
+  if (target && target.startsWith('/') && !target.startsWith('//')) {
+    return target;
+  }
+  return '/journal';
+}
+
 // Check if already logged in
 async function checkSession() {
   const { data: { session } } = await db.auth.getSession();
-  if (session) window.location.href = '/journal';
+  if (session) window.location.href = getRedirectTarget();
 }
 checkSession();
 
@@ -159,7 +170,7 @@ async function handleLogin() {
   }
 
   showSuccess('Login successful! Redirecting...');
-  setTimeout(() => window.location.href = '/journal', 800);
+  setTimeout(() => window.location.href = getRedirectTarget(), 800);
 }
 
 // Enter key support
