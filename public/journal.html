@@ -93,13 +93,25 @@ async function loadTradesFromDB() {
         exit: t.exit_price, contracts: t.contracts, pnl: t.pnl,
         r: t.r_multiple || 0, date: new Date(t.created_at).toLocaleString(),
         duration: t.duration || '—', notes: t.notes || '', quality: t.quality || 3,
-        emotion: t.emotion || 'calm'
+        emotion: t.emotion || 'calm',
+        tags: Array.isArray(t.tags) ? t.tags : (typeof t.tags === 'string' ? t.tags.split(',').map(x => x.trim()).filter(Boolean) : [])
       }));
       TRADES.length = 0;
       mapped.forEach(t => TRADES.push(t));
-      renderTable(TRADES, 'tradeTableWrap');
-      renderTable(TRADES, 'journalTableWrap');
-      setTimeout(drawDashboardCharts, 100);
+      if (typeof currentTrades !== 'undefined') {
+        currentTrades = [...TRADES];
+      }
+      // Defer rendering and stats until DOM is ready and second script has loaded
+      setTimeout(() => {
+        try {
+          if (typeof renderTable === 'function') {
+            renderTable(TRADES, 'tradeTableWrap');
+            renderTable(TRADES, 'journalTableWrap');
+          }
+          if (typeof drawDashboardCharts === 'function') drawDashboardCharts();
+          if (typeof refreshDashboardStats === 'function') refreshDashboardStats();
+        } catch(e) { console.warn('Render after DB load:', e.message); }
+      }, 100);
     }
   } catch(e) { console.log('Trades load:', e.message); }
 }
@@ -121,9 +133,9 @@ async function loadEvalFromDB() {
       EVAL_STATE.maxDrawdown = userEval.max_drawdown || 0;
       EVAL_STATE.tradingDays = userEval.trading_days || 0;
       EVAL_STATE.balance = EVAL_STATE.accountSize + EVAL_STATE.netPnl;
-      EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * 0.06;
+      EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * (EVAL_STATE.phase === 1 ? 0.10 : 0.05);
       EVAL_STATE.rules.profitTarget.current = EVAL_STATE.netPnl;
-      EVAL_STATE.rules.maxDrawdown.limit = EVAL_STATE.accountSize * 0.04;
+      EVAL_STATE.rules.maxDrawdown.limit = EVAL_STATE.accountSize * 0.05;
       EVAL_STATE.rules.maxDrawdown.current = EVAL_STATE.maxDrawdown;
       const ddPct = EVAL_STATE.maxDrawdown / EVAL_STATE.rules.maxDrawdown.limit;
       if (ddPct >= 1) {
@@ -137,8 +149,8 @@ async function loadEvalFromDB() {
 async function handleEvalPurchaseSuccess(accountSize) {
   if (!accountSize || !currentUser) return;
   const size = parseInt(accountSize) || 50000;
-  const phaseTarget = size * 0.06;
-  const ddLimit = size * 0.04;
+  const phaseTarget = size * 0.10;
+  const ddLimit = size * 0.05;
   try {
     const { data, error } = await db.from('evaluations').insert({
       user_id: currentUser.id,
@@ -223,15 +235,15 @@ async function sendEmail(template, data) {
       },
       eval_activated: {
         subject: `Your $${(data.accountSize||50000).toLocaleString()} Evaluation is Active`,
-        body: `Your Tradephex evaluation has been activated.\n\nAccount Size: $${(data.accountSize||50000).toLocaleString()}\nProfit Target (6%): $${(data.profitTarget||3000).toFixed(0)}\nMax Drawdown (4%): $${(data.drawdownLimit||2000).toFixed(0)}\nMin Trading Days: 5\n40% Consistency Rule applies\nAll positions close by 4:00 PM ET\n\nGood luck. Execute your process.\n\ntradephex.com/journal\n\n— Tradephex`
+        body: `Your Tradephex evaluation has been activated.\n\nAccount Size: $${(data.accountSize||50000).toLocaleString()}\nProfit Target (Phase 1): $${(data.profitTarget||5000).toFixed(0)}\nMax Drawdown: $${(data.drawdownLimit||2500).toFixed(0)}\nMin Trading Days: 5\n\nGood luck. Execute your process.\n\ntradephex.com/journal\n\n— Tradephex`
       },
       plan_upgraded: {
         subject: `Tradephex ${(data.plan||'').charAt(0).toUpperCase()+(data.plan||'').slice(1)} Plan Activated`,
         body: `Your ${data.plan} plan is now active. Full platform access unlocked.\n\ntradephex.com/journal\n\n— Tradephex`
       },
       eval_passed_p1: {
-        subject: 'Evaluation Complete — You Passed!',
-        body: `Congratulations! You passed your Evaluation.\n\nYour Funded Account is now active. Pay the one-time $150 activation fee to begin your funded sim account and start requesting payouts.\n\ntradephex.com/journal\n\n— Tradephex`
+        subject: 'Phase 1 Complete — You Passed!',
+        body: `Congratulations! You passed Phase 1 of your evaluation.\n\nPhase 2 is now active. Hit your 5% profit target to earn your funded account.\n\ntradephex.com/journal\n\n— Tradephex`
       },
       eval_funded: {
         subject: '🏆 You Are Funded — Congratulations!',
@@ -712,28 +724,44 @@ canvas{display:block;}
       <div class="stats-row">
         <div class="stat-card">
           <div class="sc-label">Net P&L (Month)</div>
-          <div class="sc-value up">+$8,420</div>
-          <div class="sc-sub up">↑ +18.4% vs last month</div>
+          <div class="sc-value">$0.00</div>
+          <div class="sc-sub">No trades yet</div>
         </div>
         <div class="stat-card">
           <div class="sc-label">Win Rate</div>
-          <div class="sc-value gold">68.4%</div>
-          <div class="sc-sub">41W / 19L this month</div>
+          <div class="sc-value gold">—</div>
+          <div class="sc-sub">0W / 0L</div>
         </div>
         <div class="stat-card">
           <div class="sc-label">Profit Factor</div>
-          <div class="sc-value up">2.14</div>
-          <div class="sc-sub up">↑ from 1.89 last month</div>
+          <div class="sc-value">—</div>
+          <div class="sc-sub">No data</div>
         </div>
         <div class="stat-card">
           <div class="sc-label">Avg Win / Avg Loss</div>
-          <div class="sc-value gold">$284 / $133</div>
-          <div class="sc-sub">Ratio: 2.14R</div>
+          <div class="sc-value gold">$0 / $0</div>
+          <div class="sc-sub">No data</div>
         </div>
         <div class="stat-card">
           <div class="sc-label">Max Drawdown</div>
-          <div class="sc-value down">-$1,240</div>
-          <div class="sc-sub down">Largest losing streak: 3</div>
+          <div class="sc-value">$0</div>
+          <div class="sc-sub">No data</div>
+        </div>
+      </div>
+
+      <!-- WIDGETS ROW: Streak / Goal / Best+Worst -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;">
+        <div style="background:var(--surface);border:1px solid var(--border);padding:18px 22px;" id="streakWidget">
+          <div style="font-size:11px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">CURRENT STREAK</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;color:var(--gold);">Loading...</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);padding:18px 22px;" id="goalWidget">
+          <div style="font-size:11px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">MONTHLY GOAL</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:28px;color:var(--gold);">Loading...</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);padding:18px 22px;" id="bestWorstWidget">
+          <div style="font-size:11px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">BEST / WORST TODAY</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:14px;color:var(--gray);">Loading...</div>
         </div>
       </div>
 
@@ -765,13 +793,14 @@ canvas{display:block;}
       <!-- RECENT TRADES -->
       <div style="background:var(--surface);border:1px solid var(--border);padding:20px;">
         <div class="table-header">
-          <div class="table-title">Recent Trades</div>
+          <div class="table-title">Recent Trades <span style="font-size:10px;color:var(--gray2);font-weight:400;margin-left:8px;">(click row for details)</span></div>
           <div class="table-actions">
             <button class="filter-btn active" onclick="filterTrades('all',this)">All</button>
             <button class="filter-btn" onclick="filterTrades('long',this)">Long</button>
             <button class="filter-btn" onclick="filterTrades('short',this)">Short</button>
             <button class="filter-btn" onclick="filterTrades('win',this)">Winners</button>
             <button class="filter-btn" onclick="filterTrades('loss',this)">Losers</button>
+            <button class="filter-btn" onclick="exportTradesCSV()" style="background:var(--gold);color:#000;border-color:var(--gold);">📥 EXPORT CSV</button>
           </div>
         </div>
         <div id="tradeTableWrap"></div>
@@ -782,12 +811,13 @@ canvas{display:block;}
     <div class="view fadeIn" id="view-journal">
       <div style="background:var(--surface);border:1px solid var(--border);padding:20px;">
         <div class="table-header">
-          <div class="table-title">All Trades</div>
+          <div class="table-title">All Trades <span style="font-size:10px;color:var(--gray2);font-weight:400;margin-left:8px;">(click DETAIL for full info)</span></div>
           <div class="table-actions">
-            <button class="filter-btn active">All Time</button>
-            <button class="filter-btn">This Week</button>
-            <button class="filter-btn">This Month</button>
-            <button class="filter-btn">Custom</button>
+            <button class="filter-btn active" onclick="filterByDateRange('all',this)">All Time</button>
+            <button class="filter-btn" onclick="filterByDateRange('today',this)">Today</button>
+            <button class="filter-btn" onclick="filterByDateRange('week',this)">This Week</button>
+            <button class="filter-btn" onclick="filterByDateRange('month',this)">This Month</button>
+            <button class="filter-btn" onclick="exportTradesCSV()" style="background:var(--gold);color:#000;border-color:var(--gold);">📥 EXPORT CSV</button>
             <button class="add-trade-btn" style="padding:6px 16px;font-size:12px;" onclick="openModal()">+ Add Trade</button>
           </div>
         </div>
@@ -810,6 +840,8 @@ canvas{display:block;}
           <div class="metric-row"><span class="metric-label">Total Trades</span><span class="metric-value">60</span></div>
           <div class="metric-row"><span class="metric-label">Avg R:R</span><span class="metric-value gold">2.14R</span></div>
           <div class="metric-row"><span class="metric-label">Expectancy</span><span class="metric-value up">+$140.33 / trade</span></div>
+          <div class="metric-row"><span class="metric-label">Sharpe Ratio</span><span class="metric-value gold" id="metricSharpe">—</span></div>
+          <div class="metric-row"><span class="metric-label">Sortino Ratio</span><span class="metric-value gold" id="metricSortino">—</span></div>
         </div>
 
         <div class="analytics-card">
@@ -855,7 +887,7 @@ canvas{display:block;}
       </div>
 
       <!-- Full width charts -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
         <div class="analytics-card">
           <div class="analytics-title">Daily P&L — Last 30 Days</div>
           <canvas id="dailyPnlChart" height="160"></canvas>
@@ -864,6 +896,13 @@ canvas{display:block;}
           <div class="analytics-title">Cumulative P&L Curve</div>
           <canvas id="cumulChart" height="160"></canvas>
         </div>
+      </div>
+
+      <!-- TAG PERFORMANCE BREAKDOWN -->
+      <div class="analytics-card" style="margin-bottom:12px;">
+        <div class="analytics-title">Performance by Setup Tag</div>
+        <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;">Which setups are actually making you money. Sorted by total P&L.</div>
+        <div id="tagBreakdown"></div>
       </div>
     </div>
 
@@ -1063,15 +1102,6 @@ canvas{display:block;}
 
       <!-- Active eval state -->
       <div id="eval-active">
-
-        <!-- FUNDED ACTIVATION BANNER — shows only when passed -->
-        <div id="funded-activation-banner" style="display:none;background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(201,168,76,.05));border:1px solid rgba(201,168,76,.5);padding:24px 28px;margin-bottom:24px;display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
-          <div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;color:var(--gold);letter-spacing:.05em;">🏆 YOU PASSED YOUR EVALUATION!</div>
-            <div style="font-size:13px;color:var(--gray);margin-top:6px;line-height:1.7;">Pay the one-time $150 activation fee to unlock your Funded Account and start requesting payouts.</div>
-          </div>
-          <button onclick="activateFundedAccount()" style="background:var(--gold);color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:.1em;text-transform:uppercase;padding:14px 32px;cursor:pointer;white-space:nowrap;">ACTIVATE FUNDED — $150 →</button>
-        </div>
 
         <!-- Header row -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
@@ -1286,20 +1316,25 @@ canvas{display:block;}
         <div style="margin-bottom:32px;">
           <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;">How It Works</div>
           <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;text-transform:uppercase;color:var(--white);">Evaluation Rules</div>
-          <div style="font-size:14px;color:var(--gray2);margin-top:8px;font-weight:300;">Prove your edge. One phase. No tricks. Pass and activate your funded sim account.</div>
+          <div style="font-size:14px;color:var(--gray2);margin-top:8px;font-weight:300;">Prove your edge. Earn your capital. We don't fund gamblers — we fund disciplined traders.</div>
         </div>
 
         <!-- Phase overview -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px;">
           <div style="background:var(--surface);border:1px solid var(--border2);padding:24px;text-align:center;">
             <div style="font-size:28px;margin-bottom:12px;">📊</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--gold);margin-bottom:8px;">EVALUATION</div>
-            <div style="font-size:13px;color:var(--gray2);line-height:1.6;">Hit your 6% profit target while respecting all risk rules. Minimum 5 trading days. 40% consistency rule applies.</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--gold);margin-bottom:8px;">PHASE 1</div>
+            <div style="font-size:13px;color:var(--gray2);line-height:1.6;">Hit 10% profit target while respecting all risk rules. Minimum 5 trading days.</div>
           </div>
-          <div style="background:var(--surface);border:1px solid var(--border2);padding:24px;text-align:center;">
+          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;text-align:center;">
+            <div style="font-size:28px;margin-bottom:12px;">✅</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--white);margin-bottom:8px;">PHASE 2</div>
+            <div style="font-size:13px;color:var(--gray2);line-height:1.6;">Hit 5% profit target. Confirms consistency and discipline before funding.</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;text-align:center;">
             <div style="font-size:28px;margin-bottom:12px;">🏆</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--gold);margin-bottom:8px;">FUNDED</div>
-            <div style="font-size:13px;color:var(--gray2);line-height:1.6;">Pass your eval, pay the $150 activation fee, and trade your funded sim account. Keep up to 90% of profits.</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--white);margin-bottom:8px;">FUNDED</div>
+            <div style="font-size:13px;color:var(--gray2);line-height:1.6;">Trade a Tradephex funded account. Keep up to 90% of profits. Scale as you perform.</div>
           </div>
         </div>
 
@@ -1310,6 +1345,7 @@ canvas{display:block;}
             <thead>
               <tr style="border-bottom:2px solid var(--border2);">
                 <th style="text-align:left;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.15em;color:var(--gray2);text-transform:uppercase;">Rule</th>
+                <th style="text-align:center;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);">$25K</th>
                 <th style="text-align:center;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);">$50K</th>
                 <th style="text-align:center;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);">$100K</th>
                 <th style="text-align:center;padding:10px 12px;font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);">$150K</th>
@@ -1317,19 +1353,36 @@ canvas{display:block;}
             </thead>
             <tbody>
               <tr style="border-bottom:1px solid var(--border);background:var(--surface2);">
-                <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Profit Target</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">$3,000</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">$6,000</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">$9,000</td>
+                <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Phase 1 Profit Target</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">10%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">10%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">8%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">8%</td>
               </tr>
               <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Phase 2 Profit Target</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);background:var(--surface2);">
                 <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Max Drawdown</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">$2,000</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">$4,000</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">$6,000</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5%</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Daily Loss Limit</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">2%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">2%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">2%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">2%</td>
               </tr>
               <tr style="border-bottom:1px solid var(--border);background:var(--surface2);">
                 <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Min Trading Days</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5 days</td>
                 <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5 days</td>
                 <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5 days</td>
                 <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">5 days</td>
@@ -1338,19 +1391,15 @@ canvas{display:block;}
                 <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">Consistency Rule</td>
                 <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">Max 40%</td>
                 <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">Max 40%</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">Max 40%</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--border);background:var(--surface2);">
-                <td style="padding:12px;font-size:13px;color:var(--white);font-weight:500;">EOD Close</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">4:00 PM ET</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">4:00 PM ET</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">4:00 PM ET</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">Max 35%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gray);">Max 30%</td>
               </tr>
               <tr>
                 <td style="padding:12px;font-size:13px;color:var(--gold);font-weight:600;">Profit Split</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);">80%</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);">85%</td>
-                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);">90%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);">Up to 80%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);">Up to 85%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);">Up to 85%</td>
+                <td style="padding:12px;text-align:center;font-family:'DM Mono',monospace;font-size:12px;color:var(--gold);">Up to 90%</td>
               </tr>
             </tbody>
           </table>
@@ -1359,8 +1408,8 @@ canvas{display:block;}
         <!-- Consistency rule callout -->
         <div style="background:rgba(201,168,76,0.06);border:1px solid var(--border2);padding:24px;margin-bottom:20px;">
           <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--gold);margin-bottom:10px;">⚡ The Consistency Rule</div>
-          <div style="font-size:13px;color:var(--gray);line-height:1.7;">No single trading day can account for more than 40% of your total profit. This applies during both Evaluation and Funded accounts. It ensures your results are built on consistent performance, not one lucky day.</div>
-          <div style="margin-top:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">Example: With $3,000 total profit, no single day can exceed $1,200 in profit (40% of $3,000).</div>
+          <div style="font-size:13px;color:var(--gray);line-height:1.7;">No single trade can account for more than the allowed percentage of your total profit. This rule exists to ensure you're trading consistently — not getting lucky on one big trade. We fund disciplined traders, not gamblers.</div>
+          <div style="margin-top:12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">Example: On a $50K account with $3,000 total profit, no single trade can exceed $1,200 (40%)</div>
         </div>
 
         <!-- What disqualifies you -->
@@ -1404,120 +1453,169 @@ canvas{display:block;}
       </div>
     </div>
 
-    <!-- ── BUY CHALLENGE ── -->
-    <div class="view fadeIn" id="view-upgrade">
-      <div style="margin-bottom:32px;">
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Prop Firm Evaluation</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;letter-spacing:0.02em;text-transform:uppercase;color:var(--white);">Buy a Challenge</div>
-        <div style="font-size:14px;color:var(--gray2);margin-top:10px;font-weight:300;">One phase. Pass your evaluation. Activate your funded sim account. Keep up to 90% of profits.</div>
+      <!-- ── SECTION 1: PLATFORM PLANS ── -->
+      <div style="margin-bottom:56px;">
+        <div style="text-align:center;margin-bottom:36px;">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Platform Membership</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;letter-spacing:0.02em;text-transform:uppercase;color:var(--white);">Choose Your Plan</div>
+          <div style="font-size:14px;color:var(--gray2);margin-top:10px;font-weight:300;">Trade journal, analytics, charting tools, and more. Cancel anytime.</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;max-width:960px;margin:0 auto;">
+
+          <!-- STARTER -->
+          <div style="background:var(--surface);border:1px solid var(--border);padding:28px;position:relative;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:10px;">Starter</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:44px;color:var(--white);">$49<span style="font-size:15px;font-weight:400;color:var(--gray2);">/mo</span></div>
+            <div style="font-size:13px;color:var(--gray2);margin:14px 0 24px;font-weight:300;line-height:1.6;">Everything you need to start journaling and analyzing your trades.</div>
+            <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:28px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Trade journal — unlimited entries</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Basic charting suite</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>5 saved layouts</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Basic analytics dashboard</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Daily P&L tracker</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Econ calendar</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Email support</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray2);text-decoration:line-through;"><span style="color:var(--gray3);">✗</span>Order flow tools</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray2);text-decoration:line-through;"><span style="color:var(--gray3);">✗</span>Trade replay</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray2);text-decoration:line-through;"><span style="color:var(--gray3);">✗</span>Market scanner</div>
+            </div>
+            <button onclick="handleSubscribe('price_1TPKQGH73YsRKv0UsoJZCw4m','starter')" style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'">Get Started</button>
+          </div>
+
+          <!-- PROFESSIONAL -->
+          <div style="background:var(--surface);border:2px solid var(--gold);padding:28px;position:relative;">
+            <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.15em;padding:4px 14px;">MOST POPULAR</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Professional</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:44px;color:var(--white);">$99<span style="font-size:15px;font-weight:400;color:var(--gray2);">/mo</span></div>
+            <div style="font-size:13px;color:var(--gray2);margin:14px 0 24px;font-weight:300;line-height:1.6;">Full platform access for serious traders who demand more.</div>
+            <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:28px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Everything in Starter</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Full order flow suite</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Footprint charts & DOM ladder</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>15 saved layouts</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Advanced analytics dashboard</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Market scanner — 50+ markets</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Trade replay — all timeframes</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Custom alerts & notifications</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Priority support</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray2);text-decoration:line-through;"><span style="color:var(--gray3);">✗</span>Multi-account management</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray2);text-decoration:line-through;"><span style="color:var(--gray3);">✗</span>Trader community access</div>
+            </div>
+            <button onclick="handleSubscribe('price_1TPMaUH73YsRKv0UxkflhJA0','professional')" style="width:100%;background:var(--gold);border:none;color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;cursor:pointer;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'">Upgrade Now</button>
+          </div>
+
+          <!-- ELITE -->
+          <div style="background:var(--surface);border:1px solid var(--border);padding:28px;position:relative;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:10px;">Elite</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:44px;color:var(--white);">$199<span style="font-size:15px;font-weight:400;color:var(--gray2);">/mo</span></div>
+            <div style="font-size:13px;color:var(--gray2);margin:14px 0 24px;font-weight:300;line-height:1.6;">Maximum edge. Every feature. For traders who trade to win.</div>
+            <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:28px;">
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Everything in Professional</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Unlimited saved layouts</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Multi-account management</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Exclusive trader community</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Early access to new features</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Advanced session analytics</div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gray);"><span style="color:var(--green);">✓</span>Highest priority support</div>
+            </div>
+            <button onclick="handleSubscribe('price_1TPMb3H73YsRKv0UYXlbv02P','elite')" style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.1em;text-transform:uppercase;padding:12px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'">Go Elite</button>
+          </div>
+
+        </div>
+        <div style="text-align:center;margin-top:20px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">14-day free trial · Cancel anytime · No hidden fees</div>
       </div>
 
-      <!-- INTRADAY EVALS -->
-      <div style="margin-bottom:40px;">
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--gold);margin-bottom:16px;">&#x26A1; INTRADAY &mdash; Real-time drawdown tracking</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
+      <!-- ── DIVIDER ── -->
+      <div style="border-top:1px solid var(--border2);margin-bottom:56px;position:relative;">
+        <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--bg);padding:0 16px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);">Evaluation Challenges</div>
+      </div>
 
-          <!-- $50K INTRADAY -->
+      <!-- ── SECTION 2: EVALUATION CHALLENGES ── -->
+      <div>
+        <div style="text-align:center;margin-bottom:36px;">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Prop Firm Evaluation</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;letter-spacing:0.02em;text-transform:uppercase;color:var(--white);">Buy a Challenge</div>
+          <div style="font-size:14px;color:var(--gray2);margin-top:10px;font-weight:300;">Pass Phase 1 & Phase 2. Get funded. Keep up to 90% of profits.</div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;max-width:960px;margin:0 auto;">
+
+          <!-- $25K -->
           <div style="background:var(--surface);border:1px solid var(--border);padding:24px;position:relative;">
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:8px;">$50K Account</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$79<span style="font-size:14px;font-weight:400;color:var(--gray2);">/mo</span></div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin:20px 0 24px;">
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">$3,000</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown</span><span style="color:var(--white);font-family:'DM Mono',monospace;">$2,000</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Consistency Rule</span><span style="color:var(--white);font-family:'DM Mono',monospace;">Max 40%</span></div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:8px;">$25K Account</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$149</div>
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:20px;">one-time fee</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 1 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">10% / $2,500</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 2 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $1,250</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $1,250</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Daily Loss Limit</span><span style="color:var(--white);font-family:'DM Mono',monospace;">2% / $500</span></div>
               <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
-              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">80%</span></div>
+              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">Up to 80%</span></div>
             </div>
-            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onclick="purchaseEval('intraday-50k',79)">Start $50K Intraday</button>
+            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'"onclick="purchaseEval(25000,149)">Buy $25K — $149</button>
           </div>
 
-          <!-- $100K INTRADAY -->
+          <!-- $50K -->
           <div style="background:var(--surface);border:2px solid var(--gold);padding:24px;position:relative;">
-            <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.15em;padding:4px 14px;">POPULAR</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">$100K Account</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$149<span style="font-size:14px;font-weight:400;color:var(--gray2);">/mo</span></div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin:20px 0 24px;">
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">$6,000</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown</span><span style="color:var(--white);font-family:'DM Mono',monospace;">$4,000</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Consistency Rule</span><span style="color:var(--white);font-family:'DM Mono',monospace;">Max 40%</span></div>
+            <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.15em;padding:3px 12px;">MOST POPULAR</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">$50K Account</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$249</div>
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:20px;">one-time fee</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 1 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">10% / $5,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 2 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $2,500</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $2,500</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Daily Loss Limit</span><span style="color:var(--white);font-family:'DM Mono',monospace;">2% / $1,000</span></div>
               <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
-              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">85%</span></div>
+              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">Up to 85%</span></div>
             </div>
-            <button style="width:100%;background:var(--gold);border:none;color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onclick="purchaseEval('intraday-100k',149)">Start $100K Intraday</button>
+            <button style="width:100%;background:var(--gold);border:none;color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'" onclick="purchaseEval(50000,249)">Buy $50K — $249</button>
           </div>
 
-          <!-- $150K INTRADAY -->
+          <!-- $100K -->
+          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;position:relative;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:8px;">$100K Account</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$399</div>
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:20px;">one-time fee</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 1 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">8% / $8,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 2 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $5,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $5,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Daily Loss Limit</span><span style="color:var(--white);font-family:'DM Mono',monospace;">2% / $2,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
+              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">Up to 85%</span></div>
+            </div>
+            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'"onclick="purchaseEval(100000,399)">Buy $100K — $399</button>
+          </div>
+
+          <!-- $150K -->
           <div style="background:var(--surface);border:1px solid var(--border);padding:24px;position:relative;">
             <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:8px;">$150K Account</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$199<span style="font-size:14px;font-weight:400;color:var(--gray2);">/mo</span></div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin:20px 0 24px;">
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">$9,000</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown</span><span style="color:var(--white);font-family:'DM Mono',monospace;">$6,000</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Consistency Rule</span><span style="color:var(--white);font-family:'DM Mono',monospace;">Max 40%</span></div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$599</div>
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:20px;">one-time fee</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 1 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">8% / $12,000</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Phase 2 Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $7,500</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5% / $7,500</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Daily Loss Limit</span><span style="color:var(--white);font-family:'DM Mono',monospace;">2% / $3,000</span></div>
               <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
-              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">90%</span></div>
+              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">Up to 90%</span></div>
             </div>
-            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onclick="purchaseEval('intraday-150k',199)">Start $150K Intraday</button>
+            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onmouseover="this.style.background='rgba(201,168,76,0.08)'" onmouseout="this.style.background='transparent'"onclick="purchaseEval(150000,599)">Buy $150K — $599</button>
           </div>
+
+        </div>
+
+        <div style="text-align:center;margin-top:20px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">
+          One-time fee · Non-refundable once access granted · <span onclick="showTab('eval-rules')" style="color:var(--gold);cursor:pointer;">View full rules →</span>
         </div>
       </div>
 
-      <!-- EOD EVALS -->
-      <div style="margin-bottom:40px;">
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.2em;color:var(--gold);margin-bottom:16px;">&#x1F319; EOD &mdash; Drawdown calculated at 4:00 PM ET on closed P&L only</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-
-          <!-- $50K EOD -->
-          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;position:relative;">
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:8px;">$50K Account</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$149<span style="font-size:14px;font-weight:400;color:var(--gray2);">/mo</span></div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin:20px 0 24px;">
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">$3,000</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown (EOD)</span><span style="color:var(--white);font-family:'DM Mono',monospace;">$2,000</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Consistency Rule</span><span style="color:var(--white);font-family:'DM Mono',monospace;">Max 40%</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
-              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">80%</span></div>
-            </div>
-            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onclick="purchaseEval('eod-50k',149)">Start $50K EOD</button>
-          </div>
-
-          <!-- $100K EOD -->
-          <div style="background:var(--surface);border:2px solid var(--gold);padding:24px;position:relative;">
-            <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:10px;letter-spacing:0.15em;padding:4px 14px;">POPULAR</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;">$100K Account</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$249<span style="font-size:14px;font-weight:400;color:var(--gray2);">/mo</span></div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin:20px 0 24px;">
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">$6,000</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown (EOD)</span><span style="color:var(--white);font-family:'DM Mono',monospace;">$4,000</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Consistency Rule</span><span style="color:var(--white);font-family:'DM Mono',monospace;">Max 40%</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
-              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">85%</span></div>
-            </div>
-            <button style="width:100%;background:var(--gold);border:none;color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onclick="purchaseEval('eod-100k',249)">Start $100K EOD</button>
-          </div>
-
-          <!-- $150K EOD -->
-          <div style="background:var(--surface);border:1px solid var(--border);padding:24px;position:relative;">
-            <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:8px;">$150K Account</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;color:var(--white);">$349<span style="font-size:14px;font-weight:400;color:var(--gray2);">/mo</span></div>
-            <div style="display:flex;flex-direction:column;gap:8px;margin:20px 0 24px;">
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Target</span><span style="color:var(--white);font-family:'DM Mono',monospace;">$9,000</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Max Drawdown (EOD)</span><span style="color:var(--white);font-family:'DM Mono',monospace;">$6,000</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Consistency Rule</span><span style="color:var(--white);font-family:'DM Mono',monospace;">Max 40%</span></div>
-              <div style="display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Min Trading Days</span><span style="color:var(--white);font-family:'DM Mono',monospace;">5 days</span></div>
-              <div style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;"><span style="color:var(--gray);">Profit Split</span><span style="color:var(--gold);font-weight:600;font-family:'DM Mono',monospace;">90%</span></div>
-            </div>
-            <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;padding:11px;cursor:pointer;" onclick="purchaseEval('eod-150k',349)">Start $150K EOD</button>
-          </div>
-        </div>
-      </div>
-
-      <div style="text-align:center;margin-top:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">
-        Monthly subscription &middot; Cancel anytime &middot; <span onclick="showTab('eval-rules')" style="color:var(--gold);cursor:pointer;">View full rules &rarr;</span>
-      </div>
     </div>
 
-        <!-- ── SUPPORT ── -->
+    <!-- ── SUPPORT ── -->
     <div class="view fadeIn" id="view-support">
       <div style="max-width:640px;">
         <div style="margin-bottom:32px;">
@@ -1625,6 +1723,11 @@ canvas{display:block;}
           <input type="number" class="form-input" id="fTarget" placeholder="7090.00" step="0.25">
         </div>
         <div class="form-group full">
+          <label class="form-label">Tags</label>
+          <input type="text" class="form-input" id="fTags" placeholder="breakout, NY-open, VWAP (comma separated)">
+          <div style="font-size:10px;color:var(--gray2);margin-top:5px;font-family:'DM Mono',monospace;">Common: breakout, fade, reversal, gap-fill, VWAP, NY-open, distribution, news-spike, mistake, overtraded</div>
+        </div>
+        <div class="form-group full">
           <label class="form-label">Trade Setup / Notes</label>
           <textarea class="form-textarea" id="fNotes" placeholder="Describe your setup, reasoning, and execution..."></textarea>
         </div>
@@ -1661,40 +1764,489 @@ canvas{display:block;}
 
 <script>
 // ── TRADE DATA ──
-const TRADES = [
-  {id:1,symbol:'ES',side:'Long', entry:7041.25,exit:7068.50,contracts:2,pnl:+1362.50,r:+2.1,date:'2026-04-22 09:42',duration:'18m',notes:'Clean breakout above overnight high, held VWAP',quality:4,emotion:'confident'},
-  {id:2,symbol:'NQ',side:'Short',entry:19510.00,exit:19468.50,contracts:1,pnl:+830.00,r:+1.8,date:'2026-04-22 10:14',duration:'9m', notes:'Failed breakout, distribution into resistance',quality:5,emotion:'calm'},
-  {id:3,symbol:'GC', side:'Long', entry:4728.00,exit:4720.50,contracts:1,pnl:-750.00,r:-1.0,date:'2026-04-21 14:22',duration:'31m',notes:'Stopped out — news spike',quality:2,emotion:'anxious'},
-  {id:4,symbol:'ES',side:'Long', entry:7052.00,exit:7074.25,contracts:2,pnl:+2225.00,r:+2.8,date:'2026-04-21 09:38',duration:'22m',notes:'Strong open, trend day — held full position',quality:5,emotion:'confident'},
-  {id:5,symbol:'MES',side:'Short',entry:7080.00,exit:7068.50,contracts:5,pnl:+287.50,r:+1.5,date:'2026-04-18 14:45',duration:'12m',notes:'Afternoon fade setup',quality:3,emotion:'calm'},
-  {id:6,symbol:'RTY',side:'Long', entry:2052.00,exit:2041.50,contracts:2,pnl:-420.00,r:-1.0,date:'2026-04-17 10:02',duration:'44m',notes:'Overtraded — took setup too early',quality:1,emotion:'fomo'},
-  {id:7,symbol:'NQ',side:'Long', entry:19420.00,exit:19482.75,contracts:1,pnl:+1255.00,r:+2.4,date:'2026-04-17 09:45',duration:'28m',notes:'Gap fill + continuation',quality:4,emotion:'calm'},
-  {id:8,symbol:'SI', side:'Short',entry:77.20,exit:76.55,contracts:2,pnl:+650.00,r:+2.0,date:'2026-04-16 11:30',duration:'55m',notes:'Metal sector weakness, clean break below support',quality:4,emotion:'confident'},
-  {id:9,symbol:'YM', side:'Long', entry:41580.00,exit:41628.00,contracts:1,pnl:+240.00,r:+1.2,date:'2026-04-15 09:52',duration:'16m',notes:'Small size — testing new setup',quality:3,emotion:'calm'},
-  {id:10,symbol:'ES',side:'Short',entry:7084.00,exit:7062.50,contracts:2,pnl:+2150.00,r:+2.9,date:'2026-04-14 14:10',duration:'38m',notes:'Late day reversal off highs, perfect distribution',quality:5,emotion:'confident'},
-];
+// Trades load from Supabase via loadTradesFromDB(). Empty by default for new users.
+const TRADES = [];
 
 let currentTrades = [...TRADES];
 let selectedRating = 0;
 let selectedEmotion = '';
+let activeDateFilter = 'all'; // all | today | week | month | custom
+let activeTagFilters = new Set();
+
+// ════════════════════════════════════════════════
+// COMPUTED STATS — calculate everything from real trades, no hardcoded values
+// ════════════════════════════════════════════════
+function computeStats(trades) {
+  if (!trades.length) {
+    return {netPnl:0,wins:0,losses:0,total:0,winRate:0,profitFactor:0,avgWin:0,avgLoss:0,
+      largestWin:0,largestLoss:0,avgR:0,expectancy:0,maxDD:0,maxConsecW:0,maxConsecL:0,
+      currentStreak:0,currentStreakType:'none',sharpe:0,sortino:0,longWR:0,shortWR:0};
+  }
+  const winsArr = trades.filter(t => t.pnl > 0);
+  const lossArr = trades.filter(t => t.pnl < 0);
+  const wins = winsArr.length, losses = lossArr.length;
+  const total = trades.length;
+  const winRate = total > 0 ? (wins / total) * 100 : 0;
+  const grossProfit = winsArr.reduce((s,t) => s + t.pnl, 0);
+  const grossLoss = Math.abs(lossArr.reduce((s,t) => s + t.pnl, 0));
+  const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? Infinity : 0;
+  const netPnl = grossProfit - grossLoss;
+  const avgWin = wins > 0 ? grossProfit / wins : 0;
+  const avgLoss = losses > 0 ? grossLoss / losses : 0;
+  const largestWin = winsArr.length ? Math.max(...winsArr.map(t => t.pnl)) : 0;
+  const largestLoss = lossArr.length ? Math.min(...lossArr.map(t => t.pnl)) : 0;
+  const avgR = trades.reduce((s,t) => s + (t.r || 0), 0) / total;
+  // Expectancy = (winRate × avgWin) - (lossRate × avgLoss)
+  const expectancy = ((wins/total) * avgWin) - ((losses/total) * avgLoss);
+
+  // Max drawdown (peak-to-trough on cumulative P&L)
+  let cumPnl = 0, peak = 0, maxDD = 0;
+  trades.slice().reverse().forEach(t => {
+    cumPnl += t.pnl;
+    if (cumPnl > peak) peak = cumPnl;
+    const dd = peak - cumPnl;
+    if (dd > maxDD) maxDD = dd;
+  });
+
+  // Max consecutive wins/losses + current streak
+  let curWStreak = 0, curLStreak = 0, maxConsecW = 0, maxConsecL = 0;
+  const sorted = trades.slice().sort((a,b) => new Date(a.date) - new Date(b.date));
+  sorted.forEach(t => {
+    if (t.pnl > 0) {
+      curWStreak++; curLStreak = 0;
+      if (curWStreak > maxConsecW) maxConsecW = curWStreak;
+    } else if (t.pnl < 0) {
+      curLStreak++; curWStreak = 0;
+      if (curLStreak > maxConsecL) maxConsecL = curLStreak;
+    }
+  });
+  const lastTrade = sorted[sorted.length - 1];
+  const currentStreak = lastTrade ? (lastTrade.pnl > 0 ? curWStreak : curLStreak) : 0;
+  const currentStreakType = lastTrade ? (lastTrade.pnl > 0 ? 'win' : 'loss') : 'none';
+
+  // Sharpe ratio (simplified: mean return / std dev)
+  const returns = trades.map(t => t.pnl);
+  const meanReturn = returns.reduce((s,r) => s + r, 0) / returns.length;
+  const stdDev = Math.sqrt(returns.reduce((s,r) => s + Math.pow(r - meanReturn, 2), 0) / returns.length);
+  const sharpe = stdDev > 0 ? (meanReturn / stdDev) * Math.sqrt(252) : 0;
+  // Sortino (only downside std dev)
+  const downsideReturns = returns.filter(r => r < 0);
+  const downsideStd = downsideReturns.length > 0 ?
+    Math.sqrt(downsideReturns.reduce((s,r) => s + r*r, 0) / downsideReturns.length) : 0;
+  const sortino = downsideStd > 0 ? (meanReturn / downsideStd) * Math.sqrt(252) : 0;
+
+  // Long/short breakdown
+  const longs = trades.filter(t => t.side === 'Long');
+  const shorts = trades.filter(t => t.side === 'Short');
+  const longWR = longs.length ? (longs.filter(t => t.pnl > 0).length / longs.length) * 100 : 0;
+  const shortWR = shorts.length ? (shorts.filter(t => t.pnl > 0).length / shorts.length) * 100 : 0;
+
+  return {netPnl,wins,losses,total,winRate,profitFactor,avgWin,avgLoss,largestWin,largestLoss,
+    avgR,expectancy,maxDD,maxConsecW,maxConsecL,currentStreak,currentStreakType,
+    sharpe,sortino,longWR,shortWR,grossProfit,grossLoss};
+}
+
+// ════════════════════════════════════════════════
+// PERFORMANCE BY TAG — which setups make money
+// ════════════════════════════════════════════════
+function computeTagStats(trades) {
+  const tagMap = {};
+  trades.forEach(t => {
+    (t.tags || []).forEach(tag => {
+      if (!tagMap[tag]) tagMap[tag] = {trades:0, wins:0, pnl:0};
+      tagMap[tag].trades++;
+      if (t.pnl > 0) tagMap[tag].wins++;
+      tagMap[tag].pnl += t.pnl;
+    });
+  });
+  return Object.entries(tagMap).map(([tag, s]) => ({
+    tag,
+    trades: s.trades,
+    winRate: (s.wins / s.trades) * 100,
+    pnl: s.pnl,
+    avgPnl: s.pnl / s.trades,
+  })).sort((a, b) => b.pnl - a.pnl);
+}
+
+// ════════════════════════════════════════════════
+// DATE FILTERING
+// ════════════════════════════════════════════════
+function filterByDate(trades, range, customStart, customEnd) {
+  if (range === 'all') return trades;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekAgo = new Date(today); weekAgo.setDate(weekAgo.getDate() - 7);
+  const monthAgo = new Date(today); monthAgo.setMonth(monthAgo.getMonth() - 1);
+  return trades.filter(t => {
+    const tDate = new Date(t.date);
+    if (range === 'today') return tDate >= today;
+    if (range === 'week') return tDate >= weekAgo;
+    if (range === 'month') return tDate >= monthAgo;
+    if (range === 'custom' && customStart && customEnd) {
+      return tDate >= new Date(customStart) && tDate <= new Date(customEnd);
+    }
+    return true;
+  });
+}
+
+// ════════════════════════════════════════════════
+// CSV EXPORT
+// ════════════════════════════════════════════════
+function exportTradesCSV() {
+  const trades = currentTrades;
+  if (!trades.length) {
+    showToastMsg('No trades to export', 'var(--red)');
+    return;
+  }
+  const headers = ['Date','Symbol','Side','Entry','Exit','Qty','PnL','R','Duration','Quality','Emotion','Tags','Notes'];
+  const rows = trades.map(t => [
+    t.date, t.symbol, t.side, t.entry, t.exit, t.contracts,
+    t.pnl.toFixed(2), t.r, t.duration, t.quality, t.emotion,
+    (t.tags || []).join(';'), (t.notes || '').replace(/"/g, '""')
+  ]);
+  const csv = [headers, ...rows].map(r =>
+    r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')
+  ).join('\n');
+  const blob = new Blob([csv], {type: 'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tradephex-trades-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToastMsg(`Exported ${trades.length} trades to CSV`, 'var(--green)');
+}
+
+// ════════════════════════════════════════════════
+// REFRESH ALL DASHBOARD STATS — pulls real numbers from current trades
+// ════════════════════════════════════════════════
+function refreshDashboardStats() {
+  try {
+    const stats = computeStats(currentTrades);
+    // Top stat cards on Dashboard tab
+    const cards = document.querySelectorAll('#view-dashboard .stat-card');
+    if (cards.length >= 5) {
+      const safeSet = (card, sel, txt, klass) => {
+        const el = card?.querySelector(sel);
+        if (el) {
+          el.textContent = txt;
+          if (klass) el.className = klass;
+        }
+      };
+      // Card 1: Net P&L
+      safeSet(cards[0], '.sc-value',
+        (stats.netPnl >= 0 ? '+' : '-') + '$' + Math.abs(stats.netPnl).toFixed(2),
+        'sc-value ' + (stats.netPnl >= 0 ? 'up' : 'down'));
+      safeSet(cards[0], '.sc-sub',
+        stats.total + ' trades · ' + stats.wins + 'W/' + stats.losses + 'L', 'sc-sub');
+      // Card 2: Win Rate
+      safeSet(cards[1], '.sc-value', stats.winRate.toFixed(1) + '%');
+      safeSet(cards[1], '.sc-sub', stats.wins + 'W / ' + stats.losses + 'L');
+      // Card 3: Profit Factor
+      safeSet(cards[2], '.sc-value',
+        isFinite(stats.profitFactor) ? stats.profitFactor.toFixed(2) : '∞',
+        'sc-value ' + (stats.profitFactor >= 1 ? 'up' : 'down'));
+      safeSet(cards[2], '.sc-sub',
+        'Gross: $' + stats.grossProfit.toFixed(0) + ' / -$' + stats.grossLoss.toFixed(0));
+      // Card 4: Avg Win/Loss
+      safeSet(cards[3], '.sc-value', '$' + stats.avgWin.toFixed(0) + ' / $' + stats.avgLoss.toFixed(0));
+      safeSet(cards[3], '.sc-sub',
+        'Ratio: ' + (stats.avgLoss > 0 ? (stats.avgWin / stats.avgLoss).toFixed(2) : '—') + 'R');
+      // Card 5: Max Drawdown
+      safeSet(cards[4], '.sc-value', '-$' + stats.maxDD.toFixed(0));
+      safeSet(cards[4], '.sc-sub', 'Largest losing streak: ' + stats.maxConsecL);
+    }
+    refreshStreakWidget(stats);
+    refreshAnalyticsStats(stats);
+    refreshTagBreakdown();
+    refreshGoalWidget();
+    refreshBestWorstWidget();
+  } catch(e) {
+    console.warn('refreshDashboardStats error:', e.message);
+  }
+}
+
+function refreshStreakWidget(stats) {
+  const el = document.getElementById('streakWidget');
+  if (!el) return;
+  const isWin = stats.currentStreakType === 'win';
+  const col = isWin ? 'var(--green)' : 'var(--red)';
+  const emoji = isWin ? '🔥' : '❄';
+  el.innerHTML = `
+    <div style="font-size:11px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">CURRENT STREAK</div>
+    <div style="display:flex;align-items:baseline;gap:10px;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:46px;font-weight:800;color:${col};line-height:1;">${emoji} ${stats.currentStreak}</div>
+      <div style="font-size:14px;color:var(--gray);">${isWin ? 'wins' : 'losses'} in a row</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:14px;font-size:11px;color:var(--gray2);">
+      <span>Max W: <span style="color:var(--green);">${stats.maxConsecW}</span></span>
+      <span>Max L: <span style="color:var(--red);">${stats.maxConsecL}</span></span>
+    </div>
+  `;
+}
+
+function refreshAnalyticsStats(stats) {
+  try {
+    const cards = document.querySelectorAll('#view-analytics .analytics-card');
+    if (!cards.length) return;
+    const card1 = cards[0];
+    if (card1 && card1.querySelector('.analytics-title')?.textContent.includes('Performance')) {
+      const rows = card1.querySelectorAll('.metric-row');
+      const updates = {
+        'Net P&L': (stats.netPnl >= 0 ? '+' : '-') + '$' + Math.abs(stats.netPnl).toFixed(2),
+        'Win Rate': stats.winRate.toFixed(1) + '%',
+        'Profit Factor': isFinite(stats.profitFactor) ? stats.profitFactor.toFixed(2) : '∞',
+        'Average Win': '+$' + stats.avgWin.toFixed(2),
+        'Average Loss': '-$' + stats.avgLoss.toFixed(2),
+        'Largest Win': '+$' + stats.largestWin.toFixed(2),
+        'Largest Loss': '$' + stats.largestLoss.toFixed(2),
+        'Total Trades': stats.total.toString(),
+        'Avg R:R': stats.avgR.toFixed(2) + 'R',
+        'Expectancy': (stats.expectancy >= 0 ? '+' : '-') + '$' + Math.abs(stats.expectancy).toFixed(2) + ' / trade',
+      };
+      rows.forEach(r => {
+        const lbl = r.querySelector('.metric-label')?.textContent.trim();
+        if (lbl && updates[lbl]) {
+          const val = r.querySelector('.metric-value');
+          if (val) val.textContent = updates[lbl];
+        }
+      });
+    }
+    const sharpeEl = document.getElementById('metricSharpe');
+    const sortinoEl = document.getElementById('metricSortino');
+    if (sharpeEl) sharpeEl.textContent = stats.sharpe.toFixed(2);
+    if (sortinoEl) sortinoEl.textContent = isFinite(stats.sortino) ? stats.sortino.toFixed(2) : '∞';
+
+    const behCard = Array.from(cards).find(c => c.querySelector('.analytics-title')?.textContent.includes('Behavior'));
+    if (behCard) {
+      const rows = behCard.querySelectorAll('.metric-row');
+      const updates = {
+        'Long Win Rate': stats.longWR.toFixed(1) + '%',
+        'Short Win Rate': stats.shortWR.toFixed(1) + '%',
+        'Max Consec. Wins': stats.maxConsecW.toString(),
+        'Max Consec. Losses': stats.maxConsecL.toString(),
+      };
+      rows.forEach(r => {
+        const lbl = r.querySelector('.metric-label')?.textContent.trim();
+        if (lbl && updates[lbl]) {
+          const val = r.querySelector('.metric-value');
+          if (val) val.textContent = updates[lbl];
+        }
+      });
+    }
+  } catch(e) {
+    console.warn('refreshAnalyticsStats error:', e.message);
+  }
+}
+
+function refreshTagBreakdown() {
+  const el = document.getElementById('tagBreakdown');
+  if (!el) return;
+  const tagStats = computeTagStats(currentTrades);
+  if (!tagStats.length) {
+    el.innerHTML = '<div style="color:var(--gray2);font-size:12px;text-align:center;padding:20px;">No tagged trades yet</div>';
+    return;
+  }
+  el.innerHTML = `
+    <table style="width:100%;font-size:12px;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border);">
+          <th style="text-align:left;padding:8px 6px;color:var(--gray2);font-weight:600;font-size:10px;letter-spacing:.1em;">TAG</th>
+          <th style="text-align:right;padding:8px 6px;color:var(--gray2);font-weight:600;font-size:10px;letter-spacing:.1em;">TRADES</th>
+          <th style="text-align:right;padding:8px 6px;color:var(--gray2);font-weight:600;font-size:10px;letter-spacing:.1em;">WIN%</th>
+          <th style="text-align:right;padding:8px 6px;color:var(--gray2);font-weight:600;font-size:10px;letter-spacing:.1em;">P&L</th>
+          <th style="text-align:right;padding:8px 6px;color:var(--gray2);font-weight:600;font-size:10px;letter-spacing:.1em;">AVG</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tagStats.map(s => `
+          <tr style="border-bottom:1px solid rgba(255,255,255,.04);">
+            <td style="padding:8px 6px;"><span style="background:rgba(201,168,76,.12);color:var(--gold);padding:3px 8px;border-radius:2px;font-family:DM Mono,monospace;font-size:11px;">${s.tag}</span></td>
+            <td style="text-align:right;padding:8px 6px;font-family:DM Mono,monospace;color:var(--white);">${s.trades}</td>
+            <td style="text-align:right;padding:8px 6px;font-family:DM Mono,monospace;color:${s.winRate >= 50 ? 'var(--green)' : 'var(--red)'};">${s.winRate.toFixed(0)}%</td>
+            <td style="text-align:right;padding:8px 6px;font-family:DM Mono,monospace;font-weight:700;color:${s.pnl >= 0 ? 'var(--green)' : 'var(--red)'};">${s.pnl >= 0 ? '+' : '-'}$${Math.abs(s.pnl).toFixed(0)}</td>
+            <td style="text-align:right;padding:8px 6px;font-family:DM Mono,monospace;color:${s.avgPnl >= 0 ? 'var(--green)' : 'var(--red)'};">${s.avgPnl >= 0 ? '+' : '-'}$${Math.abs(s.avgPnl).toFixed(0)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+// ════════════════════════════════════════════════
+// MONTHLY GOAL TRACKER — set a P&L target, watch progress
+// ════════════════════════════════════════════════
+function getMonthlyGoal() {
+  return parseFloat(localStorage.getItem('tx_monthly_goal') || '5000');
+}
+function setMonthlyGoal() {
+  const current = getMonthlyGoal();
+  const input = prompt('Set your monthly P&L goal ($):', current);
+  if (input === null) return;
+  const val = parseFloat(input);
+  if (isNaN(val) || val <= 0) {
+    showToastMsg('Goal must be a positive number', 'var(--red)');
+    return;
+  }
+  localStorage.setItem('tx_monthly_goal', val);
+  showToastMsg(`Monthly goal set to $${val.toLocaleString()}`, 'var(--gold)');
+  refreshGoalWidget();
+}
+function refreshGoalWidget() {
+  try {
+    const el = document.getElementById('goalWidget');
+    if (!el) return;
+    const goal = getMonthlyGoal();
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const monthTrades = TRADES.filter(t => {
+      const d = new Date(t.date);
+      return !isNaN(d) && d >= monthStart;
+    });
+    const monthPnl = monthTrades.reduce((s, t) => s + (t.pnl || 0), 0);
+    const pct = Math.max(0, Math.min(100, (monthPnl / goal) * 100));
+    const onTrack = monthPnl >= 0;
+    const dayOfMonth = now.getDate();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const expectedPace = (dayOfMonth / daysInMonth) * goal;
+    const isAhead = monthPnl >= expectedPace;
+    const paceCol = isAhead ? 'var(--green)' : 'var(--orange)';
+    const fillCol = pct >= 100 ? 'var(--green)' : onTrack ? 'var(--gold)' : 'var(--red)';
+    el.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-size:11px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;">MONTHLY GOAL</div>
+        <button onclick="setMonthlyGoal()" style="background:transparent;border:1px solid var(--border2);color:var(--gold);font-size:9px;padding:2px 8px;cursor:pointer;font-family:DM Mono,monospace;letter-spacing:.1em;">EDIT</button>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px;">
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;color:${fillCol};line-height:1;">$${monthPnl.toFixed(0)}</div>
+        <div style="font-size:13px;color:var(--gray);">/ $${goal.toLocaleString()}</div>
+      </div>
+      <div style="height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;margin-bottom:8px;">
+        <div style="height:100%;width:${pct}%;background:${fillCol};transition:width .4s;"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray2);font-family:DM Mono,monospace;">
+        <span>${pct.toFixed(0)}% complete</span>
+        <span style="color:${paceCol};">${isAhead ? '✓ Ahead of pace' : '⚠ Behind pace'}</span>
+      </div>
+    `;
+  } catch(e) { console.warn('refreshGoalWidget error:', e.message); }
+}
+
+// ════════════════════════════════════════════════
+// BEST / WORST TRADES TODAY
+// ════════════════════════════════════════════════
+function refreshBestWorstWidget() {
+  try {
+    const el = document.getElementById('bestWorstWidget');
+    if (!el) return;
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayTrades = TRADES.filter(t => {
+      const d = new Date(t.date);
+      return !isNaN(d) && d >= todayStart;
+    });
+    if (!todayTrades.length) {
+      el.innerHTML = `
+        <div style="font-size:11px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">BEST / WORST TODAY</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;color:var(--gray);text-align:center;padding:14px 0;">No trades today</div>
+      `;
+      return;
+    }
+    const sorted = [...todayTrades].sort((a, b) => b.pnl - a.pnl);
+    const best = sorted[0];
+    const worst = sorted[sorted.length - 1];
+    const sameTrade = best === worst;
+    el.innerHTML = `
+      <div style="font-size:11px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:10px;">BEST / WORST TODAY</div>
+      <div style="cursor:pointer;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);" onclick="showTradeDetail(${best.id})">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:var(--green);font-family:DM Mono,monospace;">▲ BEST · ${best.symbol}</span>
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--green);">+$${best.pnl.toFixed(0)}</span>
+        </div>
+      </div>
+      ${!sameTrade ? `
+      <div style="cursor:pointer;padding:6px 0;" onclick="showTradeDetail(${worst.id})">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:11px;color:var(--red);font-family:DM Mono,monospace;">▼ WORST · ${worst.symbol}</span>
+          <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:${worst.pnl < 0 ? 'var(--red)' : 'var(--green)'};">${worst.pnl >= 0 ? '+' : '-'}$${Math.abs(worst.pnl).toFixed(0)}</span>
+        </div>
+      </div>` : '<div style="font-size:10px;color:var(--gray2);text-align:center;padding:6px 0;">Only 1 trade today</div>'}
+      <div style="margin-top:6px;font-size:10px;color:var(--gray2);font-family:DM Mono,monospace;text-align:center;">${todayTrades.length} trade${todayTrades.length !== 1 ? 's' : ''} today</div>
+    `;
+  } catch(e) { console.warn('refreshBestWorstWidget error:', e.message); }
+}
+
+// ════════════════════════════════════════════════
+// TRADE DETAIL MODAL — click a trade row to see deep info
+// ════════════════════════════════════════════════
+function showTradeDetail(tradeId) {
+  const t = TRADES.find(x => x.id === tradeId);
+  if (!t) return;
+  const modal = document.createElement('div');
+  modal.id = 'tradeDetailModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);';
+  const sideCol = t.side === 'Long' ? 'var(--green)' : 'var(--red)';
+  const pnlCol = t.pnl >= 0 ? 'var(--green)' : 'var(--red)';
+  const tagsHtml = (t.tags || []).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:4px 10px;border-radius:2px;font-family:DM Mono,monospace;font-size:11px;margin-right:6px;">${tag}</span>`).join('');
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:4px;width:600px;max-width:95vw;max-height:90vh;overflow:auto;">
+      <div style="padding:16px 22px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:.06em;">${t.symbol} <span style="color:${sideCol};">${t.side.toUpperCase()}</span> · ${t.contracts}</div>
+          <div style="font-size:12px;color:var(--gray2);font-family:DM Mono,monospace;margin-top:3px;">${t.date}</div>
+        </div>
+        <button onclick="document.getElementById('tradeDetailModal').remove()" style="background:none;border:none;color:var(--gray);font-size:18px;cursor:pointer;">✕</button>
+      </div>
+      <div style="padding:22px;">
+        <div style="text-align:center;margin-bottom:24px;">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;color:${pnlCol};line-height:1;">${t.pnl >= 0 ? '+' : '-'}$${Math.abs(t.pnl).toFixed(2)}</div>
+          <div style="font-size:13px;color:var(--gray);margin-top:6px;">${t.r >= 0 ? '+' : ''}${t.r}R · ${t.duration} · Quality ${'★'.repeat(t.quality)}${'☆'.repeat(5-t.quality)}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin-bottom:18px;">
+          <div style="background:var(--surface2);padding:14px;">
+            <div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:5px;">ENTRY</div>
+            <div style="font-family:DM Mono,monospace;font-size:18px;color:var(--white);">${t.entry}</div>
+          </div>
+          <div style="background:var(--surface2);padding:14px;">
+            <div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:5px;">EXIT</div>
+            <div style="font-family:DM Mono,monospace;font-size:18px;color:var(--white);">${t.exit}</div>
+          </div>
+        </div>
+        ${tagsHtml ? `<div style="margin-bottom:18px;"><div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">TAGS</div>${tagsHtml}</div>` : ''}
+        ${t.notes ? `<div style="background:var(--surface2);padding:14px;border-left:3px solid var(--gold);"><div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">NOTES</div><div style="font-size:13px;color:var(--white);line-height:1.7;">${t.notes}</div></div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+          <span style="font-size:12px;color:var(--gray2);">Emotion: <span style="color:var(--gold);">${t.emotion}</span></span>
+          <button onclick="openReplay(${t.id});document.getElementById('tradeDetailModal').remove();" style="background:var(--gold);color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;padding:8px 18px;cursor:pointer;">▶ REPLAY</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
 
 // ── RENDER TRADE TABLE ──
 function renderTable(trades, containerId) {
   const isDashboard = containerId === 'tradeTableWrap';
   const container = document.getElementById(containerId);
-  if (!trades.length) { container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--gray);font-family:DM Mono,monospace;font-size:12px;">No trades found</div>'; return; }
+  if (!trades.length) {
+    container.innerHTML = `<div style="text-align:center;padding:60px 40px;color:var(--gray);font-family:DM Mono,monospace;font-size:12px;">
+      <div style="font-size:32px;margin-bottom:16px;opacity:.4;">📊</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white);margin-bottom:8px;letter-spacing:.06em;">NO TRADES YET</div>
+      <div style="font-size:12px;color:var(--gray2);max-width:340px;margin:0 auto;line-height:1.7;">Trades you take on the chart auto-sync here. Or click "+ Add Trade" to log one manually.</div>
+    </div>`;
+    return;
+  }
 
   if (isDashboard) {
-    // Dashboard — clean, no quality/replay column
     container.innerHTML = `
       <table class="trade-table">
         <thead><tr>
           <th>Date / Time</th><th>Symbol</th><th>Side</th><th>Entry</th><th>Exit</th>
-          <th>Qty</th><th>P&L</th><th>R</th><th>Duration</th><th>Notes</th>
+          <th>Qty</th><th>P&L</th><th>R</th><th>Duration</th><th>Tags</th>
         </tr></thead>
         <tbody>
           ${trades.map(t => `
-            <tr>
+            <tr onclick="showTradeDetail(${t.id})" style="cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background=''">
               <td><span class="trade-time">${t.date}</span></td>
               <td><span class="sym-badge">${t.symbol}</span></td>
               <td><span class="side-badge ${t.side==='Long'?'side-long':'side-short'}">${t.side.toUpperCase()}</span></td>
@@ -1704,18 +2256,17 @@ function renderTable(trades, containerId) {
               <td><span class="pnl-val ${t.pnl>=0?'pnl-pos':'pnl-neg'}">${t.pnl>=0?'+':''}$${Math.abs(t.pnl).toFixed(2)}</span></td>
               <td><span class="r-val ${t.r>=0?'pnl-pos':'pnl-neg'}">${t.r>=0?'+':''}${t.r}R</span></td>
               <td><span class="trade-time">${t.duration}</span></td>
-              <td><span class="trade-notes">${t.notes}</span></td>
+              <td>${(t.tags || []).slice(0,2).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:2px 7px;border-radius:2px;font-family:DM Mono,monospace;font-size:10px;margin-right:3px;">${tag}</span>`).join('')}${(t.tags || []).length > 2 ? `<span style="color:var(--gray2);font-size:10px;">+${t.tags.length - 2}</span>` : ''}</td>
             </tr>
           `).join('')}
         </tbody>
       </table>`;
   } else {
-    // Journal — full detail with prominent replay button
     container.innerHTML = `
       <table class="trade-table">
         <thead><tr>
           <th>Date / Time</th><th>Symbol</th><th>Side</th><th>Entry</th><th>Exit</th>
-          <th>Qty</th><th>P&L</th><th>R</th><th>Duration</th><th>Quality</th><th>Emotion</th><th style="text-align:center;">Replay</th>
+          <th>Qty</th><th>P&L</th><th>R</th><th>Duration</th><th>Quality</th><th>Tags</th><th style="text-align:center;">Action</th>
         </tr></thead>
         <tbody>
           ${trades.map(t => `
@@ -1730,9 +2281,10 @@ function renderTable(trades, containerId) {
               <td><span class="r-val ${t.r>=0?'pnl-pos':'pnl-neg'}">${t.r>=0?'+':''}${t.r}R</span></td>
               <td><span class="trade-time">${t.duration}</span></td>
               <td><span style="color:var(--gold);font-size:13px;">${'★'.repeat(t.quality)}${'☆'.repeat(5-t.quality)}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--gray);">${t.emotion}</span></td>
-              <td class="replay-btn-cell">
-                <button onclick="openReplay(${t.id})" style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:0.1em;padding:7px 16px;cursor:pointer;transition:background 0.2s;white-space:nowrap;" onmouseover="this.style.background='#F0CF7A'" onmouseout="this.style.background='var(--gold)'">▶ REPLAY</button>
+              <td>${(t.tags || []).slice(0,2).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:2px 7px;border-radius:2px;font-family:DM Mono,monospace;font-size:10px;margin-right:3px;">${tag}</span>`).join('')}${(t.tags || []).length > 2 ? `<span style="color:var(--gray2);font-size:10px;">+${t.tags.length - 2}</span>` : ''}</td>
+              <td class="replay-btn-cell" style="display:flex;gap:6px;">
+                <button onclick="showTradeDetail(${t.id})" style="background:transparent;color:var(--gold);border:1px solid var(--border2);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;padding:6px 10px;cursor:pointer;white-space:nowrap;">DETAIL</button>
+                <button onclick="openReplay(${t.id})" style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;padding:6px 12px;cursor:pointer;white-space:nowrap;">▶ REPLAY</button>
               </td>
             </tr>
           `).join('')}
@@ -1743,6 +2295,8 @@ function renderTable(trades, containerId) {
 
 renderTable(TRADES, 'tradeTableWrap');
 renderTable(TRADES, 'journalTableWrap');
+// Compute dashboard stats from real trades on load
+setTimeout(refreshDashboardStats, 100);
 
 function filterTrades(filter, btn) {
   document.querySelectorAll('#view-dashboard .filter-btn').forEach(b=>b.classList.remove('active'));
@@ -1752,7 +2306,22 @@ function filterTrades(filter, btn) {
   if (filter === 'short') filtered = TRADES.filter(t => t.side === 'Short');
   if (filter === 'win') filtered = TRADES.filter(t => t.pnl > 0);
   if (filter === 'loss') filtered = TRADES.filter(t => t.pnl < 0);
+  currentTrades = filtered;
   renderTable(filtered, 'tradeTableWrap');
+  refreshDashboardStats();
+}
+
+function filterByDateRange(range, btn) {
+  document.querySelectorAll('#view-journal .filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activeDateFilter = range;
+  let filtered = filterByDate(TRADES, range);
+  if (activeTagFilters.size > 0) {
+    filtered = filtered.filter(t => (t.tags || []).some(tag => activeTagFilters.has(tag)));
+  }
+  currentTrades = filtered;
+  renderTable(filtered, 'journalTableWrap');
+  refreshDashboardStats();
 }
 
 // ── TABS ──
@@ -1875,9 +2444,9 @@ function initEvaluation() {
 
   // Rules list
   const rules = [
-    { label: 'Profit Target (6%)', status: e.netPnl >= e.rules.profitTarget.required, 
+    { label: 'Profit Target (10%)', status: e.netPnl >= e.rules.profitTarget.required, 
       detail: `+$${e.netPnl.toFixed(0)} of $${e.rules.profitTarget.required.toLocaleString()} required` },
-    { label: 'Max Drawdown (4%)', status: e.maxDrawdown < e.rules.maxDrawdown.limit,
+    { label: 'Max Drawdown (5%)', status: e.maxDrawdown < e.rules.maxDrawdown.limit,
       detail: `$${e.maxDrawdown} used — $${(e.rules.maxDrawdown.limit - e.maxDrawdown).toFixed(0)} remaining` },
     { label: 'Daily Loss Limit (2%)', status: e.dailyLoss < e.rules.dailyLoss.limit,
       detail: e.dailyLoss === 0 ? 'No losses today' : `$${e.dailyLoss} of $${e.rules.dailyLoss.limit} used` },
@@ -2084,31 +2653,6 @@ async function purchaseEval(accountSize, fee) {
   }
 }
 
-async function activateFundedAccount() {
-  if (!currentUser) { window.location.href = '/login'; return; }
-  try {
-    if (!window.Stripe) {
-      await new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://js.stripe.com/v3/';
-        s.onload = resolve; s.onerror = reject;
-        document.head.appendChild(s);
-      });
-    }
-    const stripe = Stripe(STRIPE_PK);
-    const res = await fetch('/api/activate-funded', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: currentUser.id, email: currentUser.email }),
-    });
-    const { url, error } = await res.json();
-    if (error) throw new Error(error);
-    window.location.href = url;
-  } catch(e) {
-    showToastMsg('Error: ' + e.message, 'var(--red)');
-  }
-}
-
 async function submitSupport() {
   const category = document.getElementById('support-category').value;
   const subject = document.getElementById('support-subject').value.trim();
@@ -2194,20 +2738,16 @@ function syncEvalWithTrades() {
   // Check phase progression
   if (EVAL_STATE.phase === 1 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
     EVAL_STATE.phase = 2;
-    showToastMsg('🎉 Evaluation Complete! Pay the $150 activation fee to go funded.', 'var(--green)');
+    EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * 0.05;
+    showToastMsg('🎉 Phase 1 Complete! Phase 2 now active — hit 5% profit target.', 'var(--green)');
     sendEmail('eval_passed_p1', { to: currentUser?.email });
     updateEvalInDB({ phase: 2 });
   }
-  if (EVAL_STATE.phase >= 1 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
+  if (EVAL_STATE.phase === 2 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
     EVAL_STATE.active = false;
-    showToastMsg('🏆 YOU PASSED! Evaluation complete. Activate your funded account from the dashboard.', 'var(--gold)');
+    showToastMsg('🏆 YOU PASSED! Both phases complete. You are funded. Check your email.', 'var(--gold)');
     sendEmail('eval_funded', { to: currentUser?.email });
     updateEvalInDB({ status: 'passed', phase: 3 });
-    // Show funded activation banner
-    const banner = document.getElementById('funded-activation-banner');
-    if(banner) { banner.style.display = 'flex'; }
-    const badge = document.getElementById('eval-status-badge');
-    if(badge) { badge.innerHTML = '🏆 PASSED'; badge.style.cssText = "font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.15em;padding:8px 20px;border:1px solid rgba(201,168,76,.5);background:rgba(201,168,76,.15);color:#C9A84C;"; }
   }
   // Sync to DB
   updateEvalInDB({
@@ -2345,8 +2885,20 @@ function confirmDelete() {
 function openModal() {
   document.getElementById('modalOverlay').classList.add('open');
   document.getElementById('fDateTime').value = new Date().toISOString().slice(0,16);
+  // Reset form
+  ['fEntry','fExit','fContracts','fStop','fTarget','fTags','fNotes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  selectedRating = 0;
+  selectedEmotion = '';
+  document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
 }
-function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  selectedRating = 0;
+  selectedEmotion = '';
+}
 function setRating(r, el) {
   selectedRating = r;
   document.querySelectorAll('.rating-btn').forEach(b => {
@@ -2367,23 +2919,35 @@ function saveTrade() {
   const exit = parseFloat(document.getElementById('fExit').value)||0;
   const contracts = parseInt(document.getElementById('fContracts').value)||1;
   const notes = document.getElementById('fNotes').value || 'No notes';
+  const tagsInput = document.getElementById('fTags')?.value || '';
+  const tags = tagsInput.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
   const tickValues = {ES:50,NQ:20,YM:5,RTY:50,MES:5,MNQ:2,MYM:0.5,M2K:5,GC:100,SI:5000,HG:25000,MGC:10,SIL:500};
   const tv = tickValues[sym] || 50;
   const diff = side === 'Long' ? exit - entry : entry - exit;
   const pnl = diff * tv * contracts;
 
   const newTrade = {
-    id: TRADES.length + 1, symbol: sym, side, entry, exit, contracts,
-    pnl: Math.round(pnl * 100) / 100, r: Math.round((diff / Math.abs(entry * 0.003)) * 10) / 10,
+    id: Math.max(0, ...TRADES.map(t => t.id)) + 1,
+    symbol: sym, side, entry, exit, contracts,
+    pnl: Math.round(pnl * 100) / 100,
+    r: Math.round((diff / Math.abs(entry * 0.003)) * 10) / 10,
     date: new Date().toLocaleDateString('en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
-    duration: '—', notes, quality: selectedRating || 3, emotion: selectedEmotion || 'calm'
+    duration: '—', notes,
+    quality: selectedRating || 3,
+    emotion: selectedEmotion || 'calm',
+    tags
   };
   TRADES.unshift(newTrade);
+  currentTrades = [...TRADES];
   saveTradeToDb(newTrade); // persist to Supabase
-  renderTable(TRADES, 'tradeTableWrap');
-  renderTable(TRADES, 'journalTableWrap');
+  renderTable(currentTrades, 'tradeTableWrap');
+  renderTable(currentTrades, 'journalTableWrap');
   closeModal();
   drawDashboardCharts();
+  refreshDashboardStats();
+  refreshGoalWidget();
+  refreshBestWorstWidget();
+  showToastMsg(`Trade logged: ${sym} ${side} ${pnl >= 0 ? '+' : '-'}$${Math.abs(pnl).toFixed(2)}`, pnl >= 0 ? 'var(--green)' : 'var(--red)');
 }
 
 // ── P&L CHART ──
@@ -2843,114 +3407,29 @@ const econData = [
   ]},
 ];
 
-// ── TWELVE DATA ECON CALENDAR AUTO-REFRESH ──
-let calendarApiData = null; // stores API response
-
-async function fetchTwelveDataCalendar() {
-  try {
-    const res = await fetch('/api/econ-calendar');
-    if (!res.ok) throw new Error('API error');
-    const data = await res.json();
-    if (data && data.result && Array.isArray(data.result)) {
-      calendarApiData = data.result;
-      buildCalendarFromAPI(data.result);
-    } else if (data && Array.isArray(data)) {
-      calendarApiData = data;
-      buildCalendarFromAPI(data);
-    } else {
-      // Fall back to hardcoded data
-      buildCalendar();
-    }
-  } catch(e) {
-    console.log('Econ calendar API failed, using cached data:', e.message);
-    buildCalendar();
-  }
-}
-
-function buildCalendarFromAPI(events) {
+function buildCalendar() {
   const cal = document.getElementById('econCalendar');
-  if (!cal) return;
-
-  // Group events by date
-  const grouped = {};
-  events.forEach(ev => {
-    const dateKey = ev.date || ev.event_date || '';
-    if (!dateKey) return;
-    const d = new Date(dateKey);
-    const label = d.toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'}).toUpperCase();
-    if (!grouped[label]) grouped[label] = [];
-
-    const impact = (ev.importance || ev.impact || 'low').toLowerCase();
-    const impactClass = impact === 'high' ? 'high' : impact === 'medium' || impact === 'med' ? 'med' : 'low';
-
-    grouped[label].push({
-      time: ev.time || '',
-      name: ev.event || ev.name || '',
-      impact: impactClass,
-      prev: ev.previous || '—',
-      fore: ev.estimate || ev.forecast || '—',
-      actual: ev.actual || ''
-    });
-  });
-
-  if (Object.keys(grouped).length === 0) {
-    buildCalendar(); // fall back if no events
-    return;
-  }
-
-  const legend = buildLegend();
-  cal.innerHTML = legend + Object.entries(grouped).map(([date, evs]) => `
-    <div class="econ-day">
-      <div class="econ-date">${date}</div>
-      ${evs.map(e => `
-        <div class="econ-event">
-          <span class="econ-time">${e.time}</span>
-          <span class="econ-name">${e.name}</span>
-          <span class="econ-impact impact-${e.impact}">${e.impact.toUpperCase()}</span>
-          <span class="econ-val">${e.prev||'—'}</span>
-          <span class="econ-val">${e.fore||'—'}</span>
-          <span class="econ-val ${e.actual&&e.fore&&e.actual>e.fore?'positive':e.actual&&e.fore&&e.actual<e.fore?'negative':''}">${e.actual||'<span style="color:#555">Pending</span>'}</span>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
-
-  const el = document.getElementById('calLastUpdate');
-  if(el) el.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
-}
-
-function buildLegend() {
-  return `
-    <div style="background:#0E0E0E;border:1px solid rgba(201,168,76,0.12);padding:16px 20px;margin-bottom:20px;display:flex;gap:32px;align-items:center;flex-wrap:wrap;justify-content:space-between;">
-      <div style="display:flex;gap:32px;align-items:center;flex-wrap:wrap;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:#888;">Impact Guide</div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="background:rgba(255,23,68,0.1);color:#FF1744;border:1px solid rgba(255,23,68,0.2);padding:2px 10px;font-family:'DM Mono',monospace;font-size:10px;">HIGH</span>
-          <span style="font-size:12px;color:#BBBBBB;">Market-moving. Can spike 10-30 pts instantly. CPI, NFP, FOMC. Know before you trade.</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="background:rgba(201,168,76,0.1);color:#C9A84C;border:1px solid rgba(201,168,76,0.2);padding:2px 10px;font-family:'DM Mono',monospace;font-size:10px;">MED</span>
-          <span style="font-size:12px;color:#BBBBBB;">Notable but less volatile. Housing, PMI, consumer data. Worth watching.</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="background:rgba(255,255,255,0.04);color:#888;border:1px solid rgba(255,255,255,0.1);padding:2px 10px;font-family:'DM Mono',monospace;font-size:10px;">LOW</span>
-          <span style="font-size:12px;color:#BBBBBB;">Minor release. Minimal market impact. Safe to trade around.</span>
-        </div>
+  const legend = `
+    <div style="background:#0E0E0E;border:1px solid rgba(201,168,76,0.12);padding:16px 20px;margin-bottom:20px;display:flex;gap:32px;align-items:center;flex-wrap:wrap;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:#888;">Impact Guide</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="background:rgba(255,23,68,0.1);color:#FF1744;border:1px solid rgba(255,23,68,0.2);padding:2px 10px;font-family:'DM Mono',monospace;font-size:10px;">HIGH</span>
+        <span style="font-size:12px;color:#BBBBBB;">Market-moving. Can spike 10-30 pts instantly. CPI, NFP, FOMC. Know before you trade.</span>
       </div>
       <div style="display:flex;align-items:center;gap:10px;">
-        <div style="font-family:'DM Mono',monospace;font-size:9px;color:#555;white-space:nowrap;" id="calLastUpdate">Loading live data...</div>
-        <button onclick="manualCalRefresh(this)" style="background:transparent;border:1px solid rgba(201,168,76,.25);color:var(--gold);font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;cursor:pointer;border-radius:2px;white-space:nowrap;">↺ REFRESH</button>
+        <span style="background:rgba(201,168,76,0.1);color:#C9A84C;border:1px solid rgba(201,168,76,0.2);padding:2px 10px;font-family:'DM Mono',monospace;font-size:10px;">MED</span>
+        <span style="font-size:12px;color:#BBBBBB;">Notable but less volatile. Housing, PMI, consumer data. Worth watching.</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="background:rgba(255,255,255,0.04);color:#888;border:1px solid rgba(255,255,255,0.1);padding:2px 10px;font-family:'DM Mono',monospace;font-size:10px;">LOW</span>
+        <span style="font-size:12px;color:#BBBBBB;">Minor release. Minimal market impact. Safe to trade around.</span>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:80px 1fr 80px 80px 80px 80px;gap:16px;padding:10px 16px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.15em;color:#BBBBBB;text-transform:uppercase;border-bottom:1px solid rgba(201,168,76,0.2);background:rgba(201,168,76,0.05);margin-bottom:4px;font-weight:500;">
       <span>Time</span><span>Event</span><span>Impact</span><span>Previous</span><span>Forecast</span><span>Actual</span>
     </div>`;
-}
 
-function buildCalendar() {
-  const cal = document.getElementById('econCalendar');
-  if (!cal) return;
-  cal.innerHTML = buildLegend() + econData.map(day => `
+  cal.innerHTML = legend + econData.map(day => `
     <div class="econ-day">
       <div class="econ-date">${day.date}</div>
       ${day.events.map(e => `
@@ -2965,28 +3444,8 @@ function buildCalendar() {
       `).join('')}
     </div>
   `).join('');
-  const el = document.getElementById('calLastUpdate');
-  if(el) el.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
 }
-
 buildCalendar();
-
-// Auto-refresh every 60 seconds
-setInterval(fetchTwelveDataCalendar, 60000);
-
-// Manual refresh
-async function manualCalRefresh(btn) {
-  btn.textContent = '↺ LOADING...';
-  btn.style.opacity = '.5';
-  btn.disabled = true;
-  await fetchTwelveDataCalendar();
-  btn.textContent = '↺ REFRESH';
-  btn.style.opacity = '1';
-  btn.disabled = false;
-}
-
-// Initial fetch on load
-fetchTwelveDataCalendar();
 
 // ── REPLAY ──
 let replayTrade = null;
@@ -3364,13 +3823,18 @@ window.addEventListener('load', () => {
 
 window.addEventListener('resize', () => {
   drawDashboardCharts();
-  if (document.getElementById('replayOverlay').classList.contains('open')) drawReplayChart();
+  const ro2 = document.getElementById('replayOverlay');
+  if (ro2 && ro2.classList.contains('open')) drawReplayChart();
 });
-document.getElementById('modalOverlay').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-document.getElementById('replayOverlay').addEventListener('click', function(e) {
-  if (e.target === this) closeReplay();
+window.addEventListener('DOMContentLoaded', () => {
+  const mo = document.getElementById('modalOverlay');
+  if (mo) mo.addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+  const ro = document.getElementById('replayOverlay');
+  if (ro) ro.addEventListener('click', function(e) {
+    if (e.target === this) closeReplay();
+  });
 });
 </script>
 
