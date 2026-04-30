@@ -852,6 +852,7 @@ let offset=0,zoom=1,showGrid=true,volOvl=false,showVP=false,showSes=false,showOL
 let tool='cursor',drawings=[],wip=null;
 let drag=false,dragX=0,dragOff=0,mX=0,mY=0;
 let draggingBracket=null;
+let draggingLimitOrder=null;
 let rpOpen=true,domOpen=true;
 let alertLines=[],limitOrders=[];
 let domPos={qty:0,avg:0,side:null},domData={bids:{},asks:{}};
@@ -1715,7 +1716,7 @@ function draw(){
   });
 
   // Limit orders
-  limitOrders.forEach(o=>{const y=toY(o.price),isBuy=o.side==='buy';ctx.strokeStyle=isBuy?'rgba(38,166,154,.7)':'rgba(239,83,80,.7)';ctx.lineWidth=1;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cW,y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=isBuy?'rgba(38,166,154,.13)':'rgba(239,83,80,.13)';ctx.fillRect(cW-128,y-10,128,18);ctx.fillStyle=isBuy?'#26A69A':'#EF5350';ctx.font='bold 9px DM Mono,monospace';ctx.textAlign='right';ctx.fillText(`LMT ${isBuy?'BUY':'SELL'} ${o.qty}@${o.price.toFixed(2)}`,cW-4,y+4);ctx.textAlign='left';});
+  limitOrders.forEach(o=>{const y=toY(o.price),isBuy=o.side==='buy';ctx.strokeStyle=isBuy?'rgba(38,166,154,.7)':'rgba(239,83,80,.7)';ctx.lineWidth=1;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cW,y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=isBuy?'rgba(38,166,154,.13)':'rgba(239,83,80,.13)';ctx.fillRect(cW-148,y-10,148,18);ctx.fillStyle=isBuy?'#26A69A':'#EF5350';ctx.font='bold 9px DM Mono,monospace';ctx.textAlign='right';ctx.fillText(`⇕ LMT ${isBuy?'BUY':'SELL'} ${o.qty}@${o.price.toFixed(2)}`,cW-4,y+4);ctx.textAlign='left';});
 
   // Alert lines
   alertLines.forEach(a=>{const y=toY(a.price);ctx.strokeStyle=a.triggered?'rgba(255,23,68,.8)':'rgba(0,230,118,.6)';ctx.lineWidth=1;ctx.setLineDash([5,3]);ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cW,y);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=a.triggered?'#FF1744':'#00E676';ctx.font='9px DM Mono,monospace';ctx.textAlign='right';ctx.fillText('🔔 '+a.price.toFixed(2),cW-4,y-3);ctx.textAlign='left';});
@@ -1971,30 +1972,86 @@ function initMouse(){
       if(draggingBracket==='sl')bracket.sl=newP;else bracket.tp=newP;
       updateSLLabel();redraw();return;
     }
+    if(draggingLimitOrder){
+      const W=el.width,H=el.height,PADT=8,cH=H-30;
+      const vis2=getVis();let lo2=Math.min(...vis2.map(b=>b.l)),hi2=Math.max(...vis2.map(b=>b.h));const pd=(hi2-lo2)*.1||1;lo2-=pd;hi2+=pd;
+      const s=SYM[sym];const newP=Math.round((lo2+(1-(ny-PADT)/cH)*(hi2-lo2))/s.t)*s.t;
+      draggingLimitOrder.price=newP;
+      // Reset price-since-placed tracking so it doesn't fire from stale history
+      draggingLimitOrder.priceSincePlaced={high:bars[bars.length-1]?.c||newP,low:bars[bars.length-1]?.c||newP};
+      redraw();
+      return;
+    }
     if(Math.abs(nx-mX)<2&&Math.abs(ny-mY)<2&&!drag)return;
     mX=nx;mY=ny;
     if(drag){const dx=e.clientX-dragX,bW=(el.width-72)/Math.max(1,getVis().length);offset=Math.max(-30,Math.min(bars.length-20,dragOff-Math.round(dx/bW)));}
-    // Cursor for bracket hover
+    // Cursor for bracket hover or limit order hover
     const H=el.height,PADT=8,cH=H-30;const vis3=getVis();
     if(vis3.length){let lo3=Math.min(...vis3.map(b=>b.l)),hi3=Math.max(...vis3.map(b=>b.h));const pd=(hi3-lo3)*.1||1;lo3-=pd;hi3+=pd;const toY3=p=>PADT+cH*(1-(p-lo3)/(hi3-lo3));
-      if((bracket.sl!=null&&Math.abs(toY3(bracket.sl)-ny)<8)||(bracket.tp!=null&&Math.abs(toY3(bracket.tp)-ny)<8))el.style.cursor='ns-resize';
+      const overBracket=(bracket.sl!=null&&Math.abs(toY3(bracket.sl)-ny)<8)||(bracket.tp!=null&&Math.abs(toY3(bracket.tp)-ny)<8);
+      const overLimit=limitOrders.some(o=>o.status==='working'&&Math.abs(toY3(o.price)-ny)<8);
+      if(overBracket||overLimit)el.style.cursor='ns-resize';
       else if(tool==='cursor')el.style.cursor=drag?'grabbing':'grab';
       else el.style.cursor='crosshair';
     }
     redraw();
+  });
+  el.addEventListener('mouseup',e=>{
+    if(draggingBracket){draggingBracket=null;el.style.cursor='grab';return;}
+    if(draggingLimitOrder){
+      showToast(`Limit ${draggingLimitOrder.side.toUpperCase()} moved to ${draggingLimitOrder.price.toFixed(2)}`,'var(--gold)');
+      draggingLimitOrder=null;
+      el.style.cursor='grab';
+      renderOrdersList();
+      return;
+    }
+    if(drag){
+      drag=false;el.style.cursor='grab';
+      // Quick click = mouse moved < 5px AND held < 200ms = treat as deliberate click
+      const moved=Math.abs(e.clientX-(el._clickX||0))+Math.abs(e.clientY-(el._clickY||0));
+      const elapsed=Date.now()-(el._clickTime||0);
+      // Only show order popup on DOUBLE-CLICK (within 350ms of last click)
+      if(moved<5&&tool==='cursor'&&el._lastClickTime&&elapsed<200&&Date.now()-el._lastClickTime<350){
+        const r=el.getBoundingClientRect();
+        const cy=e.clientY-r.top;
+        const H2=el.height,PADT2=8,cH2=H2-30;
+        const vis6=getVis();
+        if(vis6.length){
+          let lo6=Math.min(...vis6.map(b=>b.l)),hi6=Math.max(...vis6.map(b=>b.h));
+          const pd6=(hi6-lo6)*.1||1;lo6-=pd6;hi6+=pd6;
+          showQuickOrder(e.clientX,e.clientY,lo6+(1-(cy-PADT2)/cH2)*(hi6-lo6));
+        }
+        el._lastClickTime=0; // reset so triple-click doesn't fire again
+      } else if(moved<5&&tool==='cursor'){
+        // Single click: just record time so next click within 350ms is double-click
+        el._lastClickTime=Date.now();
+      }
+    }
   });
   el.addEventListener('mousedown',e=>{
     if(e.button===2)return;
     const r=el.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
     const H=el.height,PADT=8,cH=H-30;const vis4=getVis();
     if(vis4.length){let lo4=Math.min(...vis4.map(b=>b.l)),hi4=Math.max(...vis4.map(b=>b.h));const pd=(hi4-lo4)*.1||1;lo4-=pd;hi4+=pd;const toY4=p=>PADT+cH*(1-(p-lo4)/(hi4-lo4));
+      // Check brackets first
       if(bracket.sl!=null&&Math.abs(toY4(bracket.sl)-y)<8){draggingBracket='sl';return;}
       if(bracket.tp!=null&&Math.abs(toY4(bracket.tp)-y)<8){draggingBracket='tp';return;}
+      // Then check working limit orders (drag to reposition)
+      for(let i=0;i<limitOrders.length;i++){
+        const o=limitOrders[i];
+        if(o.status!=='working')continue;
+        if(Math.abs(toY4(o.price)-y)<8){
+          draggingLimitOrder=o;
+          el.style.cursor='ns-resize';
+          return;
+        }
+      }
     }
     if(tool==='cursor'){
       // Start drag — but also watch for a quick click (no movement) to show order popup
       drag=true;dragX=e.clientX;dragOff=offset;el.style.cursor='grabbing';
       el._clickX=e.clientX;el._clickY=e.clientY;
+      el._clickTime=Date.now();
       return;
     }
     // Left click with crosshair or any non-drawing tool = quick order
@@ -2016,25 +2073,6 @@ function initMouse(){
     if(tool==='text'){const t=prompt('Text:');if(t)drawings.push({type:'text',x1:x,y1:y,text:t,color:'#C9A84C'});redraw();return;}
     if(!wip)wip={type:tool,x1:x,y1:y,color:'#C9A84C'};
     else{wip.x2=x;wip.y2=y;drawings.push({...wip});wip=null;saveDrawings();redraw();}
-  });
-  el.addEventListener('mouseup',e=>{
-    if(draggingBracket){draggingBracket=null;el.style.cursor='grab';return;}
-    if(drag){
-      drag=false;el.style.cursor='grab';
-      // Quick click = mouse moved < 5px = show order popup
-      const moved=Math.abs(e.clientX-(el._clickX||0))+Math.abs(e.clientY-(el._clickY||0));
-      if(moved<5&&tool==='cursor'){
-        const r=el.getBoundingClientRect();
-        const cy=e.clientY-r.top;
-        const H2=el.height,PADT2=8,cH2=H2-30;
-        const vis6=getVis();
-        if(vis6.length){
-          let lo6=Math.min(...vis6.map(b=>b.l)),hi6=Math.max(...vis6.map(b=>b.h));
-          const pd6=(hi6-lo6)*.1||1;lo6-=pd6;hi6+=pd6;
-          showQuickOrder(e.clientX,e.clientY,lo6+(1-(cy-PADT2)/cH2)*(hi6-lo6));
-        }
-      }
-    }
   });
   el.addEventListener('contextmenu',e=>{
     e.preventDefault();
