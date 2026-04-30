@@ -1,7 +1,13 @@
 {
   "name": "tradephex",
   "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
-    "stripe": "^14.0.0"
+    "stripe": "^14.0.0",
+    "@supabase/supabase-js": "^2.39.0"
   }
 }
