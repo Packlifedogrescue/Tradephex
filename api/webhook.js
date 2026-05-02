@@ -82,24 +82,26 @@ export default async function handler(req, res) {
         });
       }
 
-      // 3. Log to email_log for confirmation email trigger
+      // 3. Send confirmation email via Resend
       if (session.customer_email) {
-        await fetch(`${process.env.SUPABASE_URL}/rest/v1/email_log`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': process.env.SUPABASE_SERVICE_KEY,
-            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
-          },
-          body: JSON.stringify({
-            user_id: user_id || null,
-            to_email: session.customer_email,
-            template: 'eval_purchase_confirmation',
-            subject: `Your Tradephex ${plan.toUpperCase()} Evaluation is Active`,
-            status: 'pending',
-            metadata: { plan, account_size, amount_paid: session.amount_total / 100 },
-          }),
-        });
+        try {
+          const { sendEvalPurchaseEmail, sendW9RequestEmail } = await import('./_email.js');
+          // Pull first name from session if available
+          const firstName = (session.customer_details?.name || '').split(' ')[0] || '';
+          await sendEvalPurchaseEmail({
+            email: session.customer_email,
+            firstName,
+            accountSize: parseInt(account_size),
+            profitTarget: parseFloat(profit_target),
+            maxDD: parseFloat(max_dd),
+            dailyLimit: parseFloat(daily_limit),
+            plan: plan ? plan.toUpperCase() : 'EVAL',
+          });
+          console.log(`✅ Confirmation email sent to ${session.customer_email}`);
+        } catch (emailErr) {
+          console.error('Email send failed:', emailErr.message);
+          // Don't fail the webhook if email fails — log it and move on
+        }
       }
 
     } catch (err) {

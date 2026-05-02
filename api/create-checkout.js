@@ -50,7 +50,7 @@ export default async function handler(req, res) {
         max_dd: planData.max_dd.toString(),
         daily_limit: planData.daily_limit.toString(),
       },
-      success_url: `${baseUrl}/journal?eval=success&plan=${plan}`,
+      success_url: `${baseUrl}/welcome?plan=${plan}`,
       cancel_url: `${baseUrl}/?canceled=true`,
       allow_promotion_codes: true,
     });
