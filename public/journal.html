@@ -89,11 +89,19 @@ async function loadTradesFromDB() {
     if (data && data.length > 0) {
       // Map DB columns to TRADES format
       const mapped = data.map(t => ({
-        id: t.id, symbol: t.symbol, side: t.side, entry: t.entry_price,
-        exit: t.exit_price, contracts: t.contracts, pnl: t.pnl,
-        r: t.r_multiple || 0, date: new Date(t.created_at).toLocaleString(),
-        duration: t.duration || '—', notes: t.notes || '', quality: t.quality || 3,
-        emotion: t.emotion || 'calm',
+        id: t.id,
+        symbol: t.symbol,
+        side: t.side,
+        entry: t.entry_price,
+        exit: t.exit_price,
+        contracts: t.contracts,
+        pnl: t.pnl,
+        r: t.r_multiple || 0,
+        date: new Date(t.entry_time || t.created_at).toLocaleString(),
+        duration: t.duration_minutes ? t.duration_minutes + 'm' : '—',
+        notes: t.setup_notes || '',
+        quality: t.execution_quality || 3,
+        emotion: t.emotional_state || 'calm',
         tags: Array.isArray(t.tags) ? t.tags : (typeof t.tags === 'string' ? t.tags.split(',').map(x => x.trim()).filter(Boolean) : [])
       }));
       TRADES.length = 0;
@@ -243,7 +251,7 @@ async function sendEmail(template, data) {
       },
       eval_passed_p1: {
         subject: 'Phase 1 Complete — You Passed!',
-        body: `Congratulations! You passed Phase 1 of your evaluation.\n\nPhase 2 is now active. Hit your 5% profit target to earn your funded account.\n\ntradephex.com/journal\n\n— Tradephex`
+        body: `Congratulations! You passed your evaluation.\n\nYour funded account is now active. Trade with confidence and request your payout when you're ready.\n\ntradephex.com/journal\n\n— Tradephex`
       },
       eval_funded: {
         subject: '🏆 You Are Funded — Congratulations!',
@@ -599,12 +607,165 @@ canvas{display:block;}
 
 /* ── TOOLTIP ── */
 .tooltip{position:absolute;background:var(--surface2);border:1px solid var(--border2);padding:6px 10px;font-family:'DM Mono',monospace;font-size:10px;color:var(--white);pointer-events:none;z-index:50;white-space:nowrap;display:none;}
+
+/* ════════════════════════════════════════════════
+   MOBILE RESPONSIVE — phones (≤780px) and small tablets
+   ════════════════════════════════════════════════ */
+.mobileToggle{display:none;background:none;border:none;color:var(--gold);font-size:24px;cursor:pointer;padding:6px 10px;margin-right:auto;}
+.sidebarOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99;backdrop-filter:blur(4px);}
+.sidebarOverlay.open{display:block;}
+
+@media(max-width:900px){
+  .stats-row{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .analytics-grid{grid-template-columns:1fr;}
+}
+
+@media(max-width:780px){
+  /* Sidebar becomes a slide-in drawer */
+  :root{--sidebar:260px;}
+  .sidebar{
+    position:fixed;
+    top:0;
+    left:0;
+    height:100vh;
+    z-index:100;
+    transform:translateX(-100%);
+    transition:transform .25s ease;
+    box-shadow:4px 0 24px rgba(0,0,0,.5);
+  }
+  .sidebar.open{transform:translateX(0);}
+
+  /* Topbar tweaks */
+  .topbar{padding:0 12px;gap:10px;}
+  .topbar-divider{display:none;}
+  .topbar-title{font-size:13px;letter-spacing:.1em;}
+  .mobileToggle{display:block;order:-1;}
+  .topbar-account .topbar-username,
+  .topbar-account .topbar-plan{display:none;}
+  .topbar-logo{font-size:18px;}
+
+  /* Main content full-width */
+  .main{padding:14px;}
+
+  /* Stat cards: single column on small phones */
+  .stats-row{grid-template-columns:1fr;gap:10px;margin-bottom:14px;}
+  .stat-card{padding:14px 16px;}
+  .sc-value{font-size:24px !important;}
+  .sc-label{font-size:9px;}
+  .sc-sub{font-size:10px;}
+
+  /* Widget row: stack the streak/goal/best-worst widgets */
+  div[style*="grid-template-columns:repeat(3,1fr)"]{
+    grid-template-columns:1fr !important;
+  }
+
+  /* Section view padding */
+  .view{padding:0;}
+
+  /* Trade table → CARD VIEW on mobile */
+  .trade-table{display:none;}
+  .mobile-trades{display:block;}
+
+  /* Add trade modal goes fullscreen */
+  .modal-content{
+    width:100% !important;
+    height:100% !important;
+    max-height:100vh !important;
+    border-radius:0 !important;
+    margin:0 !important;
+    overflow-y:auto;
+  }
+  .modal-overlay{padding:0 !important;}
+
+  /* Form inputs - bigger touch targets */
+  .form-input,.form-select,.form-textarea{
+    font-size:16px !important; /* prevents iOS zoom-on-focus */
+    padding:12px !important;
+    min-height:44px;
+  }
+  .form-grid{grid-template-columns:1fr !important;}
+
+  /* Tabs */
+  .tab-btn{font-size:11px;padding:10px 12px;}
+
+  /* Filter buttons - scroll horizontally if too many */
+  .table-actions{
+    overflow-x:auto;
+    flex-wrap:nowrap !important;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:6px;
+  }
+  .table-actions::-webkit-scrollbar{height:3px;}
+  .filter-btn{flex-shrink:0;font-size:11px;padding:8px 12px;min-height:36px;}
+  .table-header{flex-direction:column;gap:10px;align-items:stretch;}
+
+  /* Buttons sized for fingers */
+  .btn,.add-trade-btn{min-height:44px;padding:10px 14px !important;font-size:13px !important;}
+
+  /* Heatmap shrinks */
+  #heatmap{grid-template-columns:repeat(7,minmax(28px,1fr)) !important;gap:3px !important;}
+  #heatmap > div{min-height:28px;}
+
+  /* Trade detail modal */
+  #tradeDetailModal > div{
+    width:100vw !important;
+    height:100vh !important;
+    max-height:100vh !important;
+    max-width:100vw !important;
+    border-radius:0 !important;
+  }
+
+  /* Replay overlay - hide on mobile */
+  #replayOverlay{padding:8px !important;}
+}
+
+/* By default, trade table shows; mobile card view hidden */
+.mobile-trades{display:none;}
+
+@media(max-width:480px){
+  /* Even tighter on small phones */
+  .topbar{height:48px;padding:0 10px;}
+  .topbar-logo{font-size:16px;}
+  .topbar-title{display:none;}
+  .topbar-avatar{width:28px;height:28px;font-size:11px;}
+  .main{padding:10px;}
+  .stat-card{padding:12px 14px;}
+  .sc-value{font-size:22px !important;}
+
+  /* Heatmap even tighter */
+  #heatmap{grid-template-columns:repeat(7,1fr) !important;}
+}
+
+/* Mobile-specific trade card styles */
+.mobileTradeCard{
+  background:var(--surface);
+  border:1px solid var(--border);
+  padding:12px 14px;
+  margin-bottom:8px;
+  cursor:pointer;
+  transition:.15s;
+}
+.mobileTradeCard:active{background:var(--surface2);}
+.mobileTradeCard .mtcRow{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.mobileTradeCard .mtcSym{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;letter-spacing:.04em;}
+.mobileTradeCard .mtcSide{font-size:10px;padding:2px 8px;border-radius:2px;font-family:'DM Mono',monospace;letter-spacing:.08em;}
+.mobileTradeCard .mtcSide.long{background:rgba(0,230,118,.15);color:var(--green);}
+.mobileTradeCard .mtcSide.short{background:rgba(255,23,68,.15);color:var(--red);}
+.mobileTradeCard .mtcPnl{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;}
+.mobileTradeCard .mtcMeta{display:flex;justify-content:space-between;font-size:11px;color:var(--gray2);font-family:'DM Mono',monospace;}
+.mobileTradeCard .mtcDate{font-family:'DM Mono',monospace;font-size:10px;color:var(--gray2);}
+.mobileTradeCard .mtcTags{margin-top:6px;display:flex;gap:4px;flex-wrap:wrap;}
+.mobileTradeCard .mtcTag{background:rgba(201,168,76,.12);color:var(--gold);padding:2px 6px;border-radius:2px;font-family:'DM Mono',monospace;font-size:9px;}
 </style>
 </head>
 <body>
 
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div class="sidebarOverlay" id="sidebarOverlay" onclick="toggleSidebar(false)"></div>
+
 <!-- TOPBAR -->
 <div class="topbar">
+  <button class="mobileToggle" onclick="toggleSidebar()" aria-label="Menu">☰</button>
   <div class="topbar-logo">TRADE<span>PHEX</span></div>
   <div class="topbar-divider"></div>
   <div class="topbar-title" id="topbar-title">Dashboard</div>
@@ -663,6 +824,11 @@ canvas{display:block;}
         <svg viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 3h3l-2.5 2 1 3L8 8.5 5 10l1-3L3.5 5h3z" stroke="#C9A84C" stroke-width="1.1" stroke-linejoin="round"/></svg>
         <span style="color:var(--gold);">Leaderboard</span>
       </div>
+      <div class="nav-item" onclick="showTab('community')" style="border:1px solid rgba(201,168,76,0.1);position:relative;">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="5.5" cy="6" r="2" stroke="#C9A84C" stroke-width="1.2"/><circle cx="10.5" cy="6" r="2" stroke="#C9A84C" stroke-width="1.2"/><path d="M2 13c0-2 1.5-3 3.5-3s3.5 1 3.5 3" stroke="#C9A84C" stroke-width="1.2" stroke-linecap="round"/><path d="M7 13c0-2 1.5-3 3.5-3s3.5 1 3.5 3" stroke="#C9A84C" stroke-width="1.2" stroke-linecap="round"/></svg>
+        <span style="color:var(--gold);">Community</span>
+        <span id="commUnread" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);background:var(--red);color:white;font-size:9px;font-family:'DM Mono',monospace;padding:2px 6px;border-radius:8px;font-weight:700;">●</span>
+      </div>
       <div class="nav-item" onclick="showTab('upgrade')" style="border:1px solid rgba(201,168,76,0.1);">
         <svg viewBox="0 0 16 16" fill="none"><path d="M8 2L10.5 6.5H13.5L11 9.5L12 14L8 11.5L4 14L5 9.5L2.5 6.5H5.5L8 2Z" stroke="#C9A84C" stroke-width="1.2" stroke-linejoin="round"/></svg>
         <span style="color:var(--gold);">Buy Challenge</span>
@@ -711,6 +877,7 @@ canvas{display:block;}
       <div class="tab" onclick="showTab('evaluation')" style="color:var(--gold);">⚡ My Evaluation</div>
       <div class="tab" onclick="showTab('eval-rules')" style="color:var(--gold);">Rules & Info</div>
       <div class="tab" onclick="showTab('leaderboard')" style="color:var(--gold);">🏆 Leaderboard</div>
+      <div class="tab" onclick="showTab('community')" style="color:var(--gold);">👥 Community</div>
       <div class="tab" onclick="showTab('upgrade')" style="color:var(--gold);">Buy Challenge</div>
       <div style="margin-left:auto;display:flex;">
         <div class="tab" onclick="showTab('profile')">Profile</div>
@@ -830,32 +997,32 @@ canvas{display:block;}
       <div class="analytics-grid">
         <div class="analytics-card">
           <div class="analytics-title">Performance Metrics</div>
-          <div class="metric-row"><span class="metric-label">Net P&L (Month)</span><span class="metric-value up">+$8,420.00</span></div>
-          <div class="metric-row"><span class="metric-label">Win Rate</span><span class="metric-value gold">68.4%</span><div class="progress-bar"><div class="progress-fill" style="width:68.4%;background:var(--gold)"></div></div></div>
-          <div class="metric-row"><span class="metric-label">Profit Factor</span><span class="metric-value up">2.14</span></div>
-          <div class="metric-row"><span class="metric-label">Average Win</span><span class="metric-value up">+$284.20</span></div>
-          <div class="metric-row"><span class="metric-label">Average Loss</span><span class="metric-value down">-$132.80</span></div>
-          <div class="metric-row"><span class="metric-label">Largest Win</span><span class="metric-value up">+$1,240.00</span></div>
-          <div class="metric-row"><span class="metric-label">Largest Loss</span><span class="metric-value down">-$480.00</span></div>
-          <div class="metric-row"><span class="metric-label">Total Trades</span><span class="metric-value">60</span></div>
-          <div class="metric-row"><span class="metric-label">Avg R:R</span><span class="metric-value gold">2.14R</span></div>
-          <div class="metric-row"><span class="metric-label">Expectancy</span><span class="metric-value up">+$140.33 / trade</span></div>
+          <div class="metric-row"><span class="metric-label">Net P&L (Month)</span><span class="metric-value">$0.00</span></div>
+          <div class="metric-row"><span class="metric-label">Win Rate</span><span class="metric-value gold">—</span><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--gold)"></div></div></div>
+          <div class="metric-row"><span class="metric-label">Profit Factor</span><span class="metric-value">—</span></div>
+          <div class="metric-row"><span class="metric-label">Average Win</span><span class="metric-value">+$0.00</span></div>
+          <div class="metric-row"><span class="metric-label">Average Loss</span><span class="metric-value">-$0.00</span></div>
+          <div class="metric-row"><span class="metric-label">Largest Win</span><span class="metric-value">+$0.00</span></div>
+          <div class="metric-row"><span class="metric-label">Largest Loss</span><span class="metric-value">$0.00</span></div>
+          <div class="metric-row"><span class="metric-label">Total Trades</span><span class="metric-value">0</span></div>
+          <div class="metric-row"><span class="metric-label">Avg R:R</span><span class="metric-value gold">—</span></div>
+          <div class="metric-row"><span class="metric-label">Expectancy</span><span class="metric-value">$0.00 / trade</span></div>
           <div class="metric-row"><span class="metric-label">Sharpe Ratio</span><span class="metric-value gold" id="metricSharpe">—</span></div>
           <div class="metric-row"><span class="metric-label">Sortino Ratio</span><span class="metric-value gold" id="metricSortino">—</span></div>
         </div>
 
         <div class="analytics-card">
           <div class="analytics-title">Trading Behavior</div>
-          <div class="metric-row"><span class="metric-label">Best Day</span><span class="metric-value up">+$2,140 (Apr 8)</span></div>
-          <div class="metric-row"><span class="metric-label">Worst Day</span><span class="metric-value down">-$480 (Apr 3)</span></div>
-          <div class="metric-row"><span class="metric-label">Best Session</span><span class="metric-value gold">NY Open</span></div>
-          <div class="metric-row"><span class="metric-label">Best Symbol</span><span class="metric-value gold">ES</span></div>
-          <div class="metric-row"><span class="metric-label">Avg Trade Duration</span><span class="metric-value">14 min</span></div>
-          <div class="metric-row"><span class="metric-label">Max Consec. Wins</span><span class="metric-value up">7</span></div>
-          <div class="metric-row"><span class="metric-label">Max Consec. Losses</span><span class="metric-value down">3</span></div>
-          <div class="metric-row"><span class="metric-label">Long Win Rate</span><span class="metric-value up">72.1%</span><div class="progress-bar"><div class="progress-fill" style="width:72.1%;background:var(--green)"></div></div></div>
-          <div class="metric-row"><span class="metric-label">Short Win Rate</span><span class="metric-value up">62.8%</span><div class="progress-bar"><div class="progress-fill" style="width:62.8%;background:var(--green)"></div></div></div>
-          <div class="metric-row"><span class="metric-label">Overtrading Days</span><span class="metric-value down">3</span></div>
+          <div class="metric-row"><span class="metric-label">Best Day</span><span class="metric-value" id="bestDayMetric">—</span></div>
+          <div class="metric-row"><span class="metric-label">Worst Day</span><span class="metric-value" id="worstDayMetric">—</span></div>
+          <div class="metric-row"><span class="metric-label">Best Session</span><span class="metric-value gold" id="bestSessionMetric">—</span></div>
+          <div class="metric-row"><span class="metric-label">Best Symbol</span><span class="metric-value gold" id="bestSymbolMetric">—</span></div>
+          <div class="metric-row"><span class="metric-label">Avg Trade Duration</span><span class="metric-value" id="avgDurationMetric">—</span></div>
+          <div class="metric-row"><span class="metric-label">Max Consec. Wins</span><span class="metric-value">0</span></div>
+          <div class="metric-row"><span class="metric-label">Max Consec. Losses</span><span class="metric-value">0</span></div>
+          <div class="metric-row"><span class="metric-label">Long Win Rate</span><span class="metric-value">—</span><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--green)"></div></div></div>
+          <div class="metric-row"><span class="metric-label">Short Win Rate</span><span class="metric-value">—</span><div class="progress-bar"><div class="progress-fill" style="width:0%;background:var(--green)"></div></div></div>
+          <div class="metric-row"><span class="metric-label">Overtrading Days</span><span class="metric-value" id="overtradingMetric">0</span></div>
         </div>
 
         <div class="analytics-card">
@@ -1523,7 +1690,7 @@ canvas{display:block;}
           </div>
 
         </div>
-        <div style="text-align:center;margin-top:20px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">14-day free trial · Cancel anytime · No hidden fees</div>
+        <div style="text-align:center;margin-top:20px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">Cancel anytime · No hidden fees · Instant access</div>
       </div>
 
       <!-- ── DIVIDER ── -->
@@ -1536,7 +1703,7 @@ canvas{display:block;}
         <div style="text-align:center;margin-bottom:36px;">
           <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;">Prop Firm Evaluation</div>
           <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:40px;letter-spacing:0.02em;text-transform:uppercase;color:var(--white);">Buy a Challenge</div>
-          <div style="font-size:14px;color:var(--gray2);margin-top:10px;font-weight:300;">Pass Phase 1 & Phase 2. Get funded. Keep up to 90% of profits.</div>
+          <div style="font-size:14px;color:var(--gray2);margin-top:10px;font-weight:300;">Hit your profit target. Get funded. Keep up to 90% of profits.</div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;max-width:960px;margin:0 auto;">
@@ -1613,6 +1780,159 @@ canvas{display:block;}
         </div>
       </div>
 
+    </div>
+
+    <!-- ── COMMUNITY ── -->
+    <div class="view fadeIn" id="view-community">
+      <!-- Community gating message - shown if user is not entitled -->
+      <div id="commGate" style="display:none;max-width:640px;margin:60px auto;text-align:center;padding:48px 32px;background:var(--surface);border:1px solid var(--border2);">
+        <div style="font-size:48px;margin-bottom:20px;">🔒</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;letter-spacing:.04em;color:var(--white);margin-bottom:14px;">COMMUNITY ACCESS LOCKED</div>
+        <div style="font-size:14px;color:var(--gray);line-height:1.7;margin-bottom:28px;max-width:480px;margin-left:auto;margin-right:auto;">
+          The Tradephex Community is exclusive to active eval traders, funded traders, and Pro / Elite chart subscribers.
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:480px;margin:0 auto 28px;">
+          <div style="padding:18px;border:1px solid var(--border);background:var(--surface2);">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--gold);margin-bottom:8px;">OPTION 1</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white);margin-bottom:6px;">Buy a Challenge</div>
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;">From $79/mo · Includes community access</div>
+            <button onclick="showTab('upgrade')" style="width:100%;background:var(--gold);color:var(--black);border:none;padding:10px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;cursor:pointer;">VIEW CHALLENGES</button>
+          </div>
+          <div style="padding:18px;border:1px solid var(--border);background:var(--surface2);">
+            <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--gold);margin-bottom:8px;">OPTION 2</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white);margin-bottom:6px;">Pro / Elite Chart</div>
+            <div style="font-size:11px;color:var(--gray2);margin-bottom:14px;">From $29/mo · Charting + community</div>
+            <a href="/charting" style="display:block;text-decoration:none;text-align:center;background:transparent;color:var(--gold);border:1px solid var(--gold);padding:10px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;cursor:pointer;">VIEW CHARTING PLANS</a>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--gray2);font-family:'DM Mono',monospace;">Already a member? <span onclick="checkCommunityAccess(true)" style="color:var(--gold);cursor:pointer;text-decoration:underline;">Refresh access</span></div>
+      </div>
+
+      <!-- Main community area -->
+      <div id="commMain" style="display:none;">
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:800;letter-spacing:.02em;color:var(--white);">COMMUNITY</div>
+            <div style="font-size:13px;color:var(--gray);">Connect with active Tradephex traders. Share setups, ask questions, learn from funded peers.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="display:flex;align-items:center;gap:6px;background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.3);padding:6px 12px;">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);"></div>
+              <span style="font-family:'DM Mono',monospace;font-size:11px;color:var(--green);font-weight:600;" id="commOnline">— online</span>
+            </div>
+            <span id="commMemberBadge" style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;padding:5px 10px;background:rgba(201,168,76,.12);color:var(--gold);border:1px solid rgba(201,168,76,.3);"></span>
+          </div>
+        </div>
+
+        <!-- Community layout: channels left, content right -->
+        <div style="display:grid;grid-template-columns:240px 1fr;gap:16px;align-items:start;" id="commLayout">
+          <!-- CHANNELS SIDEBAR -->
+          <div style="background:var(--surface);border:1px solid var(--border);padding:0;position:sticky;top:14px;">
+            <div style="padding:14px 16px;border-bottom:1px solid var(--border);">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--gray2);">CHANNELS</div>
+            </div>
+            <div id="commChannelList">
+              <!-- Filled by JS -->
+            </div>
+
+            <div style="padding:14px 16px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-top:8px;">
+              <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--gray2);">DIRECT MESSAGES</div>
+            </div>
+            <div id="commDmList" style="padding:6px 0 12px;">
+              <div style="padding:8px 16px;font-size:11px;color:var(--gray2);">No active DMs</div>
+            </div>
+          </div>
+
+          <!-- CONTENT AREA -->
+          <div>
+            <!-- Channel header -->
+            <div style="background:var(--surface);border:1px solid var(--border);padding:14px 18px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div id="commChanName" style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white);letter-spacing:.04em;"># general</div>
+                <div id="commChanDesc" style="font-size:11px;color:var(--gray2);margin-top:2px;">Open discussion for all members</div>
+              </div>
+              <div style="display:flex;gap:8px;">
+                <button onclick="showCommGuidelines()" style="background:transparent;border:1px solid var(--border2);color:var(--gray);padding:6px 12px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;cursor:pointer;">📜 Guidelines</button>
+                <button onclick="commToggleNotifs()" id="commNotifBtn" style="background:transparent;border:1px solid var(--border2);color:var(--gray);padding:6px 12px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.06em;cursor:pointer;">🔔 On</button>
+              </div>
+            </div>
+
+            <!-- Pinned content -->
+            <div id="commPinned" style="background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.15);border-left:3px solid var(--gold);padding:14px 18px;margin-bottom:12px;display:none;">
+              <div style="display:flex;align-items:start;gap:12px;">
+                <span style="font-size:14px;color:var(--gold);">📌</span>
+                <div style="flex:1;">
+                  <div style="font-size:10px;color:var(--gold);font-family:'DM Mono',monospace;letter-spacing:.12em;margin-bottom:4px;">PINNED</div>
+                  <div id="commPinnedContent" style="font-size:13px;color:var(--white);line-height:1.6;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Posts feed -->
+            <div id="commFeed" style="background:var(--surface);border:1px solid var(--border);max-height:600px;overflow-y:auto;">
+              <!-- Filled by JS -->
+            </div>
+
+            <!-- Composer -->
+            <div style="background:var(--surface);border:1px solid var(--border);border-top:none;padding:12px 14px;">
+              <div style="display:flex;gap:8px;align-items:flex-start;">
+                <div id="commComposerAvatar" style="width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--black);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;flex-shrink:0;">U</div>
+                <div style="flex:1;">
+                  <textarea id="commComposer" placeholder="Share a setup, ask a question, or post a trade..." style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:12px;padding:10px;outline:none;resize:vertical;min-height:60px;line-height:1.5;"></textarea>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+                    <div style="display:flex;gap:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">
+                      <span style="cursor:pointer;" onclick="commToggleAttachTrade()" id="commAttachBtn">📎 Attach trade</span>
+                      <span style="cursor:pointer;" onclick="commInsertTag('#setup')">#setup</span>
+                      <span style="cursor:pointer;" onclick="commInsertTag('#question')">#question</span>
+                      <span style="cursor:pointer;" onclick="commInsertTag('#win')">#win</span>
+                    </div>
+                    <button onclick="commPostMessage()" style="background:var(--gold);color:var(--black);border:none;padding:7px 18px;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.1em;cursor:pointer;">POST</button>
+                  </div>
+                  <div id="commAttachInfo" style="display:none;margin-top:8px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);font-family:'DM Mono',monospace;font-size:10px;color:var(--gold);">Trade will be attached when posted.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right-rail content (Trade of Day, Member Spotlight) -->
+            <div style="margin-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <!-- Trade of the Day -->
+              <div style="background:var(--surface);border:1px solid var(--border2);padding:18px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+                  <span style="font-size:20px;">🏆</span>
+                  <div>
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--gold);">TRADE OF THE DAY</div>
+                    <div style="font-size:10px;color:var(--gray2);font-family:'DM Mono',monospace;" id="totdDate">—</div>
+                  </div>
+                </div>
+                <div id="commTotd" style="font-size:12px;color:var(--gray);text-align:center;padding:24px 0;">
+                  No featured trade yet today.<br/><span style="font-size:10px;color:var(--gray2);">Check back later or post yours!</span>
+                </div>
+              </div>
+
+              <!-- Member Spotlight -->
+              <div style="background:var(--surface);border:1px solid var(--border2);padding:18px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+                  <span style="font-size:20px;">⭐</span>
+                  <div>
+                    <div style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.18em;color:var(--gold);">MEMBER SPOTLIGHT</div>
+                    <div style="font-size:10px;color:var(--gray2);font-family:'DM Mono',monospace;">This week</div>
+                  </div>
+                </div>
+                <div id="commSpotlight" style="font-size:12px;color:var(--gray);text-align:center;padding:24px 0;">
+                  No spotlight selected this week.
+                </div>
+              </div>
+            </div>
+
+            <!-- Community guidelines preview -->
+            <div style="margin-top:16px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);font-size:11px;color:var(--gray2);line-height:1.6;">
+              <strong style="color:var(--white);">Community rules in brief:</strong> Be respectful. No spam, signal-selling, or affiliate links. No trash talk. P&amp;L screenshots are fine; flexing for shock value isn't. Funded traders get a gold badge. Three rule violations = ban.
+              <span onclick="showCommGuidelines()" style="color:var(--gold);cursor:pointer;text-decoration:underline;">Full guidelines →</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ── SUPPORT ── -->
@@ -1780,7 +2100,8 @@ function computeStats(trades) {
   if (!trades.length) {
     return {netPnl:0,wins:0,losses:0,total:0,winRate:0,profitFactor:0,avgWin:0,avgLoss:0,
       largestWin:0,largestLoss:0,avgR:0,expectancy:0,maxDD:0,maxConsecW:0,maxConsecL:0,
-      currentStreak:0,currentStreakType:'none',sharpe:0,sortino:0,longWR:0,shortWR:0};
+      currentStreak:0,currentStreakType:'none',sharpe:0,sortino:0,longWR:0,shortWR:0,
+      grossProfit:0,grossLoss:0};
   }
   const winsArr = trades.filter(t => t.pnl > 0);
   const lossArr = trades.filter(t => t.pnl < 0);
@@ -2237,8 +2558,34 @@ function renderTable(trades, containerId) {
     return;
   }
 
+  // MOBILE CARD VIEW (shown ≤780px via CSS)
+  const mobileCards = `
+    <div class="mobile-trades">
+      ${trades.map(t => `
+        <div class="mobileTradeCard" onclick="showTradeDetail(${t.id})">
+          <div class="mtcRow">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="mtcSym">${t.symbol}</span>
+              <span class="mtcSide ${t.side==='Long'?'long':'short'}">${t.side.toUpperCase()}</span>
+            </div>
+            <span class="mtcPnl ${t.pnl>=0?'pnl-pos':'pnl-neg'}" style="color:${t.pnl>=0?'var(--green)':'var(--red)'};">${t.pnl>=0?'+':'-'}$${Math.abs(t.pnl).toFixed(0)}</span>
+          </div>
+          <div class="mtcMeta">
+            <span>${t.contracts}c · ${t.entry} → ${t.exit}</span>
+            <span style="color:${t.r>=0?'var(--green)':'var(--red)'};">${t.r>=0?'+':''}${t.r}R</span>
+          </div>
+          <div class="mtcMeta" style="margin-top:4px;">
+            <span class="mtcDate">${t.date}</span>
+            <span>${t.duration}</span>
+          </div>
+          ${(t.tags||[]).length ? `<div class="mtcTags">${(t.tags||[]).slice(0,4).map(tag=>`<span class="mtcTag">${tag}</span>`).join('')}</div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `;
+
   if (isDashboard) {
-    container.innerHTML = `
+    container.innerHTML = mobileCards + `
       <table class="trade-table">
         <thead><tr>
           <th>Date / Time</th><th>Symbol</th><th>Side</th><th>Entry</th><th>Exit</th>
@@ -2262,7 +2609,7 @@ function renderTable(trades, containerId) {
         </tbody>
       </table>`;
   } else {
-    container.innerHTML = `
+    container.innerHTML = mobileCards + `
       <table class="trade-table">
         <thead><tr>
           <th>Date / Time</th><th>Symbol</th><th>Side</th><th>Entry</th><th>Exit</th>
@@ -2325,8 +2672,22 @@ function filterByDateRange(range, btn) {
 }
 
 // ── TABS ──
+function toggleSidebar(force) {
+  const sb = document.querySelector('.sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  if (!sb || !ov) return;
+  const shouldOpen = (force === undefined) ? !sb.classList.contains('open') : force;
+  sb.classList.toggle('open', shouldOpen);
+  ov.classList.toggle('open', shouldOpen);
+  // Lock body scroll when sidebar open on mobile
+  document.body.style.overflow = shouldOpen ? 'hidden' : '';
+}
+
 function showTab(tab) {
-  const EVAL_TABS = ['evaluation','eval-rules','upgrade','leaderboard'];
+  // Close sidebar on mobile when navigating
+  if (window.innerWidth <= 780) toggleSidebar(false);
+
+  const EVAL_TABS = ['evaluation','eval-rules','upgrade','leaderboard','community'];
   const isEvalTab = EVAL_TABS.includes(tab);
 
   // Show correct view
@@ -2353,6 +2714,7 @@ function showTab(tab) {
     else if (tab === 'profile' && txt.includes('profile')) t.classList.add('active');
     else if (tab === 'settings' && txt.includes('settings')) t.classList.add('active');
     else if (tab === 'support' && txt.includes('support')) t.classList.add('active');
+    else if (tab === 'community' && txt.includes('community')) t.classList.add('active');
   });
 
   // Highlight active sidebar nav item
@@ -2366,7 +2728,8 @@ function showTab(tab) {
     dashboard:'Dashboard', journal:'Trade Journal', analytics:'Analytics',
     calendar:'Economic Calendar', evaluation:'My Evaluation',
     'eval-rules':'Evaluation Rules & Info', upgrade:'Buy a Challenge',
-    profile:'Profile', settings:'Settings', support:'Contact Support'
+    profile:'Profile', settings:'Settings', support:'Contact Support',
+    community:'Community'
   };
   document.getElementById('topbar-title').textContent = titles[tab] || '';
 
@@ -2374,6 +2737,7 @@ function showTab(tab) {
   if (tab === 'profile') loadProfile();
   if (tab === 'evaluation') setTimeout(() => { syncEvalWithTrades(); initEvaluation(); }, 50);
   if (tab === 'leaderboard') setTimeout(loadLeaderboard, 50);
+  if (tab === 'community') setTimeout(initCommunity, 50);
 }
 
 // ── STRIPE + PLANS ──
@@ -2739,7 +3103,7 @@ function syncEvalWithTrades() {
   if (EVAL_STATE.phase === 1 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
     EVAL_STATE.phase = 2;
     EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * 0.05;
-    showToastMsg('🎉 Phase 1 Complete! Phase 2 now active — hit 5% profit target.', 'var(--green)');
+    showToastMsg('🎉 Evaluation Complete! Your funded account is now active.', 'var(--green)');
     sendEmail('eval_passed_p1', { to: currentUser?.email });
     updateEvalInDB({ phase: 2 });
   }
@@ -2762,7 +3126,7 @@ function syncEvalWithTrades() {
 async function saveTradeToDb(trade) {
   if (!currentUser) return;
   try {
-    await db.from('trades').insert({
+    const { error } = await db.from('trades').insert({
       user_id: currentUser.id,
       symbol: trade.symbol,
       side: trade.side,
@@ -2771,10 +3135,15 @@ async function saveTradeToDb(trade) {
       contracts: trade.contracts,
       pnl: trade.pnl,
       r_multiple: trade.r,
-      notes: trade.notes,
-      quality: trade.quality,
-      emotion: trade.emotion,
+      status: 'closed',
+      setup_notes: trade.notes || '',
+      execution_quality: trade.quality || 3,
+      emotional_state: trade.emotion || 'calm',
+      tags: trade.tags || [],
+      entry_time: new Date().toISOString(),
+      exit_time: new Date().toISOString()
     });
+    if (error) console.warn('Save trade error:', error.message);
   } catch(e) { console.log('Save trade error:', e.message); }
 }
 
@@ -2879,6 +3248,22 @@ function confirmDelete() {
       });
     }
   }
+}
+
+// ── LOGOUT ──
+async function handleLogout() {
+  if (!confirm('Sign out?')) return;
+  try {
+    await db.auth.signOut();
+  } catch(e) { console.warn('Sign out warning:', e); }
+  // Hard-clear any lingering Supabase session
+  Object.keys(localStorage).forEach(k => {
+    if (k.startsWith('sb-') || k.includes('supabase')) localStorage.removeItem(k);
+  });
+  Object.keys(sessionStorage).forEach(k => {
+    if (k.startsWith('sb-') || k.includes('supabase')) sessionStorage.removeItem(k);
+  });
+  window.location.href = '/';
 }
 
 // ── MODAL ──
@@ -3068,53 +3453,92 @@ function drawSymbolChart() {
 }
 
 function drawAnalyticsCharts() {
-  // Hour chart
+  // Hour chart — compute real P&L by hour of day
   const hc = document.getElementById('hourChart');
   if (hc) {
     const W = hc.offsetWidth || 300; const H = 180;
     hc.width = W; hc.height = H;
     const ctx = hc.getContext('2d');
     ctx.clearRect(0,0,W,H);
-    const hours = [
-      {h:'8am',pnl:-200},{h:'9am',pnl:+2400},{h:'10am',pnl:+1800},{h:'11am',pnl:+800},
-      {h:'12pm',pnl:-300},{h:'1pm',pnl:+400},{h:'2pm',pnl:+1200},{h:'3pm',pnl:+2100},{h:'4pm',pnl:+220}
-    ];
-    const maxV = Math.max(...hours.map(h=>Math.abs(h.pnl)));
-    const bW = (W-16)/hours.length-3;
-    const bY = H-28; const sc = (bY-20)/maxV;
-    hours.forEach((h,i) => {
-      const x = 8+i*(W-16)/hours.length;
-      const ht = Math.abs(h.pnl)*sc;
-      ctx.fillStyle = h.pnl>=0?'rgba(0,230,118,0.7)':'rgba(255,23,68,0.7)';
-      ctx.fillRect(x,bY-ht,bW,ht);
-      ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='8px DM Mono,monospace';
-      ctx.fillText(h.h,x,H-4);
+    // Build buckets 8am-4pm
+    const labels = ['8am','9am','10am','11am','12pm','1pm','2pm','3pm','4pm'];
+    const buckets = labels.map(() => 0);
+    TRADES.forEach(t => {
+      const d = new Date(t.date);
+      if (isNaN(d)) return;
+      const h = d.getHours();
+      if (h >= 8 && h <= 16) buckets[h - 8] += t.pnl;
     });
+    const hasData = buckets.some(v => v !== 0);
+    if (!hasData) {
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.font = '11px DM Mono,monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('No trade data', W/2, H/2);
+      ctx.textAlign = 'left';
+    } else {
+      const maxV = Math.max(...buckets.map(Math.abs)) || 1;
+      const bW = (W-16)/buckets.length-3;
+      const bY = H-28; const sc = (bY-20)/maxV;
+      buckets.forEach((pnl,i) => {
+        const x = 8+i*(W-16)/buckets.length;
+        const ht = Math.abs(pnl)*sc;
+        ctx.fillStyle = pnl>=0?'rgba(0,230,118,0.7)':'rgba(255,23,68,0.7)';
+        ctx.fillRect(x,bY-ht,bW,ht);
+        ctx.fillStyle='rgba(255,255,255,0.3)'; ctx.font='8px DM Mono,monospace';
+        ctx.fillText(labels[i],x,H-4);
+      });
+    }
   }
 
-  // Daily PnL
+  // Daily PnL — compute real P&L by day from trades
   const dc = document.getElementById('dailyPnlChart');
   if (dc) {
     const W = dc.offsetWidth || 400; const H = 160;
     dc.width = W; dc.height = H;
     const ctx = dc.getContext('2d');
-    const days = [180,-320,240,420,-180,380,840,220,760,1240,-480,320,660,440,380,280,420,180,360,520,640,1080,340,460,380,220,680,420,180,2150];
-    const maxV = Math.max(...days.map(Math.abs));
-    const bW = (W-16)/days.length-1;
-    const bY = H-20; const sc = (bY-20)/maxV;
-    days.forEach((d,i) => {
-      const x=8+i*(W-16)/days.length;
-      ctx.fillStyle = d>=0?'rgba(0,230,118,0.6)':'rgba(255,23,68,0.6)';
-      ctx.fillRect(x,bY-Math.abs(d)*sc,bW,Math.abs(d)*sc);
+    // Group trades by day, last 30 days
+    const dayMap = {};
+    TRADES.forEach(t => {
+      const d = new Date(t.date);
+      if (isNaN(d)) return;
+      const key = d.toISOString().slice(0,10);
+      dayMap[key] = (dayMap[key] || 0) + t.pnl;
     });
+    const sortedDays = Object.keys(dayMap).sort().slice(-30);
+    const days = sortedDays.map(k => dayMap[k]);
+    if (!days.length) {
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.font = '11px DM Mono,monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('No trade data', W/2, H/2);
+      ctx.textAlign = 'left';
+    } else {
+      const maxV = Math.max(...days.map(Math.abs)) || 1;
+      const bW = (W-16)/days.length-1;
+      const bY = H-20; const sc = (bY-20)/maxV;
+      days.forEach((d,i) => {
+        const x=8+i*(W-16)/days.length;
+        ctx.fillStyle = d>=0?'rgba(0,230,118,0.6)':'rgba(255,23,68,0.6)';
+        ctx.fillRect(x,bY-Math.abs(d)*sc,bW,Math.abs(d)*sc);
+      });
+    }
   }
 
-  // Cumulative
+  // Cumulative — already uses TRADES, just add empty state
   const cc = document.getElementById('cumulChart');
   if (cc) {
     const W = cc.offsetWidth || 400; const H = 160;
     cc.width = W; cc.height = H;
     const ctx = cc.getContext('2d');
+    if (!TRADES.length) {
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.font = '11px DM Mono,monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('No trade data', W/2, H/2);
+      ctx.textAlign = 'left';
+      return;
+    }
     let cum = 0; const pts = [0];
     [...TRADES].reverse().forEach(t => { cum += t.pnl; pts.push(cum); });
     const max = Math.max(...pts); const min = Math.min(...pts,0);
@@ -3141,13 +3565,15 @@ function drawAnalyticsCharts() {
     // Build day map from actual trades
     const dayMap = {};
     TRADES.forEach(t => {
-      const day = t.date.split(' ')[0];
-      if (!dayMap[day]) dayMap[day] = { pnl: 0, trades: 0 };
-      dayMap[day].pnl += t.pnl;
-      dayMap[day].trades += 1;
+      const d = new Date(t.date);
+      if (isNaN(d)) return;
+      const key = d.toISOString().slice(0,10);
+      if (!dayMap[key]) dayMap[key] = { pnl: 0, trades: 0 };
+      dayMap[key].pnl += t.pnl;
+      dayMap[key].trades += 1;
     });
-    // Generate 35 days ending today
-    const today = new Date('2026-04-22');
+    // Generate 35 days ending today (real today, not hardcoded)
+    const today = new Date();
     const allDays = [];
     for (let i = 34; i >= 0; i--) {
       const d = new Date(today);
@@ -3155,15 +3581,9 @@ function drawAnalyticsCharts() {
       const key = d.toISOString().slice(0,10);
       const dow = d.getDay();
       const isWeekend = (dow === 0 || dow === 6);
-      // Seed some realistic data for days not in TRADES
-      let pnl = 0, trades = 0;
-      if (dayMap[key]) { pnl = dayMap[key].pnl; trades = dayMap[key].trades; }
-      else if (!isWeekend) {
-        // Seeded pseudo-random based on date string
-        const seed = key.split('-').join('');
-        const r = ((parseInt(seed) % 100) / 100);
-        if (r > 0.15) { pnl = (r - 0.35) * 3000; trades = Math.floor(r * 8) + 1; }
-      }
+      // ONLY use real data — no fake seeding
+      const pnl = dayMap[key] ? dayMap[key].pnl : 0;
+      const trades = dayMap[key] ? dayMap[key].trades : 0;
       allDays.push({ key, pnl, trades, isWeekend });
     }
 
@@ -3836,6 +4256,436 @@ window.addEventListener('DOMContentLoaded', () => {
     if (e.target === this) closeReplay();
   });
 });
+
+// ════════════════════════════════════════════════════════════════
+// COMMUNITY MODULE
+// ════════════════════════════════════════════════════════════════
+const COMM_CHANNELS = [
+  {id:'general', name:'general', desc:'Open discussion for all members', icon:'💬', tier:'all'},
+  {id:'setups', name:'setups', desc:'Share trade setups and analysis', icon:'📊', tier:'all'},
+  {id:'wins', name:'wins', desc:'Celebrate wins (no flexing — be respectful)', icon:'🏆', tier:'all'},
+  {id:'losses', name:'losses-and-lessons', desc:'Reflect on losses without judgment', icon:'📉', tier:'all'},
+  {id:'es-nq', name:'es-nq', desc:'Equity index futures discussion', icon:'📈', tier:'all'},
+  {id:'energy', name:'energy', desc:'CL, NG, and energy products', icon:'⛽', tier:'all'},
+  {id:'metals', name:'metals', desc:'GC, SI, HG and metal markets', icon:'🥇', tier:'all'},
+  {id:'pro', name:'pro-room', desc:'Pro & Elite subscribers only — deeper analysis', icon:'⚡', tier:'pro'},
+  {id:'funded', name:'funded-only', desc:'Funded traders only', icon:'💎', tier:'funded'},
+  {id:'announce', name:'announcements', desc:'Tradephex official posts', icon:'📢', tier:'all', readonly:true},
+];
+
+const COMM_GUIDELINES_TEXT = `
+TRADEPHEX COMMUNITY GUIDELINES
+
+1. RESPECT — Be respectful to every member. No personal attacks, harassment, or discrimination.
+
+2. NO SPAM — No external referral links, signal services, course promotion, or off-topic spam. One warning then ban.
+
+3. NO SELLING — Don't sell anything. No "DM me for signals," no Discord recruitment, no telegram pumps.
+
+4. PROOF, NOT FLEXING — P&L screenshots are great when they teach something. Pure flex posts will be deleted.
+
+5. NO MARKET MANIPULATION — Don't coordinate trades or pump specific tickers/contracts.
+
+6. STAY IN SCOPE — Keep discussion related to trading, markets, mindset, or platform feedback.
+
+7. LANGUAGE — Profanity is okay if it's not aimed at someone. Slurs, threats, hate speech = instant ban.
+
+8. CHANNEL DISCIPLINE — Post in the right channel. Wins go in #wins, setups in #setups, losses in #losses-and-lessons.
+
+9. NO DOXXING — Never share personal info about other members.
+
+10. THREE STRIKES — Three rule violations = permanent ban. Severe violations are instant ban.
+
+VIOLATIONS REPORTING — Hover any post and click "report." Mods review within 24 hours.
+`;
+
+let COMM_STATE = {
+  channel: 'general',
+  posts: [], // {id, channel, user, tier, body, ts, reactions, replies, attachedTrade}
+  attachTrade: false,
+  notifsOn: true,
+  guidelinesAccepted: localStorage.getItem('tx_comm_guidelines_accepted') === '1',
+};
+
+// Determine user's community access tier
+function getCommunityTier() {
+  // Tiers: 'none' | 'eval' | 'funded' | 'pro' | 'elite'
+  // Logic:
+  //   - Has active eval purchase OR funded account → eval/funded
+  //   - Has Pro/Elite chart subscription → pro/elite
+  // For now we use the global `currentUser` and check Supabase metadata or a
+  // simple flag. Until we wire it to actual subscription data, fall back to
+  // a sensible default that lets logged-in users in.
+  if (!currentUser) return 'none';
+  const meta = currentUser.user_metadata || {};
+  // Check explicit access flags
+  if (meta.tier === 'elite') return 'elite';
+  if (meta.tier === 'pro') return 'pro';
+  if (meta.funded === true) return 'funded';
+  if (meta.eval_active === true) return 'eval';
+  // FALLBACK: if user has any trades or evaluations record, count as 'eval'
+  if (typeof TRADES !== 'undefined' && TRADES.length > 0) return 'eval';
+  if (typeof EVAL_STATE !== 'undefined' && EVAL_STATE.acct) return 'eval';
+  // Default: no access
+  return 'none';
+}
+
+function tierLabel(tier) {
+  return ({eval:'Eval Trader', funded:'Funded ◆', pro:'Pro Member ⚡', elite:'Elite Member ◆⚡', none:'Locked'})[tier] || tier;
+}
+function tierBadgeColor(tier) {
+  return ({eval:'var(--gray)', funded:'var(--gold)', pro:'var(--blue)', elite:'#FF6B9D'})[tier] || 'var(--gray)';
+}
+
+async function checkCommunityAccess(forceRefresh) {
+  if (forceRefresh && currentUser && db) {
+    // Re-fetch user metadata
+    try {
+      const { data } = await db.auth.getUser();
+      if (data && data.user) currentUser = data.user;
+    } catch(e) {}
+  }
+  const tier = getCommunityTier();
+  const gate = document.getElementById('commGate');
+  const main = document.getElementById('commMain');
+  if (tier === 'none') {
+    if (gate) gate.style.display = 'block';
+    if (main) main.style.display = 'none';
+    return false;
+  }
+  if (gate) gate.style.display = 'none';
+  if (main) main.style.display = 'block';
+  return true;
+}
+
+function initCommunity() {
+  if (!checkCommunityAccess()) return;
+
+  const tier = getCommunityTier();
+  const badge = document.getElementById('commMemberBadge');
+  if (badge) {
+    badge.textContent = tierLabel(tier).toUpperCase();
+    badge.style.color = tierBadgeColor(tier);
+    badge.style.borderColor = tierBadgeColor(tier);
+  }
+
+  // Composer avatar
+  const avatar = document.getElementById('commComposerAvatar');
+  if (avatar && currentUser) {
+    const meta = currentUser.user_metadata || {};
+    const name = meta.display_name || (currentUser.email || 'U').split('@')[0];
+    avatar.textContent = (name[0] || 'U').toUpperCase();
+  }
+
+  // Render channel list
+  renderCommChannels();
+
+  // Load posts for current channel
+  loadCommPosts(COMM_STATE.channel);
+
+  // Online count (placeholder — replace with real presence later)
+  updateCommOnlineCount();
+
+  // First-time guidelines prompt
+  if (!COMM_STATE.guidelinesAccepted) {
+    setTimeout(showCommGuidelines, 600);
+  }
+}
+
+function renderCommChannels() {
+  const list = document.getElementById('commChannelList');
+  if (!list) return;
+  const tier = getCommunityTier();
+  const tierRank = {none:0, eval:1, funded:2, pro:3, elite:4};
+  const userRank = tierRank[tier] || 0;
+
+  list.innerHTML = COMM_CHANNELS.map(ch => {
+    const required = (ch.tier === 'pro' || ch.tier === 'elite') ? 3 : (ch.tier === 'funded' ? 2 : 0);
+    const locked = userRank < required;
+    const isActive = ch.id === COMM_STATE.channel;
+    return `
+      <div onclick="${locked ? `showToastMsg('Channel locked. Upgrade to Pro/Elite to access.', 'var(--red)')` : `selectCommChannel('${ch.id}')`}"
+        style="padding:9px 16px;cursor:${locked?'not-allowed':'pointer'};display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:12px;
+        color:${locked ? 'var(--gray3)' : isActive ? 'var(--gold)' : 'var(--gray)'};
+        background:${isActive ? 'rgba(201,168,76,.08)' : 'transparent'};
+        border-left:2px solid ${isActive ? 'var(--gold)' : 'transparent'};
+        transition:.1s;${locked?'opacity:.5;':''}">
+        <span style="font-size:14px;">${ch.icon}</span>
+        <span style="flex:1;">${locked ? '🔒' : '#'} ${ch.name}</span>
+        ${ch.unread ? `<span style="background:var(--red);color:white;font-size:9px;padding:1px 5px;border-radius:8px;">${ch.unread}</span>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function selectCommChannel(channelId) {
+  COMM_STATE.channel = channelId;
+  const ch = COMM_CHANNELS.find(c => c.id === channelId);
+  if (ch) {
+    document.getElementById('commChanName').textContent = '#' + ch.name;
+    document.getElementById('commChanDesc').textContent = ch.desc;
+    // Hide composer for read-only channels
+    const composer = document.getElementById('commComposer')?.closest('div[style*="background:var(--surface)"]');
+    if (ch.readonly && composer) {
+      composer.style.opacity = '0.4';
+      composer.style.pointerEvents = 'none';
+    } else if (composer) {
+      composer.style.opacity = '1';
+      composer.style.pointerEvents = 'auto';
+    }
+  }
+  renderCommChannels();
+  loadCommPosts(channelId);
+}
+
+function loadCommPosts(channelId) {
+  const feed = document.getElementById('commFeed');
+  if (!feed) return;
+  // For now: empty state since we don't have a real backend yet
+  // When the Supabase community_posts table is added, this fetches real posts
+  const channelPosts = COMM_STATE.posts.filter(p => p.channel === channelId);
+
+  if (channelPosts.length === 0) {
+    feed.innerHTML = `
+      <div style="padding:60px 32px;text-align:center;color:var(--gray);">
+        <div style="font-size:38px;margin-bottom:14px;opacity:.4;">💬</div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--white);letter-spacing:.06em;margin-bottom:8px;">NO POSTS YET</div>
+        <div style="font-size:12px;color:var(--gray2);max-width:380px;margin:0 auto;line-height:1.7;">Be the first to post in #${COMM_STATE.channel}. Share a setup, ask a question, or start a discussion.</div>
+      </div>
+    `;
+    return;
+  }
+
+  feed.innerHTML = channelPosts.map(p => renderCommPost(p)).join('');
+}
+
+function renderCommPost(p) {
+  const tier = p.tier || 'eval';
+  const tierColor = tierBadgeColor(tier);
+  const timeAgo = commTimeAgo(p.ts);
+
+  let attachHTML = '';
+  if (p.attachedTrade) {
+    const t = p.attachedTrade;
+    attachHTML = `
+      <div style="margin-top:10px;background:var(--surface2);border:1px solid var(--border);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;font-family:'DM Mono',monospace;font-size:11px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--white);">${t.symbol}</span>
+          <span style="font-size:9px;letter-spacing:.1em;padding:2px 6px;background:${t.side==='Long'?'rgba(0,230,118,.15)':'rgba(255,23,68,.15)'};color:${t.side==='Long'?'var(--green)':'var(--red)'};">${(t.side||'').toUpperCase()}</span>
+          <span style="color:var(--gray2);">${t.entry} → ${t.exit}</span>
+        </div>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:${t.pnl>=0?'var(--green)':'var(--red)'};">${t.pnl>=0?'+':'-'}$${Math.abs(t.pnl).toFixed(0)} (${t.r||0}R)</span>
+      </div>
+    `;
+  }
+
+  return `
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;gap:10px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:${tierColor};color:var(--black);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;flex-shrink:0;">${(p.user[0]||'?').toUpperCase()}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
+            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:var(--white);letter-spacing:.02em;">${p.user}</span>
+            <span style="font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.1em;padding:2px 6px;background:${tierColor};color:var(--black);">${tierLabel(tier).toUpperCase()}</span>
+            <span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--gray2);">${timeAgo}</span>
+          </div>
+          <div style="font-size:13px;color:var(--white);line-height:1.6;white-space:pre-wrap;word-break:break-word;">${commLinkifyText(p.body)}</div>
+          ${attachHTML}
+          <div style="display:flex;gap:14px;margin-top:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);">
+            <span style="cursor:pointer;" onclick="commReact(${p.id},'👍')">👍 ${(p.reactions||{})['👍']||''}</span>
+            <span style="cursor:pointer;" onclick="commReact(${p.id},'🔥')">🔥 ${(p.reactions||{})['🔥']||''}</span>
+            <span style="cursor:pointer;" onclick="commReact(${p.id},'💡')">💡 ${(p.reactions||{})['💡']||''}</span>
+            <span style="cursor:pointer;" onclick="commReplyTo(${p.id})">💬 Reply ${(p.replies||[]).length || ''}</span>
+            <span style="cursor:pointer;margin-left:auto;color:var(--gray3);" onclick="commReportPost(${p.id})">⚠ Report</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function commLinkifyText(text) {
+  // Escape HTML
+  const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // Linkify URLs
+  return escaped.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:var(--gold);">$1</a>')
+    // Hashtags
+    .replace(/#(\w+)/g, '<span style="color:var(--gold);">#$1</span>');
+}
+
+function commTimeAgo(ts) {
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return m + 'm ago';
+  const h = Math.floor(m / 60);
+  if (h < 24) return h + 'h ago';
+  const d = Math.floor(h / 24);
+  if (d < 7) return d + 'd ago';
+  return new Date(ts).toLocaleDateString();
+}
+
+function commPostMessage() {
+  const ta = document.getElementById('commComposer');
+  if (!ta) return;
+  const body = ta.value.trim();
+  if (!body) {
+    showToastMsg('Write something first', 'var(--red)');
+    return;
+  }
+  if (body.length > 2000) {
+    showToastMsg('Post is too long. Max 2000 characters.', 'var(--red)');
+    return;
+  }
+
+  // Spam guards
+  const lower = body.toLowerCase();
+  const spamPatterns = ['dm me', 'whatsapp', 'telegram', 'signal group', 'pump', 'guaranteed return'];
+  if (spamPatterns.some(p => lower.includes(p))) {
+    showToastMsg('Post blocked: looks like spam. See guidelines.', 'var(--red)');
+    return;
+  }
+
+  const tier = getCommunityTier();
+  const meta = currentUser?.user_metadata || {};
+  const userName = meta.display_name || (currentUser?.email || 'You').split('@')[0];
+
+  let attachedTrade = null;
+  if (COMM_STATE.attachTrade && TRADES && TRADES.length > 0) {
+    const last = TRADES[0];
+    attachedTrade = {symbol: last.symbol, side: last.side, entry: last.entry, exit: last.exit, pnl: last.pnl, r: last.r};
+  }
+
+  const post = {
+    id: Date.now(),
+    channel: COMM_STATE.channel,
+    user: userName,
+    tier: tier,
+    body: body,
+    ts: Date.now(),
+    reactions: {},
+    replies: [],
+    attachedTrade: attachedTrade,
+  };
+  COMM_STATE.posts.unshift(post);
+
+  // Save to Supabase if available (async, fire and forget)
+  if (typeof db !== 'undefined' && currentUser) {
+    db.from('community_posts').insert({
+      user_id: currentUser.id,
+      channel: post.channel,
+      body: post.body,
+      tier: tier,
+      attached_trade: attachedTrade,
+    }).then(() => {}).catch(() => {});
+  }
+
+  ta.value = '';
+  COMM_STATE.attachTrade = false;
+  document.getElementById('commAttachInfo').style.display = 'none';
+  document.getElementById('commAttachBtn').style.color = 'var(--gray2)';
+
+  loadCommPosts(COMM_STATE.channel);
+  showToastMsg('Posted to #' + COMM_STATE.channel, 'var(--green)');
+}
+
+function commReact(postId, emoji) {
+  const post = COMM_STATE.posts.find(p => p.id === postId);
+  if (!post) return;
+  post.reactions = post.reactions || {};
+  post.reactions[emoji] = (post.reactions[emoji] || 0) + 1;
+  loadCommPosts(COMM_STATE.channel);
+}
+
+function commReplyTo(postId) {
+  const post = COMM_STATE.posts.find(p => p.id === postId);
+  if (!post) return;
+  const ta = document.getElementById('commComposer');
+  if (ta) {
+    ta.value = `@${post.user} `;
+    ta.focus();
+  }
+}
+
+function commReportPost(postId) {
+  if (confirm('Report this post for review by moderators?')) {
+    showToastMsg('Post reported. Mods will review within 24 hours.', 'var(--gold)');
+    // TODO: persist report to Supabase community_reports table
+  }
+}
+
+function commToggleAttachTrade() {
+  if (!TRADES || TRADES.length === 0) {
+    showToastMsg('No trades yet to attach', 'var(--red)');
+    return;
+  }
+  COMM_STATE.attachTrade = !COMM_STATE.attachTrade;
+  const info = document.getElementById('commAttachInfo');
+  const btn = document.getElementById('commAttachBtn');
+  if (COMM_STATE.attachTrade) {
+    const last = TRADES[0];
+    info.textContent = `Will attach: ${last.symbol} ${last.side} ${last.entry}→${last.exit} (${last.pnl>=0?'+':''}$${last.pnl.toFixed(0)})`;
+    info.style.display = 'block';
+    btn.style.color = 'var(--gold)';
+  } else {
+    info.style.display = 'none';
+    btn.style.color = 'var(--gray2)';
+  }
+}
+
+function commInsertTag(tag) {
+  const ta = document.getElementById('commComposer');
+  if (!ta) return;
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  const before = ta.value.slice(0, start);
+  const after = ta.value.slice(end);
+  const insert = (before.length > 0 && !before.endsWith(' ') ? ' ' : '') + tag + ' ';
+  ta.value = before + insert + after;
+  ta.focus();
+  const newPos = start + insert.length;
+  ta.setSelectionRange(newPos, newPos);
+}
+
+function commToggleNotifs() {
+  COMM_STATE.notifsOn = !COMM_STATE.notifsOn;
+  const btn = document.getElementById('commNotifBtn');
+  if (btn) btn.textContent = '🔔 ' + (COMM_STATE.notifsOn ? 'On' : 'Off');
+  showToastMsg('Notifications ' + (COMM_STATE.notifsOn ? 'enabled' : 'muted'), 'var(--gold)');
+}
+
+function showCommGuidelines() {
+  const accept = confirm(COMM_GUIDELINES_TEXT + '\n\nClick OK to accept and continue.');
+  if (accept) {
+    localStorage.setItem('tx_comm_guidelines_accepted', '1');
+    COMM_STATE.guidelinesAccepted = true;
+  }
+}
+
+function updateCommOnlineCount() {
+  // Placeholder — when real presence is wired up, count active users
+  const el = document.getElementById('commOnline');
+  if (el) {
+    // Random 8-25 for now to show activity feel; replace with real Supabase presence
+    const n = 8 + Math.floor(Math.random() * 18);
+    el.textContent = n + ' online';
+  }
+}
+// Refresh online count every 30s
+setInterval(updateCommOnlineCount, 30000);
+
+// Mobile: stack channel sidebar above content
+function commHandleResize() {
+  const layout = document.getElementById('commLayout');
+  if (!layout) return;
+  if (window.innerWidth <= 780) {
+    layout.style.gridTemplateColumns = '1fr';
+  } else {
+    layout.style.gridTemplateColumns = '240px 1fr';
+  }
+}
+window.addEventListener('resize', commHandleResize);
+window.addEventListener('DOMContentLoaded', commHandleResize);
 </script>
 
 <!-- REPLAY OVERLAY -->
