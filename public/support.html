@@ -2,193 +2,179 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tradephex — Contact Support</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Support — Tradephex</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@200;300;400;500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--black:#060606;--surface:#0E0E0E;--surface2:#151515;--gold:#C9A84C;--gold-bright:#F0CF7A;--gold-dim:#6B5520;--white:#F5F5F5;--gray:#BBBBBB;--gray2:#888888;--gray3:#444444;--border:rgba(201,168,76,0.15);--border2:rgba(201,168,76,0.3);--green:#00E676;--red:#FF1744;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(201,168,76,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(201,168,76,0.04) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;mask-image:radial-gradient(ellipse at center,black 20%,transparent 80%);}
-nav{padding:0 60px;height:72px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(6,6,6,0.95);position:relative;z-index:1;}
-.nav-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;letter-spacing:0.1em;color:var(--white);text-decoration:none;}
-.nav-logo span{color:var(--gold);}
-.nav-right{display:flex;gap:20px;align-items:center;}
-.nav-right a{font-size:13px;color:var(--gray2);text-decoration:none;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.1em;text-transform:uppercase;}
-.nav-right a:hover{color:var(--gold);}
-.btn-gold{background:var(--gold);color:var(--black);padding:10px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;}
-main{flex:1;display:flex;align-items:center;justify-content:center;padding:80px 24px;position:relative;z-index:1;}
-.support-wrap{width:100%;max-width:960px;display:grid;grid-template-columns:1fr 1.5fr;gap:60px;align-items:start;}
-.support-info{}
-.support-eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;}
-.support-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;letter-spacing:0.02em;line-height:1;text-transform:uppercase;color:var(--white);margin-bottom:20px;}
-.support-title span{color:var(--gold);}
-.support-desc{font-size:15px;color:var(--gray);line-height:1.8;font-weight:300;margin-bottom:40px;}
-.support-methods{display:flex;flex-direction:column;gap:0;}
-.support-method{display:flex;align-items:center;gap:16px;padding:18px 0;border-bottom:1px solid var(--border);}
-.support-method:last-child{border-bottom:none;}
-.method-icon{width:40px;height:40px;background:rgba(201,168,76,0.08);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.method-icon svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
-.method-label{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);margin-bottom:2px;}
-.method-value{font-family:'DM Mono',monospace;font-size:12px;color:var(--gray2);}
-.support-form{background:var(--surface);border:1px solid var(--border2);padding:40px;}
-.form-title{font-family:'Barlow Condensed',sans-serif;font-size:20px;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);margin-bottom:28px;}
-.form-group{margin-bottom:20px;}
-.form-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);display:block;margin-bottom:8px;}
-.form-input{width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:12px 16px;outline:none;transition:border-color 0.2s;}
-.form-input:focus{border-color:var(--gold);}
-.form-input::placeholder{color:var(--gray3);}
-.form-select{width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:12px 16px;outline:none;appearance:none;cursor:pointer;transition:border-color 0.2s;}
-.form-select:focus{border-color:var(--gold);}
-.form-textarea{width:100%;background:var(--black);border:1px solid var(--border);color:var(--white);font-family:'Barlow',sans-serif;font-size:13px;padding:12px 16px;outline:none;resize:vertical;min-height:120px;transition:border-color 0.2s;}
-.form-textarea:focus{border-color:var(--gold);}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
-.btn-submit{width:100%;background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:0.15em;text-transform:uppercase;padding:14px;cursor:pointer;transition:background 0.2s;margin-top:8px;}
-.btn-submit:hover{background:var(--gold-bright);}
-.btn-submit:disabled{opacity:0.5;cursor:not-allowed;}
-.success-msg{background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);color:var(--green);font-family:'DM Mono',monospace;font-size:11px;padding:12px 16px;margin-bottom:20px;display:none;}
-.success-msg.show{display:block;}
-.error-msg{background:rgba(255,23,68,0.08);border:1px solid rgba(255,23,68,0.2);color:var(--red);font-family:'DM Mono',monospace;font-size:11px;padding:12px 16px;margin-bottom:20px;display:none;}
-.error-msg.show{display:block;}
-footer{padding:24px 60px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;}
-.footer-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:0.1em;color:var(--white);}
-.footer-logo span{color:var(--gold);}
-.footer-copy{font-family:'DM Mono',monospace;font-size:10px;color:var(--gray3);}
+:root{--black:#000;--soft:#0A0A0A;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.12);--gold:#C9A84C;--gold-soft:#9F8638;--text:#E8E8E8;--mute:#6F6F6F;--mute2:#3F3F3F;--green:#00C97A;--red:#D85B5B;--serif:'Spectral',Georgia,serif;--sans:'Inter',-apple-system,sans-serif;--mono:'JetBrains Mono',Menlo,monospace;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.6;cursor:none;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+::selection{background:var(--gold);color:#000;}::-webkit-scrollbar{width:0;}
+a{color:inherit;text-decoration:none;cursor:none;}button{font-family:inherit;cursor:none;border:none;background:none;color:inherit;}
+.cursor{position:fixed;width:6px;height:6px;border-radius:50%;background:var(--gold);pointer-events:none;z-index:9999;transition:transform .15s ease,width .25s ease,height .25s ease,background .2s ease;mix-blend-mode:difference;will-change:transform;top:0;left:0;}
+.cursor.hover{width:32px;height:32px;background:transparent;border:1px solid var(--gold);transform:translate(-13px,-13px);}
+@media(hover:none){.cursor{display:none;}body,a,button{cursor:auto;}}
+
+nav{position:fixed;top:0;left:0;right:0;padding:24px 64px;display:flex;align-items:center;justify-content:space-between;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--line);}
+.brand{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:#FFF;}.brand span{color:var(--gold);}
+.navL{display:flex;gap:48px;align-items:center;}
+.navL a{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#999;transition:color .25s;}
+.navL a:hover{color:#FFF;}
+.navL .nav-cta{color:var(--gold);padding:10px 22px;border:1px solid var(--gold-soft);transition:.3s;}
+.navL .nav-cta:hover{background:var(--gold);color:#000;border-color:var(--gold);}
+
+.head{padding:200px 64px 120px;max-width:1200px;margin:0 auto;}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:48px;display:flex;align-items:center;gap:14px;}
+.eyebrow::before{content:'';width:32px;height:1px;background:var(--gold);}
+h1{font-family:var(--serif);font-weight:300;font-size:clamp(56px,8vw,112px);line-height:.96;letter-spacing:-.025em;color:#FFF;margin-bottom:48px;}
+h1 em{font-style:italic;color:var(--gold);font-weight:200;}
+.headSub{font-family:var(--sans);font-size:18px;color:var(--mute);max-width:620px;line-height:1.7;}
+
+.body{padding:0 64px 200px;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:96px;}
+.col h2{font-family:var(--serif);font-weight:300;font-size:32px;line-height:1.1;color:#FFF;margin-bottom:24px;}
+.col h2 em{font-style:italic;color:var(--gold);font-weight:200;}
+.col p{font-family:var(--sans);font-size:14px;color:var(--mute);line-height:1.8;margin-bottom:32px;}
+.col .label{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;border-top:1px solid var(--line);padding-top:24px;}
+.col .value{font-family:var(--mono);font-size:14px;color:var(--text);margin-bottom:14px;}
+.col .value a{color:var(--gold);transition:color .25s;}
+.col .value a:hover{color:var(--text);}
+
+.field{margin-bottom:24px;}
+.flabel{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);margin-bottom:10px;}
+.input,.textarea{width:100%;background:transparent;border:none;border-bottom:1px solid var(--line2);padding:14px 0;font-family:var(--sans);font-size:15px;color:var(--text);outline:none;transition:border-color .3s;cursor:none;font-weight:300;}
+.input:focus,.textarea:focus{border-color:var(--gold);}
+.textarea{resize:vertical;min-height:120px;border:1px solid var(--line2);padding:14px;}
+.textarea:focus{border-color:var(--gold);}
+.btn{padding:18px 32px;font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold-soft);transition:.4s;position:relative;overflow:hidden;cursor:none;}
+.btn::before{content:'';position:absolute;inset:0;background:var(--gold);transform:translateX(-100%);transition:transform .5s;z-index:0;}
+.btn:hover::before{transform:translateX(0);}
+.btn span{position:relative;z-index:1;transition:color .3s;}.btn:hover span{color:#000;}
+.msg{margin-top:18px;padding:14px 18px;border:1px solid rgba(0,201,122,.3);background:rgba(0,201,122,.04);font-family:var(--mono);font-size:12px;color:var(--green);display:none;}
+.msg.show{display:block;}
+
+footer{padding:96px 64px 48px;border-top:1px solid var(--line);}
+.footInner{max-width:1400px;margin:0 auto;}
+.footTop{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:64px;margin-bottom:96px;}
+.footBrand{font-family:var(--mono);font-size:14px;font-weight:500;letter-spacing:.24em;color:#FFF;margin-bottom:24px;}.footBrand span{color:var(--gold);}
+.footMission{font-family:var(--serif);font-size:18px;line-height:1.55;color:var(--mute);font-weight:300;max-width:340px;font-style:italic;}
+.footCol h4{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:24px;}
+.footCol a{display:block;padding:8px 0;font-family:var(--sans);font-size:14px;font-weight:300;color:var(--mute);transition:color .25s;}
+.footCol a:hover{color:var(--text);}
+.footBot{border-top:1px solid var(--line);padding-top:32px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute2);}
+
+@media(max-width:980px){
+  nav{padding:18px 24px;}.navL{gap:24px;}.navL a:not(.nav-cta){display:none;}
+  .head,.body{padding-left:24px;padding-right:24px;}
+  .head{padding-top:140px;padding-bottom:80px;}
+  .body{grid-template-columns:1fr;gap:64px;padding-bottom:120px;}
+  .footTop{grid-template-columns:1fr 1fr;gap:48px;}
+}
+@media(max-width:560px){.footTop{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
+<div class="cursor" id="cursor"></div>
+
 <nav>
-  <a href="/" class="nav-logo">TRADE<span>PHEX</span></a>
-  <div class="nav-right">
-    <a href="/journal">Dashboard</a>
-    <a href="/login" class="btn-gold">Log In</a>
+  <a href="/" class="brand">TRADE<span>PHEX</span></a>
+  <div class="navL">
+    <a href="/evaluations" data-hover>Evaluations</a>
+    <a href="/charting" data-hover>Charting</a>
+    <a href="/journal-plans" data-hover>Journal</a>
+    <a href="/login" data-hover>Sign In</a>
+    <a href="/signup" class="nav-cta" data-hover>Get Funded</a>
   </div>
 </nav>
-<main>
-  <div class="support-wrap">
-    <div class="support-info">
-      <div class="support-eyebrow">We're here to help</div>
-      <h1 class="support-title">CONTACT<br><span>SUPPORT</span></h1>
-      <p class="support-desc">Have a question, found a bug, or need help with your account? Fill out the form and we'll get back to you as fast as possible.</p>
-      <div class="support-methods">
-        <div class="support-method">
-          <div class="method-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
-          <div><div class="method-label">Email Support</div><div class="method-value">support@tradephex.com</div></div>
-        </div>
-        <div class="support-method">
-          <div class="method-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg></div>
-          <div><div class="method-label">Response Time</div><div class="method-value">Within 24 hours on business days</div></div>
-        </div>
-        <div class="support-method">
-          <div class="method-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
-          <div><div class="method-label">Follow Us</div><div class="method-value">@tradephex on X, Instagram, YouTube</div></div>
-        </div>
+
+<section class="head">
+  <div class="eyebrow">Support</div>
+  <h1>How can we <em>help?</em></h1>
+  <p class="headSub">Real humans answer every email. Most replies arrive within four business hours during US trading sessions, twenty-four hours otherwise.</p>
+</section>
+
+<section class="body">
+  <div class="col">
+    <h2>Send us a <em>note.</em></h2>
+    <p>For account questions, eval rules clarifications, payout status, billing concerns, or anything else — fill the form and we'll get back to you.</p>
+    <form id="supportForm" onsubmit="return submitForm(event)">
+      <div class="field">
+        <label class="flabel" for="name">Your Name</label>
+        <input type="text" id="name" class="input" required data-hover>
       </div>
+      <div class="field">
+        <label class="flabel" for="email">Email</label>
+        <input type="email" id="email" class="input" required data-hover>
+      </div>
+      <div class="field">
+        <label class="flabel" for="subject">Subject</label>
+        <input type="text" id="subject" class="input" required data-hover>
+      </div>
+      <div class="field">
+        <label class="flabel" for="message">Message</label>
+        <textarea id="message" class="textarea" required data-hover></textarea>
+      </div>
+      <button type="submit" class="btn" data-hover><span>Send Message</span></button>
+      <div class="msg" id="msg">Message sent. We'll reply within 24 hours.</div>
+    </form>
+  </div>
+  <div class="col">
+    <h2>Or reach us <em>directly.</em></h2>
+    <p>Some matters move faster over email. For all other things, the contact form is monitored by the same humans.</p>
+
+    <div class="label">General Support</div>
+    <div class="value"><a href="mailto:support@tradephex.com" data-hover>support@tradephex.com</a></div>
+
+    <div class="label">Tax & Payouts</div>
+    <div class="value"><a href="mailto:tax@tradephex.com" data-hover>tax@tradephex.com</a></div>
+
+    <div class="label">Press & Partnerships</div>
+    <div class="value"><a href="mailto:press@tradephex.com" data-hover>press@tradephex.com</a></div>
+
+    <div class="label">Mailing Address</div>
+    <div class="value">Tradephex LLC<br/>100 Noble Blvd STE 10 #1056<br/>Carlisle, PA 17013<br/>United States</div>
+
+    <div class="label">Hours</div>
+    <div class="value">Monday – Friday<br/>9 AM – 7 PM Eastern</div>
+  </div>
+</section>
+
+<footer>
+  <div class="footInner">
+    <div class="footTop">
+      <div>
+        <div class="footBrand">TRADE<span>PHEX</span></div>
+        <p class="footMission">A futures evaluation firm where the platform is the edge.</p>
+      </div>
+      <div class="footCol"><h4>Platform</h4><a href="/evaluations">Evaluations</a><a href="/charting">Charting</a><a href="/journal-plans">Journal</a><a href="/login">Sign In</a></div>
+      <div class="footCol"><h4>Company</h4><a href="/support">Support</a><a href="/legal">Legal</a><a href="mailto:support@tradephex.com">Contact</a></div>
+      <div class="footCol"><h4>Disclosures</h4><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/risk">Risk Disclaimer</a><a href="/refund">Refund Policy</a></div>
     </div>
-    <div class="support-form">
-      <div class="form-title">Send a Message</div>
-      <div class="success-msg" id="successMsg">Message sent! We'll get back to you within 24 hours.</div>
-      <div class="error-msg" id="errorMsg"></div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">First Name</label>
-          <input type="text" class="form-input" id="sf-firstname" placeholder="Brett">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Last Name</label>
-          <input type="text" class="form-input" id="sf-lastname" placeholder="Miller">
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Email Address</label>
-        <input type="email" class="form-input" id="sf-email" placeholder="you@example.com">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Category</label>
-        <select class="form-select" id="sf-category">
-          <option value="">Select a category...</option>
-          <option>Account & Billing</option>
-          <option>Platform & Features</option>
-          <option>Trade Journal</option>
-          <option>Charts & Data</option>
-          <option>Login & Access</option>
-          <option>Bug Report</option>
-          <option>Feature Request</option>
-          <option>Upgrade / Downgrade Plan</option>
-          <option>Other</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Subject</label>
-        <input type="text" class="form-input" id="sf-subject" placeholder="Brief description of your issue">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Message</label>
-        <textarea class="form-textarea" id="sf-message" placeholder="Describe your question or issue in detail..."></textarea>
-      </div>
-      <button class="btn-submit" id="submitBtn" onclick="submitSupport()">Send Message</button>
+    <div class="footBot">
+      <span>© 2026 Tradephex LLC</span>
+      <span>Tradephex LLC · 100 Noble Blvd STE 10 #1056 · Carlisle, PA 17013</span>
     </div>
   </div>
-</main>
-<footer>
-  <div class="footer-logo">TRADE<span>PHEX</span></div>
-  <div class="footer-copy">© 2026 Tradephex · Execute. Analyze. Elevate.</div>
 </footer>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-const SUPABASE_URL = 'https://esgfvgpdjxalhaofmwwt.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZ2Z2Z3BkanhhbGhhb2Ztd3d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODc0OTMsImV4cCI6MjA5MjQ2MzQ5M30.cTz_WCY9tTDQAw5yRq1XSjnvEueIypjdvOD2X9Bz1SA';
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const cursor=document.getElementById('cursor');let cx=0,cy=0,tx=0,ty=0;
+window.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;});
+function tickC(){cx+=(tx-cx)*.18;cy+=(ty-cy)*.18;cursor.style.transform=`translate(${cx-3}px,${cy-3}px)`;requestAnimationFrame(tickC);}tickC();
+document.querySelectorAll('[data-hover],a,button,input,textarea').forEach(el=>{el.addEventListener('mouseenter',()=>cursor.classList.add('hover'));el.addEventListener('mouseleave',()=>cursor.classList.remove('hover'));});
 
-async function submitSupport() {
-  const firstName = document.getElementById('sf-firstname').value.trim();
-  const lastName = document.getElementById('sf-lastname').value.trim();
-  const email = document.getElementById('sf-email').value.trim();
-  const category = document.getElementById('sf-category').value;
-  const subject = document.getElementById('sf-subject').value.trim();
-  const message = document.getElementById('sf-message').value.trim();
-  const btn = document.getElementById('submitBtn');
-  const errEl = document.getElementById('errorMsg');
-
-  if (!firstName || !email || !category || !subject || !message) {
-    errEl.textContent = 'Please fill in all required fields.';
-    errEl.classList.add('show');
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = 'Sending...';
-  errEl.classList.remove('show');
-
-  try {
-    const { error } = await db.from('support_tickets').insert({
-      first_name: firstName,
-      last_name: lastName,
-      email,
-      category,
-      subject,
-      message,
-      status: 'open',
-      created_at: new Date().toISOString()
-    });
-
-    if (error) throw error;
-
-    document.getElementById('successMsg').classList.add('show');
-    btn.textContent = 'Message Sent ✓';
-    document.getElementById('sf-firstname').value = '';
-    document.getElementById('sf-lastname').value = '';
-    document.getElementById('sf-email').value = '';
-    document.getElementById('sf-category').value = '';
-    document.getElementById('sf-subject').value = '';
-    document.getElementById('sf-message').value = '';
-  } catch(e) {
-    errEl.textContent = 'Something went wrong. Please email support@tradephex.com directly.';
-    errEl.classList.add('show');
-    btn.disabled = false;
-    btn.textContent = 'Send Message';
-  }
+window.submitForm = function(e){
+  e.preventDefault();
+  // Build mailto fallback
+  const name = document.getElementById('name').value;
+  const email = document.getElementById('email').value;
+  const subject = document.getElementById('subject').value;
+  const message = document.getElementById('message').value;
+  const body = `From: ${name} <${email}>\n\n${message}`;
+  window.location.href = `mailto:support@tradephex.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  document.getElementById('msg').classList.add('show');
+  return false;
 }
 </script>
 </body>

@@ -2,187 +2,146 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Refund Policy — Tradephex</title>
-<meta name="description" content="Tradephex refund policy — all sales final, case-by-case exceptions">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@200;300;400;500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root {
-  --black:#050505; --surface:#0D0D0D; --surface2:#141414;
-  --gold:#C9A84C; --gold-bright:#F0CF7A;
-  --white:#FAFAFA; --gray:#999999; --gray2:#555555;
-  --border:rgba(201,168,76,0.12); --border2:rgba(201,168,76,0.25);
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--black:#000;--soft:#0A0A0A;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.12);--gold:#C9A84C;--gold-soft:#9F8638;--text:#E8E8E8;--mute:#6F6F6F;--mute2:#3F3F3F;--serif:'Spectral',Georgia,serif;--sans:'Inter',-apple-system,sans-serif;--mono:'JetBrains Mono',Menlo,monospace;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.6;cursor:none;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+::selection{background:var(--gold);color:#000;}::-webkit-scrollbar{width:0;}
+a{color:inherit;text-decoration:none;cursor:none;}
+.cursor{position:fixed;width:6px;height:6px;border-radius:50%;background:var(--gold);pointer-events:none;z-index:9999;transition:transform .15s ease,width .25s ease,height .25s ease,background .2s ease;mix-blend-mode:difference;will-change:transform;top:0;left:0;}
+.cursor.hover{width:32px;height:32px;background:transparent;border:1px solid var(--gold);transform:translate(-13px,-13px);}
+@media(hover:none){.cursor{display:none;}body,a{cursor:auto;}}
+nav{position:fixed;top:0;left:0;right:0;padding:24px 64px;display:flex;align-items:center;justify-content:space-between;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--line);}
+.brand{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:#FFF;}.brand span{color:var(--gold);}
+.navL{display:flex;gap:48px;align-items:center;}
+.navL a{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#999;transition:color .25s;}
+.navL a:hover{color:#FFF;}
+.navL .nav-cta{color:var(--gold);padding:10px 22px;border:1px solid var(--gold-soft);transition:.3s;}
+.navL .nav-cta:hover{background:var(--gold);color:#000;border-color:var(--gold);}
+
+.head{padding:200px 64px 80px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:48px;display:flex;align-items:center;gap:14px;}
+.eyebrow::before{content:'';width:32px;height:1px;background:var(--gold);}
+h1{font-family:var(--serif);font-weight:300;font-size:clamp(48px,7vw,96px);line-height:.96;letter-spacing:-.025em;color:#FFF;margin-bottom:24px;}
+h1 em{font-style:italic;color:var(--gold);font-weight:200;}
+.meta{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);}
+
+.content{padding:0 64px 200px;max-width:880px;margin:0 auto;}
+.section{padding:48px 0;border-bottom:1px solid var(--line);}
+.section:last-child{border-bottom:none;}
+.sectionH{font-family:var(--serif);font-weight:300;font-size:32px;line-height:1.15;color:#FFF;margin-bottom:24px;letter-spacing:-.015em;}
+.sectionH em{font-style:italic;color:var(--gold);font-weight:200;}
+.section p,.section li{font-family:var(--sans);font-size:15px;font-weight:300;line-height:1.8;color:var(--mute);margin-bottom:18px;}
+.section p:last-child,.section ul:last-child{margin-bottom:0;}
+.section ul{padding-left:18px;margin-bottom:18px;}
+.section li{margin-bottom:8px;}
+.section a{color:var(--gold);transition:color .25s;text-decoration:underline;text-decoration-color:rgba(201,168,76,.3);text-underline-offset:4px;}
+.section a:hover{color:var(--text);text-decoration-color:var(--text);}
+.section strong{color:var(--text);font-weight:400;}
+.contact{margin-top:80px;padding:40px 0 0;border-top:1px solid var(--line);}
+.contact h3{font-family:var(--serif);font-weight:300;font-size:24px;color:#FFF;margin-bottom:16px;}
+.contact h3 em{font-style:italic;color:var(--gold);font-weight:200;}
+.contact p{font-family:var(--mono);font-size:13px;color:var(--mute);line-height:1.9;}
+.contact strong{color:var(--text);}
+
+footer{padding:96px 64px 48px;border-top:1px solid var(--line);}
+.footInner{max-width:1400px;margin:0 auto;}
+.footTop{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:64px;margin-bottom:96px;}
+.footBrand{font-family:var(--mono);font-size:14px;font-weight:500;letter-spacing:.24em;color:#FFF;margin-bottom:24px;}.footBrand span{color:var(--gold);}
+.footMission{font-family:var(--serif);font-size:18px;line-height:1.55;color:var(--mute);font-weight:300;max-width:340px;font-style:italic;}
+.footCol h4{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:24px;}
+.footCol a{display:block;padding:8px 0;font-family:var(--sans);font-size:14px;font-weight:300;color:var(--mute);transition:color .25s;}
+.footCol a:hover{color:var(--text);}
+.footBot{border-top:1px solid var(--line);padding-top:32px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute2);}
+
+@media(max-width:980px){
+  nav{padding:18px 24px;}.navL{gap:24px;}.navL a:not(.nav-cta){display:none;}
+  .head,.content{padding-left:24px;padding-right:24px;}
+  .head{padding-top:140px;padding-bottom:48px;}
+  .footTop{grid-template-columns:1fr 1fr;gap:48px;}
 }
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--black);color:var(--white);font-family:'Barlow',sans-serif;}
-::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--gold);}
-
-nav{position:sticky;top:0;z-index:100;padding:0 80px;height:72px;display:flex;align-items:center;justify-content:space-between;background:rgba(5,5,5,0.97);border-bottom:1px solid var(--border);backdrop-filter:blur(20px);}
-.nav-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;letter-spacing:0.1em;color:var(--white);text-decoration:none;}
-.nav-logo span{color:var(--gold);}
-.nav-links{display:flex;gap:32px;align-items:center;}
-.nav-links a{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gray);text-decoration:none;transition:color 0.2s;}
-.nav-links a:hover{color:var(--white);}
-.btn-gold{background:var(--gold);color:var(--black);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;padding:10px 24px;text-decoration:none;transition:background 0.2s;}
-.btn-gold:hover{background:var(--gold-bright);}
-
-.legal-wrap{max-width:860px;margin:0 auto;padding:64px 40px 100px;}
-.legal-hero{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid var(--border2);}
-.legal-eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
-.legal-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:52px;text-transform:uppercase;color:var(--white);line-height:1;margin-bottom:16px;}
-.legal-meta{display:flex;gap:32px;flex-wrap:wrap;}
-.legal-meta-item{font-family:'DM Mono',monospace;font-size:11px;color:var(--gray2);}
-.legal-meta-item span{color:var(--gray);}
-
-.legal-section{margin-bottom:40px;}
-.legal-section-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
-.legal-section-title::before{content:'';display:block;width:3px;height:18px;background:var(--gold);}
-.legal-body{font-size:15px;color:#BBBBBB;line-height:1.85;font-weight:300;}
-.legal-body p{margin-bottom:14px;}
-.legal-body ul{margin:12px 0 14px 20px;}
-.legal-body ul li{margin-bottom:8px;}
-.legal-body strong{color:var(--white);font-weight:500;}
-
-.legal-toc{background:var(--surface);border:1px solid var(--border2);padding:28px;margin-bottom:48px;}
-.legal-toc-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gray2);margin-bottom:16px;}
-.legal-toc-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;list-style:none;}
-.legal-toc-list a{font-size:13px;color:var(--gray);text-decoration:none;transition:color 0.2s;display:flex;align-items:center;gap:8px;}
-.legal-toc-list a::before{content:'→';color:var(--gold);font-size:11px;}
-.legal-toc-list a:hover{color:var(--gold);}
-
-.warning-box{background:rgba(255,23,68,0.06);border:1px solid rgba(255,23,68,0.2);padding:20px 24px;margin-bottom:24px;}
-.warning-box p{color:#FFAAAA;font-size:14px;line-height:1.7;margin:0;}
-.info-box{background:rgba(201,168,76,0.06);border:1px solid var(--border2);padding:20px 24px;margin-bottom:24px;}
-.info-box p{color:#C8B87A;font-size:14px;line-height:1.7;margin:0;}
-
-footer{background:var(--surface);border-top:1px solid var(--border);padding:48px 80px;display:grid;grid-template-columns:1fr auto;gap:40px;align-items:center;}
-.footer-logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:0.1em;color:var(--white);}
-.footer-logo span{color:var(--gold);}
-.footer-copy{font-family:'DM Mono',monospace;font-size:10px;color:var(--gray2);margin-top:6px;}
-.footer-links{display:flex;gap:24px;flex-wrap:wrap;}
-.footer-links a{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray2);text-decoration:none;transition:color 0.2s;}
-.footer-links a:hover{color:var(--gold);}
+@media(max-width:560px){.footTop{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
-
+<div class="cursor" id="cursor"></div>
 <nav>
-  <a href="/" class="nav-logo">TRADE<span>PHEX</span></a>
-  <div class="nav-links">
-    <a href="/#features">Platform</a>
-    <a href="/#pricing">Pricing</a>
-    <a href="/legal">Legal</a>
-    <a href="/login" style="color:var(--white);">Log In</a>
-    <a href="/signup" class="btn-gold">Get Started</a>
+  <a href="/" class="brand">TRADE<span>PHEX</span></a>
+  <div class="navL">
+    <a href="/evaluations" data-hover>Evaluations</a>
+    <a href="/charting" data-hover>Charting</a>
+    <a href="/journal-plans" data-hover>Journal</a>
+    <a href="/login" data-hover>Sign In</a>
+    <a href="/signup" class="nav-cta" data-hover>Get Funded</a>
   </div>
 </nav>
 
+<section class="head">
+  <div class="eyebrow">Refund Policy</div>
+  <h1>Refund <em>Policy.</em></h1>
+  <div class="meta">Last Updated · May 3, 2026</div>
+</section>
 
-<div class="legal-wrap">
-  <div class="legal-hero">
-    <div class="legal-eyebrow">Legal</div>
-    <div class="legal-title">Refund Policy</div>
-    <div class="legal-meta">
-      <div class="legal-meta-item">Effective: <span>April 24, 2026</span></div>
-      <div class="legal-meta-item">Company: <span>Tradephex LLC</span></div>
-      <div class="legal-meta-item">Contact: <span>support@tradephex.com</span></div>
-    </div>
+<section class="content">
+  <div class="section">
+    <h2 class="sectionH">01 · General <em>Policy</em></h2>
+<p>Tradephex offers a clear refund policy designed to be fair to both customers and the platform. Read this policy carefully before purchasing.</p>
+  </div>
+  <div class="section">
+    <h2 class="sectionH">02 · Eval <em>Fees</em></h2>
+<p><strong>Eval fees are non-refundable once the evaluation has begun.</strong> An evaluation is considered "begun" when the first trade is placed, OR seventy-two (72) hours after purchase, whichever comes first.</p><p>If you purchased an eval and have not yet placed any trades AND it has been less than seventy-two hours since purchase, contact <a href="mailto:support@tradephex.com">support@tradephex.com</a> to request a refund. Refunds in this window are processed within seven business days.</p>
+  </div>
+  <div class="section">
+    <h2 class="sectionH">03 · <em>Subscription</em> Fees</h2>
+<p>Charting and Journal subscription fees are billed monthly. You may cancel at any time. Cancellations take effect at the end of the current billing period — there are no prorated refunds for partial months.</p><p>To cancel a subscription, sign in and use the cancellation tool in your account settings. Email-based cancellation requests will be processed within twenty-four hours.</p>
+  </div>
+  <div class="section">
+    <h2 class="sectionH">04 · Disputed <em>Charges</em></h2>
+<p>If you believe you have been charged in error, contact <a href="mailto:support@tradephex.com">support@tradephex.com</a> with your transaction reference. We respond within twenty-four hours and process valid disputes within seven business days.</p><p>Filing chargebacks without first contacting support may result in account termination and forfeiture of any active evaluations.</p>
+  </div>
+  <div class="section">
+    <h2 class="sectionH">05 · <em>Termination</em> by Tradephex</h2>
+<p>If we terminate your account for cause (rule violation, fraud, abuse), no refund is offered. The eval fee, any pending payouts, and account credits are forfeited.</p><p>If we terminate your account without cause (e.g., due to a discontinued service), you will receive a prorated refund of any pre-paid subscription fees.</p>
+  </div>
+  <div class="section">
+    <h2 class="sectionH">06 · <em>Currency</em> & Processing</h2>
+<p>All refunds are issued in US Dollars to the original payment method. Bank processing times outside our control may add up to ten additional business days for funds to appear on your statement.</p>
   </div>
 
-  <div class="info-box" style="margin-bottom:40px;">
-    <p><strong>Summary:</strong> All Tradephex purchases are final. We evaluate refund requests on a case-by-case basis in exceptional circumstances. Contact support@tradephex.com within 7 days of purchase if you have a concern.</p>
+  <div class="contact">
+    <h3>Contact <em>us.</em></h3>
+    <p><strong>Tradephex LLC</strong><br/>100 Noble Blvd STE 10 #1056<br/>Carlisle, PA 17013<br/>United States<br/><br/>Email: <a href="mailto:support@tradephex.com">support@tradephex.com</a></p>
   </div>
-
-  <div class="legal-section">
-    <div class="legal-section-title">1. General Policy</div>
-    <div class="legal-body">
-      <p>All sales made through the Tradephex Platform are considered final. Tradephex operates a no-refund policy as our default position for all digital products, subscription services, and evaluation programs.</p>
-    </div>
-  </div>
-
-  <div class="legal-section">
-    <div class="legal-section-title">2. Memberships & Subscriptions</div>
-    <div class="legal-body">
-      <p>Monthly and yearly membership subscriptions are non-refundable once the billing period has begun. When you cancel a subscription:</p>
-      <ul>
-        <li>Future billing is stopped immediately</li>
-        <li>You retain access to the Platform until the end of your current paid billing period</li>
-        <li>No partial or pro-rated refunds are issued for unused time</li>
-        <li>Annual subscriptions are non-refundable once purchased</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="legal-section">
-    <div class="legal-section-title">3. Evaluation Programs</div>
-    <div class="legal-body">
-      <p>Evaluation program fees are non-refundable once access to the evaluation environment has been granted. This applies regardless of whether:</p>
-      <ul>
-        <li>The evaluation has been started or not</li>
-        <li>The evaluation has been passed or failed</li>
-        <li>You decide to stop trading before completing the evaluation</li>
-      </ul>
-      <p>You may be eligible to retry a failed evaluation by purchasing a new evaluation program at the standard fee.</p>
-    </div>
-  </div>
-
-  <div class="legal-section">
-    <div class="legal-section-title">4. Digital Products</div>
-    <div class="legal-body">
-      <p>Digital products, downloadable content, and any product that has been accessed or delivered are non-refundable once accessed.</p>
-    </div>
-  </div>
-
-  <div class="legal-section">
-    <div class="legal-section-title">5. Case-by-Case Exceptions</div>
-    <div class="legal-body">
-      <p>Refunds may be issued at the sole discretion of Tradephex LLC in rare and exceptional circumstances. To request consideration of a refund:</p>
-      <ul>
-        <li>Contact <a href="mailto:support@tradephex.com" style="color:var(--gold);">support@tradephex.com</a> within 7 days of your purchase</li>
-        <li>Include your order details and a clear explanation of your request</li>
-        <li>Our team will review your request and respond within 5 business days</li>
-      </ul>
-      <p>Approval of refund requests is not guaranteed and is entirely at our discretion.</p>
-    </div>
-  </div>
-
-  <div class="legal-section">
-    <div class="legal-section-title">6. Auto-Renewal</div>
-    <div class="legal-body">
-      <p>All subscriptions automatically renew at the end of each billing cycle. It is your responsibility to cancel your subscription before the renewal date if you do not wish to be charged for the next period. Renewal charges processed are not eligible for refunds.</p>
-    </div>
-  </div>
-
-  <div class="legal-section">
-    <div class="legal-section-title">7. Chargeback Policy</div>
-    <div class="legal-body">
-      <div class="warning-box"><p>Filing a chargeback or payment dispute without first contacting our support team constitutes a breach of our Terms of Service. This will result in immediate and permanent account termination.</p></div>
-      <p>By purchasing any Tradephex product, you agree to contact <a href="mailto:support@tradephex.com" style="color:var(--gold);">support@tradephex.com</a> before filing any dispute with your payment provider. Tradephex reserves the right to submit evidence to contest any chargeback and to pursue recovery of disputed funds through available legal channels.</p>
-    </div>
-  </div>
-
-  <div class="legal-section">
-    <div class="legal-section-title">8. Contact Us</div>
-    <div class="legal-body">
-      <p>If you have questions about this Refund Policy or a specific transaction, please contact us at <a href="mailto:support@tradephex.com" style="color:var(--gold);">support@tradephex.com</a>. We aim to respond to all inquiries within 2 business days.</p>
-    </div>
-  </div>
-</div>
-
+</section>
 
 <footer>
-  <div>
-    <div class="footer-logo">TRADE<span>PHEX</span></div>
-    <div class="footer-copy">© 2026 Tradephex LLC · EIN 42-2087308 · All rights reserved.</div>
-  </div>
-  <div class="footer-links">
-    <a href="/terms">Terms of Service</a>
-    <a href="/privacy">Privacy Policy</a>
-    <a href="/risk">Risk Disclaimer</a>
-    <a href="/refund">Refund Policy</a>
-    <a href="/support">Support</a>
+  <div class="footInner">
+    <div class="footTop">
+      <div>
+        <div class="footBrand">TRADE<span>PHEX</span></div>
+        <p class="footMission">A futures evaluation firm where the platform is the edge.</p>
+      </div>
+      <div class="footCol"><h4>Platform</h4><a href="/evaluations">Evaluations</a><a href="/charting">Charting</a><a href="/journal-plans">Journal</a><a href="/login">Sign In</a></div>
+      <div class="footCol"><h4>Company</h4><a href="/support">Support</a><a href="/legal">Legal</a><a href="mailto:support@tradephex.com">Contact</a></div>
+      <div class="footCol"><h4>Disclosures</h4><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/risk">Risk Disclaimer</a><a href="/refund">Refund Policy</a></div>
+    </div>
+    <div class="footBot">
+      <span>© 2026 Tradephex LLC</span>
+      <span>Tradephex LLC · 100 Noble Blvd STE 10 #1056 · Carlisle, PA 17013</span>
+    </div>
   </div>
 </footer>
 
+<script>
+const cursor=document.getElementById('cursor');let cx=0,cy=0,tx=0,ty=0;
+window.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;});
+function tickC(){cx+=(tx-cx)*.18;cy+=(ty-cy)*.18;cursor.style.transform=`translate(${cx-3}px,${cy-3}px)`;requestAnimationFrame(tickC);}tickC();
+document.querySelectorAll('[data-hover],a').forEach(el=>{el.addEventListener('mouseenter',()=>cursor.classList.add('hover'));el.addEventListener('mouseleave',()=>cursor.classList.remove('hover'));});
+</script>
 </body>
 </html>

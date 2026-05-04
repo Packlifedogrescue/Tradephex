@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Welcome to Tradephex</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@200;300;400;500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--black:#000;--soft:#0A0A0A;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.12);--gold:#C9A84C;--gold-soft:#9F8638;--text:#E8E8E8;--mute:#6F6F6F;--mute2:#3F3F3F;--green:#00C97A;--serif:'Spectral',Georgia,serif;--sans:'Inter',-apple-system,sans-serif;--mono:'JetBrains Mono',Menlo,monospace;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.6;cursor:none;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+::selection{background:var(--gold);color:#000;}::-webkit-scrollbar{width:0;}
+a{color:inherit;text-decoration:none;cursor:none;}button{font-family:inherit;cursor:none;border:none;background:none;color:inherit;}
+.cursor{position:fixed;width:6px;height:6px;border-radius:50%;background:var(--gold);pointer-events:none;z-index:9999;transition:transform .15s ease,width .25s ease,height .25s ease,background .2s ease;mix-blend-mode:difference;will-change:transform;top:0;left:0;}
+.cursor.hover{width:32px;height:32px;background:transparent;border:1px solid var(--gold);transform:translate(-13px,-13px);}
+@media(hover:none){.cursor{display:none;}body,a,button{cursor:auto;}}
+
+nav{padding:24px 64px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);}
+.brand{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:#FFF;}.brand span{color:var(--gold);}
+.navMeta{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);}
+.navMeta span{color:var(--gold);}
+
+.hero{padding:140px 64px 120px;max-width:1200px;margin:0 auto;}
+.checkmark{width:64px;height:64px;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;margin-bottom:48px;animation:fadeUp .8s ease;}
+.checkmark svg{width:28px;height:28px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:32px;display:flex;align-items:center;gap:14px;}
+.eyebrow::before{content:'';width:32px;height:1px;background:var(--gold);}
+h1{font-family:var(--serif);font-weight:300;font-size:clamp(48px,7vw,96px);line-height:.96;letter-spacing:-.025em;color:#FFF;margin-bottom:48px;}
+h1 em{font-style:italic;color:var(--gold);font-weight:200;}
+.heroSub{font-family:var(--sans);font-size:18px;color:var(--mute);max-width:620px;line-height:1.7;}
+
+.account{padding:0 64px 200px;max-width:1400px;margin:0 auto;}
+.accountLabel{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:24px;display:flex;align-items:center;gap:14px;}
+.accountLabel::before{content:'';width:32px;height:1px;background:var(--gold);}
+.accountTitle{font-family:var(--serif);font-weight:300;font-size:clamp(32px,4vw,56px);line-height:1;color:#FFF;margin-bottom:48px;}
+.accountTitle em{font-style:italic;color:var(--gold);font-weight:200;}
+.accountGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.accItem{background:var(--black);padding:48px 40px;}
+.accLabel{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);margin-bottom:14px;}
+.accValue{font-family:var(--mono);font-weight:300;font-size:38px;line-height:1;letter-spacing:-.02em;color:var(--text);margin-bottom:8px;}
+.accValue.gold{color:var(--gold);}
+.accSub{font-family:var(--sans);font-size:13px;color:var(--mute);}
+
+.steps{padding:0 64px 200px;max-width:1400px;margin:0 auto;}
+.stepsHead{margin-bottom:96px;max-width:720px;}
+.stepsH{font-family:var(--serif);font-weight:300;font-size:clamp(40px,5vw,72px);line-height:1;color:#FFF;margin-bottom:24px;}
+.stepsH em{font-style:italic;color:var(--gold);font-weight:200;}
+.stepsList{}
+.step{display:grid;grid-template-columns:120px 1fr 1fr;gap:64px;padding:56px 0;border-top:1px solid var(--line);align-items:start;}
+.step:last-child{border-bottom:1px solid var(--line);}
+.stepN{font-family:var(--mono);font-weight:300;font-size:14px;letter-spacing:.2em;color:var(--mute);}
+.stepH{font-family:var(--serif);font-weight:300;font-size:32px;line-height:1.1;color:#FFF;}
+.stepH em{font-style:italic;color:var(--gold);font-weight:200;}
+.stepBody{display:flex;flex-direction:column;gap:18px;}
+.stepP{font-family:var(--sans);font-size:14px;font-weight:300;line-height:1.7;color:var(--mute);}
+.stepLink{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);display:inline-flex;align-items:center;gap:14px;align-self:flex-start;padding-bottom:6px;border-bottom:1px solid transparent;transition:border-color .3s;}
+.stepLink:hover{border-color:var(--gold);}
+.stepLink .a{display:inline-block;transition:transform .3s;}
+.stepLink:hover .a{transform:translateX(8px);}
+
+.close{padding:200px 64px;text-align:center;border-top:1px solid var(--line);}
+.closeH{font-family:var(--serif);font-weight:300;font-size:clamp(40px,6vw,80px);line-height:1.05;color:#FFF;margin-bottom:24px;}
+.closeH em{font-style:italic;color:var(--gold);font-weight:200;}
+.closeSub{font-family:var(--sans);font-size:14px;color:var(--mute);margin-bottom:48px;}
+.closeCTA{display:inline-flex;align-items:center;gap:14px;font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);padding:18px 32px;border:1px solid var(--gold-soft);transition:.4s;position:relative;overflow:hidden;}
+.closeCTA::before{content:'';position:absolute;inset:0;background:var(--gold);transform:translateX(-100%);transition:transform .5s;z-index:0;}
+.closeCTA:hover::before{transform:translateX(0);}
+.closeCTA span{position:relative;z-index:1;transition:color .3s;}.closeCTA:hover span{color:#000;}
+
+footer{padding:32px 64px;border-top:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute2);}
+
+@media(max-width:980px){
+  nav{padding:18px 24px;}.hero,.account,.steps,.close{padding-left:24px;padding-right:24px;}
+  .hero{padding-top:80px;padding-bottom:80px;}
+  .accountGrid{grid-template-columns:1fr;}
+  .step{grid-template-columns:1fr;gap:18px;padding:40px 0;}
+  .stepN{font-size:11px;letter-spacing:.24em;color:var(--gold);}
+  .close{padding:120px 24px;}
+}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+
+<nav>
+  <a href="/" class="brand">TRADE<span>PHEX</span></a>
+  <div class="navMeta">Eval Active · <span id="userEmail">—</span></div>
+</nav>
+
+<section class="hero">
+  <div class="checkmark"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></div>
+  <div class="eyebrow">Evaluation Active</div>
+  <h1>Welcome to <em>Tradephex.</em></h1>
+  <p class="heroSub">Your evaluation is live. The platform is unlocked. Below is everything you need to begin.</p>
+</section>
+
+<section class="account">
+  <div class="accountLabel">Your Evaluation</div>
+  <h2 class="accountTitle" id="planTitle"><em>$50K</em> Intraday</h2>
+  <div class="accountGrid">
+    <div class="accItem"><div class="accLabel">Account Size</div><div class="accValue gold" id="accSize">$50,000</div><div class="accSub">Starting balance</div></div>
+    <div class="accItem"><div class="accLabel">Profit Target</div><div class="accValue" id="profitTarget">$3,000</div><div class="accSub">6% to pass</div></div>
+    <div class="accItem"><div class="accLabel">Max Drawdown</div><div class="accValue" id="maxDD">$2,500</div><div class="accSub">5% account ceiling</div></div>
+    <div class="accItem"><div class="accLabel">Daily Loss Limit</div><div class="accValue" id="dailyDD">$1,000</div><div class="accSub">2% per session</div></div>
+    <div class="accItem"><div class="accLabel">Min Trading Days</div><div class="accValue gold">5</div><div class="accSub">No max time limit</div></div>
+    <div class="accItem"><div class="accLabel">Profit Split</div><div class="accValue gold">90%</div><div class="accSub">Flat across all payouts</div></div>
+  </div>
+</section>
+
+<section class="steps">
+  <div class="stepsHead">
+    <div class="eyebrow">First Steps</div>
+    <h2 class="stepsH">Get started in <em>four moves.</em></h2>
+  </div>
+  <div class="stepsList">
+    <div class="step">
+      <div class="stepN">01 · READ</div>
+      <h3 class="stepH">Read the <em>rules.</em></h3>
+      <div class="stepBody">
+        <p class="stepP">Five minutes. Most evaluations don't fail because the trader couldn't trade — they fail because of misunderstood rules. Read them once and never worry about them again.</p>
+        <a href="/journal#eval-rules" class="stepLink" data-hover><span>View Rules</span><span class="a">→</span></a>
+      </div>
+    </div>
+    <div class="step">
+      <div class="stepN">02 · OPEN</div>
+      <h3 class="stepH">Open the <em>platform.</em></h3>
+      <div class="stepBody">
+        <p class="stepP">Footprint candles, order flow delta, market profile, real DOM, AI trade scoring, integrated journal. Twenty-two CME futures contracts. No third-party tools required.</p>
+        <a href="/eval-chart" class="stepLink" data-hover><span>Open Platform</span><span class="a">→</span></a>
+      </div>
+    </div>
+    <div class="step">
+      <div class="stepN">03 · TRADE</div>
+      <h3 class="stepH">Take a few <em>practice trades.</em></h3>
+      <div class="stepBody">
+        <p class="stepP">Every trade auto-syncs to the journal. Use small position sizes for the first few sessions while you get familiar with the platform. The evaluation has no time limit — there is no rush.</p>
+        <a href="/journal" class="stepLink" data-hover><span>Open Journal</span><span class="a">→</span></a>
+      </div>
+    </div>
+    <div class="step">
+      <div class="stepN">04 · PASS</div>
+      <h3 class="stepH">Hit your target. Get <em>funded.</em></h3>
+      <div class="stepBody">
+        <p class="stepP">Six percent profit, stay under five percent drawdown, trade five days minimum. You'll be promoted to a funded account immediately. Request your first payout when you're ready.</p>
+        <a href="/journal#evaluation" class="stepLink" data-hover><span>View Progress</span><span class="a">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="close">
+  <h2 class="closeH">The platform <em>is</em> the edge.</h2>
+  <p class="closeSub">A confirmation email is on its way. Begin when you're ready.</p>
+  <a href="/eval-chart" class="closeCTA" data-hover><span>Open Platform</span></a>
+</section>
+
+<footer>© 2026 Tradephex LLC · The platform is the edge.</footer>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const SUPABASE_URL = 'https://esgfvgpdjxalhaofmwwt.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVzZ2Z2Z3BkanhhbGhhb2Ztd3d0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4ODc0OTMsImV4cCI6MjA5MjQ2MzQ5M30.cTz_WCY9tTDQAw5yRq1XSjnvEueIypjdvOD2X9Bz1SA';
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const cursor=document.getElementById('cursor');let cx=0,cy=0,tx=0,ty=0;
+window.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;});
+function tickC(){cx+=(tx-cx)*.18;cy+=(ty-cy)*.18;cursor.style.transform=`translate(${cx-3}px,${cy-3}px)`;requestAnimationFrame(tickC);}tickC();
+document.querySelectorAll('[data-hover],a,button').forEach(el=>{el.addEventListener('mouseenter',()=>cursor.classList.add('hover'));el.addEventListener('mouseleave',()=>cursor.classList.remove('hover'));});
+
+const params = new URLSearchParams(location.search);
+const plan = params.get('plan') || 'intraday';
+
+(async () => {
+  const { data: { user } } = await sb.auth.getUser();
+  if (user) {
+    document.getElementById('userEmail').textContent = user.email;
+    const { data: evals } = await sb.from('evaluations').select('*').eq('user_id', user.id).order('created_at',{ascending:false}).limit(1);
+    if (evals && evals.length > 0) {
+      const e = evals[0];
+      const accSize = parseInt(e.account_size || 50000);
+      const planType = (plan || 'intraday').replace(/^./, c => c.toUpperCase());
+      document.getElementById('planTitle').innerHTML = `<em>$${(accSize/1000)}K</em> ${planType}`;
+      document.getElementById('accSize').textContent = '$' + accSize.toLocaleString();
+      document.getElementById('profitTarget').textContent = '$' + Math.round(accSize*0.06).toLocaleString();
+      document.getElementById('maxDD').textContent = '$' + Math.round(accSize*0.05).toLocaleString();
+      document.getElementById('dailyDD').textContent = '$' + Math.round(accSize*0.02).toLocaleString();
+    }
+  } else {
+    document.getElementById('userEmail').textContent = 'Welcome';
+  }
+})();
+</script>
+</body>
+</html>
