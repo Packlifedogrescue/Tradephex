@@ -2,117 +2,278 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Charting Platform — Tradephex</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Barlow:wght@300;400;500;600&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Charting — Tradephex</title>
+<meta name="description" content="Tradephex pro-grade charting platform. Footprint candles, order flow, market profile, AI scoring. From $29/month.">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@200;300;400;500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#06060A;--s1:#0B0B12;--s2:#10101A;--gold:#C9A84C;--gold2:#E8C870;--white:#FFFFFF;--gray:#B0B0C8;--gray2:#888899;--green:#00E676;--red:#FF1744;--border:rgba(201,168,76,.12);--border2:rgba(201,168,76,.28);}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;}
-nav{position:fixed;top:0;left:0;right:0;height:58px;background:rgba(6,6,10,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);z-index:100;display:flex;align-items:center;padding:0 5%;justify-content:space-between;}
-.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:28px;letter-spacing:.08em;color:var(--white);text-decoration:none;}
-.logo span{color:var(--gold);}
-.navLinks{display:flex;gap:24px;align-items:center;}
-.navLinks a{color:var(--gray);text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:.06em;}
-.navLinks a:hover,.navLinks a.active{color:var(--white);}
-.btnPrimary{padding:8px 20px;background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:.1em;cursor:pointer;border:none;text-decoration:none;}
+:root{
+  --black:#000;--soft:#0A0A0A;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.12);
+  --gold:#C9A84C;--gold-soft:#9F8638;--text:#E8E8E8;--mute:#6F6F6F;--mute2:#3F3F3F;
+  --serif:'Spectral',Georgia,serif;--sans:'Inter',-apple-system,sans-serif;--mono:'JetBrains Mono',Menlo,monospace;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.6;overflow-x:hidden;cursor:none;-webkit-font-smoothing:antialiased;}
+::selection{background:var(--gold);color:#000;}::-webkit-scrollbar{width:0;}
+a{color:inherit;text-decoration:none;cursor:none;}button{font-family:inherit;cursor:none;border:none;background:none;color:inherit;}
+.cursor{position:fixed;width:6px;height:6px;border-radius:50%;background:var(--gold);pointer-events:none;z-index:9999;transition:transform .15s ease,width .25s ease,height .25s ease,background .2s ease;mix-blend-mode:difference;will-change:transform;top:0;left:0;}
+.cursor.hover{width:32px;height:32px;background:transparent;border:1px solid var(--gold);transform:translate(-13px,-13px);}
+@media(hover:none){.cursor{display:none;}body,a,button{cursor:auto;}}
+nav{position:fixed;top:0;left:0;right:0;padding:24px 64px;display:flex;align-items:center;justify-content:space-between;z-index:100;background:rgba(0,0,0,.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--line);}
+.brand{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.24em;text-transform:uppercase;color:#FFF;}.brand span{color:var(--gold);}
+.navL{display:flex;gap:48px;align-items:center;}
+.navL a{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#999;transition:color .25s;}
+.navL a:hover{color:#FFF;}
+.navL .nav-cta{color:var(--gold);padding:10px 22px;border:1px solid var(--gold-soft);transition:.3s;}
+.navL .nav-cta:hover{background:var(--gold);color:#000;border-color:var(--gold);}
+
+.head{padding:200px 64px 120px;max-width:1200px;margin:0 auto;}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);margin-bottom:48px;display:flex;align-items:center;gap:14px;}
+.eyebrow::before{content:'';width:32px;height:1px;background:var(--gold);}
+h1{font-family:var(--serif);font-weight:300;font-size:clamp(56px,8vw,112px);line-height:.96;letter-spacing:-.025em;color:#FFF;margin-bottom:48px;}
+h1 em{font-style:italic;color:var(--gold);font-weight:200;}
+.headSub{font-family:var(--sans);font-size:18px;color:var(--mute);max-width:620px;line-height:1.7;}
+
+.plans{padding:0 64px 200px;max-width:1400px;margin:0 auto;}
+.planGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.plan{background:var(--black);padding:64px 48px;display:flex;flex-direction:column;transition:background .4s;position:relative;}
+.plan:hover{background:var(--soft);}
+.plan.feat{background:linear-gradient(180deg,rgba(201,168,76,.04) 0%,var(--black) 100%);}
+.featTag{position:absolute;top:0;right:48px;background:var(--gold);color:#000;font-family:var(--mono);font-size:9px;letter-spacing:.18em;padding:6px 14px;font-weight:500;text-transform:uppercase;}
+.planLabel{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--gold);margin-bottom:24px;display:flex;align-items:center;gap:14px;}
+.planLabel::before{content:'';width:24px;height:1px;background:var(--gold);}
+.planTier{font-family:var(--serif);font-weight:300;font-size:48px;line-height:1;letter-spacing:-.02em;color:#FFF;margin-bottom:8px;}
+.planTier em{font-style:italic;color:var(--gold);font-weight:200;}
+.planType{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin-bottom:32px;}
+.planPrice{display:flex;align-items:baseline;gap:6px;margin-bottom:48px;border-bottom:1px solid var(--line);padding-bottom:24px;}
+.planPrice .num{font-family:var(--mono);font-weight:300;font-size:42px;color:var(--text);letter-spacing:-.02em;}
+.planPrice .per{font-family:var(--mono);font-size:13px;color:var(--mute);}
+.planList{display:grid;gap:14px;margin-bottom:48px;}
+.planLi{display:flex;align-items:flex-start;gap:14px;font-family:var(--sans);font-size:13px;font-weight:300;color:var(--text);line-height:1.55;}
+.planLi::before{content:'';flex-shrink:0;width:14px;height:1px;background:var(--gold);margin-top:10px;}
+.planLi.muted{color:var(--mute);}
+.planLi.muted::before{background:var(--mute2);}
+.planBtn{margin-top:auto;display:inline-flex;align-items:center;justify-content:center;gap:14px;font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);padding:18px 24px;border:1px solid var(--gold-soft);transition:.4s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;}
+.planBtn::before{content:'';position:absolute;inset:0;background:var(--gold);transform:translateX(-100%);transition:transform .5s cubic-bezier(.4,0,.2,1);z-index:0;}
+.planBtn:hover::before{transform:translateX(0);}
+.planBtn span{position:relative;z-index:1;transition:color .3s;}
+.planBtn:hover span{color:#000;}
+
+.compare{padding:0 64px 200px;max-width:1400px;margin:0 auto;}
+.compareHead{margin-bottom:96px;max-width:720px;}
+.compareH{font-family:var(--serif);font-weight:300;font-size:clamp(40px,5vw,72px);line-height:1;letter-spacing:-.02em;color:#FFF;margin-bottom:24px;}
+.compareH em{font-style:italic;color:var(--gold);font-weight:200;}
+.compareTable{border:1px solid var(--line);}
+.compareRow{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;border-bottom:1px solid var(--line);}
+.compareRow:last-child{border-bottom:none;}
+.compareRow.head{background:var(--soft);}
+.compareCell{padding:20px 24px;font-family:var(--mono);font-size:12px;color:var(--text);border-right:1px solid var(--line);display:flex;align-items:center;}
+.compareCell:last-child{border-right:none;}
+.compareRow.head .compareCell{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);}
+.compareCell.label{color:var(--mute);}
+.compareCell .y{color:var(--gold);}
+.compareCell .n{color:var(--mute2);}
+
+.close{padding:200px 64px;text-align:center;border-top:1px solid var(--line);}
+.closeH{font-family:var(--serif);font-weight:300;font-size:clamp(40px,6vw,80px);line-height:1.05;letter-spacing:-.025em;color:#FFF;margin-bottom:48px;max-width:900px;margin-left:auto;margin-right:auto;}
+.closeH em{font-style:italic;color:var(--gold);font-weight:200;}
+.closeCTA{display:inline-flex;align-items:center;gap:14px;font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);padding:18px 32px;border:1px solid var(--gold-soft);transition:.4s;position:relative;overflow:hidden;}
+.closeCTA::before{content:'';position:absolute;inset:0;background:var(--gold);transform:translateX(-100%);transition:transform .5s;z-index:0;}
+.closeCTA:hover::before{transform:translateX(0);}
+.closeCTA span{position:relative;z-index:1;transition:color .3s;}.closeCTA:hover span{color:#000;}
+
+footer{padding:96px 64px 48px;border-top:1px solid var(--line);}
+.footInner{max-width:1400px;margin:0 auto;}
+.footTop{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:64px;margin-bottom:96px;}
+.footBrand{font-family:var(--mono);font-size:14px;font-weight:500;letter-spacing:.24em;color:#FFF;margin-bottom:24px;}.footBrand span{color:var(--gold);}
+.footMission{font-family:var(--serif);font-size:18px;line-height:1.55;color:var(--mute);font-weight:300;max-width:340px;font-style:italic;}
+.footCol h4{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:24px;}
+.footCol a{display:block;padding:8px 0;font-family:var(--sans);font-size:14px;font-weight:300;color:var(--mute);transition:color .25s;}
+.footCol a:hover{color:var(--text);}
+.footBot{border-top:1px solid var(--line);padding-top:32px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute2);}
+
+.reveal{opacity:0;transform:translateY(40px);transition:opacity 1.2s cubic-bezier(.2,.8,.2,1),transform 1.2s cubic-bezier(.2,.8,.2,1);}
+.reveal.shown{opacity:1;transform:translateY(0);}
+
+@media(max-width:980px){
+  nav{padding:18px 24px;}.navL{gap:24px;}.navL a:not(.nav-cta){display:none;}
+  .head,.plans,.compare,.close{padding-left:24px;padding-right:24px;}
+  .head{padding-top:140px;padding-bottom:80px;}
+  .planGrid{grid-template-columns:1fr;}
+  .compareRow{grid-template-columns:1.5fr .8fr .8fr .8fr;}
+  .compareCell{padding:14px 12px;font-size:11px;}
+  .footTop{grid-template-columns:1fr 1fr;gap:48px;}
+  .close{padding:120px 24px;}
+}
+@media(max-width:560px){.footTop{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
+<div class="cursor" id="cursor"></div>
+
 <nav>
-  <a href="/" class="logo">TRADE<span>PHEX</span></a>
-  <div class="navLinks">
-    <a href="/evaluations">Evaluations</a>
-    <a href="/journal-plans">Journal</a>
-    <a href="/charting" class="active">Charting</a>
-    <a href="/rules">Rules</a>
-    <a href="/login">Log In</a>
-    <a href="/signup" class="btnPrimary">GET FUNDED →</a>
+  <a href="/" class="brand">TRADE<span>PHEX</span></a>
+  <div class="navL">
+    <a href="/evaluations" data-hover>Evaluations</a>
+    <a href="/charting" data-hover>Charting</a>
+    <a href="/journal-plans" data-hover>Journal</a>
+    <a href="/login" data-hover>Sign In</a>
+    <a href="/signup" class="nav-cta" data-hover>Get Funded</a>
   </div>
 </nav>
 
-<div style="padding-top:58px;">
-  <div style="padding:72px 5% 48px;border-bottom:1px solid var(--border);">
-    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--gold);margin-bottom:12px;">CHART PLATFORM</div>
-    <h1 style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:56px;line-height:1;text-transform:uppercase;margin-bottom:16px;">Professional Tools.<br>Built For Eval.</h1>
-    <p style="font-size:16px;color:var(--gray2);max-width:560px;line-height:1.7;">Footprint candles, order flow delta, market profile, DOM — the same tools professional traders use. Built into your evaluation. Free during any active eval.</p>
-  </div>
+<section class="head">
+  <div class="eyebrow">Charting Platform</div>
+  <h1>Pro tools.<br/>No <em>third parties.</em></h1>
+  <p class="headSub">Footprint candles, order flow, real depth, market profile, AI trade scoring. The same toolkit institutional desks use, built into a platform you can run standalone.</p>
+</section>
 
-  <div style="padding:64px 5%;">
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);margin-bottom:64px;">
-
-      <!-- TRADER -->
-      <div style="background:var(--s1);padding:36px 32px;">
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--gray2);margin-bottom:12px;">TRADER</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:56px;color:var(--gold);line-height:1;margin-bottom:4px;">$29<span style="font-size:16px;color:var(--gray2);font-weight:400;">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray2);margin-bottom:28px;">Everything you need to start trading with professional tools.</div>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>All chart types + footprint candles</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Order flow delta</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>2-chart layout</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Drawing tools + S/R</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>5 saved layouts</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Econ calendar</div>
-          <div style="font-size:14px;color:rgba(255,255,255,.25);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="margin-right:8px;">✗</span>Market profile (TPO)</div>
-          <div style="font-size:14px;color:rgba(255,255,255,.25);padding:8px 0;"><span style="margin-right:8px;">✗</span>Journal included</div>
-        </div>
-        <a href="/signup"><button style="width:100%;padding:13px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--gold);">GET TRADER PLAN</button></a>
+<section class="plans">
+  <div class="planGrid">
+    <div class="plan reveal">
+      <div class="planLabel">Tier 01</div>
+      <div class="planTier">Pro</div>
+      <div class="planType">Standalone Charting</div>
+      <div class="planPrice"><span class="num">$29</span><span class="per">/ month</span></div>
+      <div class="planList">
+        <div class="planLi">22 CME futures contracts</div>
+        <div class="planLi">Footprint candles &amp; order flow</div>
+        <div class="planLi">Market profile (TPO)</div>
+        <div class="planLi">Real DOM with iceberg detection</div>
+        <div class="planLi">3-chart layouts</div>
+        <div class="planLi muted">AI trade scoring</div>
+        <div class="planLi muted">Pattern recognition</div>
+        <div class="planLi muted">Custom indicator suite</div>
       </div>
-
-      <!-- PRO -->
-      <div style="background:var(--bg);padding:36px 32px;position:relative;box-shadow:inset 0 3px 0 var(--gold);">
-        <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:9px;letter-spacing:.15em;padding:3px 14px;">MOST POPULAR</div>
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--gold);margin-bottom:12px;">PRO</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:56px;color:var(--gold);line-height:1;margin-bottom:4px;">$79<span style="font-size:16px;color:var(--gray2);font-weight:400;">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray2);margin-bottom:28px;">Full platform access for serious traders who demand more.</div>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Everything in Trader</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>4-chart layout</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Market profile (TPO)</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Journal included</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>15 saved layouts</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Advanced analytics dashboard</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Market scanner — 50+ markets</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;"><span style="color:var(--green);margin-right:8px;">✓</span>Priority support</div>
-        </div>
-        <a href="/signup"><button style="width:100%;padding:13px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;background:var(--gold);color:#000;border:none;">GET PRO PLAN</button></a>
-      </div>
-
-      <!-- ELITE -->
-      <div style="background:var(--s1);padding:36px 32px;">
-        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--gray2);margin-bottom:12px;">ELITE</div>
-        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:56px;color:var(--gold);line-height:1;margin-bottom:4px;">$149<span style="font-size:16px;color:var(--gray2);font-weight:400;">/mo</span></div>
-        <div style="font-size:13px;color:var(--gray2);margin-bottom:28px;">Maximum edge. Every feature. For traders who trade to win.</div>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Everything in Pro</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>6-chart layout</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Unlimited saved layouts</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Multi-account management</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Exclusive trader community</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Early access to new features</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04);"><span style="color:var(--green);margin-right:8px;">✓</span>Advanced session analytics</div>
-          <div style="font-size:14px;color:var(--gray);padding:8px 0;"><span style="color:var(--green);margin-right:8px;">✓</span>Highest priority support</div>
-        </div>
-        <a href="/signup"><button style="width:100%;padding:13px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--gold);">GET ELITE PLAN</button></a>
-      </div>
+      <a href="/signup" class="planBtn" data-hover><span>Subscribe</span></a>
     </div>
-
-    <div style="text-align:center;padding:32px;background:var(--s1);border:1px solid var(--border);">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:18px;color:var(--green);margin-bottom:8px;">✓ Free during any active Evaluation</div>
-      <div style="font-size:14px;color:var(--gray2);">The full chart platform is included at no extra cost while your evaluation is active.</div>
+    <div class="plan feat reveal">
+      <div class="featTag">Most Popular</div>
+      <div class="planLabel">Tier 02</div>
+      <div class="planTier"><em>Elite</em></div>
+      <div class="planType">Pro Trader Suite</div>
+      <div class="planPrice"><span class="num">$79</span><span class="per">/ month</span></div>
+      <div class="planList">
+        <div class="planLi">Everything in Pro</div>
+        <div class="planLi">AI trade scoring</div>
+        <div class="planLi">Pattern recognition (50+ setups)</div>
+        <div class="planLi">Up to 6-chart layouts</div>
+        <div class="planLi">Custom indicator suite</div>
+        <div class="planLi">Replay mode &amp; backtesting</div>
+        <div class="planLi muted">Priority support &amp; onboarding</div>
+        <div class="planLi muted">Custom alert engine</div>
+      </div>
+      <a href="/signup" class="planBtn" data-hover><span>Subscribe</span></a>
+    </div>
+    <div class="plan reveal">
+      <div class="planLabel">Tier 03</div>
+      <div class="planTier">Institutional</div>
+      <div class="planType">Full Stack</div>
+      <div class="planPrice"><span class="num">$149</span><span class="per">/ month</span></div>
+      <div class="planList">
+        <div class="planLi">Everything in Elite</div>
+        <div class="planLi">Priority support &amp; onboarding</div>
+        <div class="planLi">Custom alert engine</div>
+        <div class="planLi">API access for algo development</div>
+        <div class="planLi">Unlimited chart layouts</div>
+        <div class="planLi">Custom indicator development</div>
+        <div class="planLi">Direct line to engineering</div>
+        <div class="planLi">Quarterly strategy review</div>
+      </div>
+      <a href="/signup" class="planBtn" data-hover><span>Subscribe</span></a>
     </div>
   </div>
+</section>
 
-  <footer style="border-top:1px solid var(--border);padding:32px 5%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
-    <a href="/" class="logo">TRADE<span style="color:var(--gold);">PHEX</span></a>
-    <div style="display:flex;gap:20px;">
-      <a href="/rules" style="font-size:12px;color:rgba(255,255,255,.3);text-decoration:none;">Rules</a>
-      <a href="/terms" style="font-size:12px;color:rgba(255,255,255,.3);text-decoration:none;">Terms</a>
-      <a href="/privacy" style="font-size:12px;color:rgba(255,255,255,.3);text-decoration:none;">Privacy</a>
-      <a href="/support" style="font-size:12px;color:rgba(255,255,255,.3);text-decoration:none;">Support</a>
+<section class="compare">
+  <div class="compareHead reveal">
+    <div class="eyebrow">The Comparison</div>
+    <h2 class="compareH">Tradephex vs. <em>everyone else.</em></h2>
+  </div>
+  <div class="compareTable reveal">
+    <div class="compareRow head">
+      <div class="compareCell">Feature</div>
+      <div class="compareCell">Tradephex</div>
+      <div class="compareCell">NinjaTrader</div>
+      <div class="compareCell">TradingView</div>
     </div>
-    <p style="font-size:11px;color:rgba(255,255,255,.2);">© 2026 Tradephex LLC. All rights reserved.</p>
-  </footer>
-</div>
+    <div class="compareRow">
+      <div class="compareCell label">Footprint candles</div>
+      <div class="compareCell"><span class="y">✓ Included</span></div>
+      <div class="compareCell"><span class="n">+$1,500 add-on</span></div>
+      <div class="compareCell"><span class="n">Not available</span></div>
+    </div>
+    <div class="compareRow">
+      <div class="compareCell label">Order flow delta</div>
+      <div class="compareCell"><span class="y">✓ Included</span></div>
+      <div class="compareCell"><span class="n">+$1,500 add-on</span></div>
+      <div class="compareCell"><span class="n">Limited</span></div>
+    </div>
+    <div class="compareRow">
+      <div class="compareCell label">Market profile</div>
+      <div class="compareCell"><span class="y">✓ Included</span></div>
+      <div class="compareCell"><span class="y">✓ Included</span></div>
+      <div class="compareCell"><span class="n">Premium tier</span></div>
+    </div>
+    <div class="compareRow">
+      <div class="compareCell label">Real DOM</div>
+      <div class="compareCell"><span class="y">✓ 18 levels</span></div>
+      <div class="compareCell"><span class="y">✓ 10 levels</span></div>
+      <div class="compareCell"><span class="n">Not available</span></div>
+    </div>
+    <div class="compareRow">
+      <div class="compareCell label">AI trade scoring</div>
+      <div class="compareCell"><span class="y">✓ Included</span></div>
+      <div class="compareCell"><span class="n">Not available</span></div>
+      <div class="compareCell"><span class="n">Not available</span></div>
+    </div>
+    <div class="compareRow">
+      <div class="compareCell label">Built-in journal</div>
+      <div class="compareCell"><span class="y">✓ Included</span></div>
+      <div class="compareCell"><span class="n">Third-party only</span></div>
+      <div class="compareCell"><span class="n">Third-party only</span></div>
+    </div>
+    <div class="compareRow">
+      <div class="compareCell label">Starting price</div>
+      <div class="compareCell"><span class="y">$29 / month</span></div>
+      <div class="compareCell"><span class="n">$1,099 lifetime + add-ons</span></div>
+      <div class="compareCell"><span class="n">$15-60 / month + add-ons</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="close">
+  <h2 class="closeH">The platform <em>is</em> the edge.</h2>
+  <a href="/signup" class="closeCTA" data-hover><span>Subscribe</span></a>
+</section>
+
+<footer>
+  <div class="footInner">
+    <div class="footTop">
+      <div>
+        <div class="footBrand">TRADE<span>PHEX</span></div>
+        <p class="footMission">A futures evaluation firm where the platform is the edge.</p>
+      </div>
+      <div class="footCol"><h4>Platform</h4><a href="/evaluations">Evaluations</a><a href="/charting">Charting</a><a href="/journal-plans">Journal</a><a href="/login">Sign In</a></div>
+      <div class="footCol"><h4>Company</h4><a href="/support">Support</a><a href="/legal">Legal</a><a href="mailto:support@tradephex.com">Contact</a></div>
+      <div class="footCol"><h4>Disclosures</h4><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a><a href="/risk">Risk Disclaimer</a><a href="/refund">Refund Policy</a></div>
+    </div>
+    <div class="footBot">
+      <span>© 2026 Tradephex LLC</span>
+      <span>Tradephex LLC · 100 Noble Blvd STE 10 #1056 · Carlisle, PA 17013</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+const cursor=document.getElementById('cursor');let cx=0,cy=0,tx=0,ty=0;
+window.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;});
+function tickC(){cx+=(tx-cx)*.18;cy+=(ty-cy)*.18;cursor.style.transform=`translate(${cx-3}px,${cy-3}px)`;requestAnimationFrame(tickC);}tickC();
+document.querySelectorAll('[data-hover],a,button').forEach(el=>{el.addEventListener('mouseenter',()=>cursor.classList.add('hover'));el.addEventListener('mouseleave',()=>cursor.classList.remove('hover'));});
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('shown');obs.unobserve(e.target);}}),{threshold:.12,rootMargin:'0px 0px -80px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+</script>
 </body>
 </html>

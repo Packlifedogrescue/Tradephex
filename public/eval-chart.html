@@ -35,7 +35,7 @@ let chartUser = null;
   });
 })();
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Mono:wght@400;500&family=JetBrains+Mono:wght@300;400;500&family=Spectral:wght@200;300;400&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -69,65 +69,71 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--white);fo
 
 /* ── TOPBAR ── */
 #tb{
-  height:48px;
-  background:linear-gradient(180deg,#0E0E1A 0%,#09090F 100%);
+  height:54px;
+  background:linear-gradient(180deg,var(--s2) 0%,var(--s1) 100%);
   border-bottom:1px solid var(--border);
-  box-shadow:0 1px 0 rgba(201,168,76,.06),var(--glow);
-  display:flex;align-items:center;padding:0 12px;gap:0;flex-shrink:0;overflow:hidden;
+  box-shadow:0 1px 0 var(--border),var(--glow);
+  display:flex;align-items:center;padding:0 14px;gap:0;flex-shrink:0;overflow:hidden;
+  position:relative;
 }
-.tbGroup{display:flex;align-items:center;padding:0 10px;border-right:1px solid rgba(255,255,255,.05);}
-.tbGroup:last-child{border-right:none;margin-left:auto;}
-.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:.1em;
-  text-shadow:0 0 24px rgba(201,168,76,.35);white-space:nowrap;}
+#tb::before{content:'';position:absolute;left:0;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--gold) 0%,var(--gold) 30%,transparent 100%);opacity:.6;}
+.tbGroup{display:flex;align-items:center;padding:0 14px;border-right:1px solid var(--borderb);height:34px;}
+.tbGroup:first-of-type{padding-left:8px;}
+.tbGroup:last-child{border-right:none;margin-left:auto;padding-right:0;}
+.logo{font-family:'JetBrains Mono',Menlo,monospace;font-weight:500;font-size:14px;letter-spacing:.24em;text-transform:uppercase;color:#FFF;
+  white-space:nowrap;line-height:1;}
 .logo span{color:var(--gold);}
-.logoSub{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:.2em;color:var(--white);opacity:.7;margin-left:8px;margin-top:2px;}
+.logoSub{font-family:'JetBrains Mono',Menlo,monospace;font-size:9px;letter-spacing:.28em;color:var(--gold);opacity:.7;margin-left:14px;font-weight:400;text-transform:uppercase;}
 select.sym{background:var(--s3);border:1px solid var(--border);color:var(--white);
-  font-family:'DM Mono',monospace;font-size:13px;font-weight:500;padding:4px 10px;
-  cursor:pointer;outline:none;border-radius:3px;min-width:60px;}
-select.sym:hover{border-color:var(--border2);}
-.tfw{display:flex;gap:1px;background:var(--s3);border:1px solid var(--border);border-radius:4px;padding:2px;}
-.tf{background:transparent;border:none;color:var(--white);font-family:'DM Mono',monospace;
-  font-size:10px;padding:3px 8px;cursor:pointer;transition:.1s;border-radius:3px;}
+  font-family:'DM Mono',monospace;font-size:14px;font-weight:600;padding:5px 12px;
+  cursor:pointer;outline:none;border-radius:4px;min-width:72px;letter-spacing:.05em;}
+select.sym:hover{border-color:var(--gold);background:var(--s4);}
+.tfw{display:flex;gap:2px;background:var(--s3);border:1px solid var(--border);border-radius:5px;padding:3px;}
+.tf{background:transparent;border:none;color:var(--gray);font-family:'DM Mono',monospace;
+  font-size:11px;font-weight:500;padding:4px 10px;cursor:pointer;transition:.1s;border-radius:3px;letter-spacing:.04em;}
 .tf:hover{color:var(--white);background:rgba(255,255,255,.07);}
-.tf.on{background:var(--gold);color:#000;font-weight:600;}
-#bigP{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;
-  letter-spacing:.01em;animation:priceFlash .15s;}
-#pChg{font-size:11px;margin-left:6px;padding:2px 7px;border-radius:3px;}
+.tf.on{background:var(--gold);color:#000;font-weight:700;box-shadow:0 0 8px rgba(201,168,76,.3);}
+#bigP{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:30px;
+  letter-spacing:.01em;animation:priceFlash .15s;line-height:1;}
+#pChg{font-size:12px;margin-left:8px;padding:3px 9px;border-radius:4px;font-weight:600;letter-spacing:.04em;}
 .up{color:var(--green);}.dn{color:var(--red);}
-.ohlcBar{display:flex;gap:14px;font-size:10px;color:var(--white);margin-left:8px;}
-.ohlcBar b{color:#FFFFFF;font-weight:400;}
+.ohlcBar{display:flex;gap:16px;font-size:11px;color:var(--gray);margin-left:14px;font-weight:400;}
+.ohlcBar div{display:flex;gap:5px;align-items:center;}
+.ohlcBar div::before{font-size:9px;color:var(--gray2);font-weight:600;letter-spacing:.1em;}
+.ohlcBar b{color:var(--white);font-weight:600;font-family:'DM Mono',monospace;}
 
 /* ── COMPACT TOOLBAR ── */
 #toolbar{
-  height:34px;
-  background:linear-gradient(180deg,#0C0C16 0%,#08080E 100%);
-  border-bottom:1px solid var(--borderb);
-  display:flex;align-items:center;padding:0 8px;gap:2px;flex-shrink:0;overflow:visible;
+  height:38px;
+  background:var(--s1);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 10px;gap:3px;flex-shrink:0;overflow:visible;
   position:relative;z-index:50;
+  box-shadow:inset 0 -1px 0 var(--borderb);
 }
-.btn{background:transparent;border:1px solid transparent;color:var(--white);font-size:10px;
-  padding:3px 9px;cursor:pointer;white-space:nowrap;font-family:'DM Mono',monospace;
-  border-radius:3px;transition:.12s;display:flex;align-items:center;gap:4px;height:26px;}
-.btn:hover{color:var(--white);background:rgba(255,255,255,.06);border-color:var(--borderb);}
-.btn.on{background:rgba(201,168,76,.12);color:var(--gold);border-color:var(--border2);}
-.btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;}
-.bsep{width:1px;height:18px;background:var(--borderb);margin:0 3px;flex-shrink:0;}
+.btn{background:transparent;border:1px solid transparent;color:var(--gray);font-size:11px;
+  padding:5px 11px;cursor:pointer;white-space:nowrap;font-family:'DM Mono',monospace;
+  border-radius:4px;transition:.12s;display:flex;align-items:center;gap:5px;height:28px;font-weight:500;letter-spacing:.02em;}
+.btn:hover{color:var(--white);background:var(--s3);border-color:var(--border);}
+.btn.on{background:rgba(201,168,76,.14);color:var(--gold);border-color:var(--border2);box-shadow:0 0 8px rgba(201,168,76,.15);}
+.btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;}
+.bsep{width:1px;height:20px;background:var(--borderb);margin:0 4px;flex-shrink:0;}
 
 /* ── DROPDOWN MENUS ── */
 .dd{position:relative;display:inline-block;}
-.ddMenu{position:absolute;top:calc(100% + 4px);left:0;background:rgba(10,10,18,.97);
-  border:1px solid var(--border2);min-width:160px;z-index:200;
-  box-shadow:0 8px 32px rgba(0,0,0,.7);border-radius:4px;padding:4px 0;
-  display:none;animation:fadeIn .12s ease;}
+.ddMenu{position:absolute;top:calc(100% + 6px);left:0;background:var(--s1);
+  border:1px solid var(--border2);min-width:170px;z-index:200;
+  box-shadow:0 12px 32px rgba(0,0,0,.7),0 0 0 1px rgba(201,168,76,.05);border-radius:6px;padding:6px 0;
+  display:none;animation:fadeIn .15s ease;}
 .ddMenu.show{display:block;}
-.ddMenu.wide{min-width:220px;}
-.ddItem{padding:8px 14px;cursor:pointer;font-size:11px;color:var(--white);
-  display:flex;align-items:center;gap:8px;white-space:nowrap;}
+.ddMenu.wide{min-width:240px;}
+.ddItem{padding:9px 16px;cursor:pointer;font-size:12px;color:var(--white);
+  display:flex;align-items:center;gap:10px;white-space:nowrap;transition:.1s;}
 .ddItem:hover{background:rgba(201,168,76,.08);color:var(--gold);}
 .ddItem.on{color:var(--gold);}
-.ddItem.active::after{content:'✓';margin-left:auto;color:var(--gold);}
-.ddSep{height:1px;background:var(--borderb);margin:3px 0;}
-.ddLabel{padding:4px 14px 2px;font-size:8px;letter-spacing:.12em;color:var(--gray);text-transform:uppercase;}
+.ddItem.active::after{content:'✓';margin-left:auto;color:var(--gold);font-weight:700;}
+.ddSep{height:1px;background:var(--borderb);margin:5px 0;}
+.ddLabel{padding:6px 16px 4px;font-size:9px;letter-spacing:.14em;color:var(--gray);text-transform:uppercase;font-weight:600;}
 
 /* ── LAYOUT PICKER ── */
 #layoutPicker{position:absolute;top:calc(100% + 4px);left:0;background:rgba(10,10,18,.97);
@@ -146,52 +152,62 @@ select.sym:hover{border-color:var(--border2);}
 .layoutOpt.on .layoutLbl{color:var(--gold);}
 
 /* ── CHART AREA ── */
-#layout{display:flex;overflow:hidden;height:calc(100vh - 82px);}
+#layout{display:flex;overflow:hidden;height:calc(100vh - 92px);}
 #mainArea{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;min-height:0;}
 #chartGrid{flex:1;display:grid;overflow:hidden;gap:1px;background:var(--borderb);min-height:0;}
 .chartCell{background:var(--bg);display:flex;flex-direction:column;overflow:hidden;position:relative;}
-.cellHeader{height:24px;background:var(--s2);border-bottom:1px solid var(--borderb);
-  display:flex;align-items:center;padding:0 8px;gap:6px;flex-shrink:0;}
+.cellHeader{height:26px;background:var(--s2);border-bottom:1px solid var(--borderb);
+  display:flex;align-items:center;padding:0 10px;gap:7px;flex-shrink:0;}
 .cellHeader select,.cellHeader button{background:transparent;border:none;color:var(--gray);
-  font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;outline:none;padding:1px 3px;}
-.cellHeader select:hover,.cellHeader button:hover{color:var(--white);}
-.cellPrice{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;margin-left:4px;}
+  font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;outline:none;padding:1px 4px;font-weight:500;}
+.cellHeader select:hover,.cellHeader button:hover{color:var(--gold);}
+.cellPrice{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;margin-left:6px;letter-spacing:.02em;}
 .cellWrap{flex:1;position:relative;overflow:hidden;}
 .cellWrap canvas{display:block;}
 
 /* ── PANELS ── */
 .pnl{flex-shrink:0;}
 .pnl.hide{display:none;}
-.pH{height:20px;background:var(--s2);border-top:1px solid var(--borderb);
-  display:flex;align-items:center;padding:0 10px;cursor:pointer;flex-shrink:0;}
+.pH{height:22px;background:var(--s2);border-top:1px solid var(--borderb);
+  display:flex;align-items:center;padding:0 12px;cursor:pointer;flex-shrink:0;}
 .pH:hover{background:var(--s3);}
-.pHN{font-size:9px;color:var(--gold);letter-spacing:.08em;flex:1;}
-.pHV{font-size:9px;margin-right:4px;}
+.pHN{font-size:10px;color:var(--gold);letter-spacing:.1em;flex:1;font-weight:600;}
+.pHV{font-size:10px;margin-right:5px;font-family:'DM Mono',monospace;}
 .pHC{font-size:9px;color:var(--gray2);}
 .pB{overflow:hidden;}
 .pB.col{display:none;}
 .pB canvas{display:block;}
 
 /* ── RIGHT PANEL ── */
-#rpTab{width:14px;background:var(--s1);border-left:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
-#rpTab:hover{background:var(--s2);}
-#rp{width:272px;background:var(--s1);border-left:1px solid var(--border);
+#rpTab{width:16px;background:var(--s1);border-left:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s;}
+#rpTab:hover{background:var(--s3);}
+#rp{width:288px;background:var(--s1);border-left:1px solid var(--border);
   display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0;transition:width .2s;
   box-shadow:-4px 0 24px rgba(0,0,0,.4);}
 #rp.cl{width:0;overflow:hidden;border:none;}
 .rS{border-bottom:1px solid var(--borderb);}
-.rH{padding:9px 14px;font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.18em;
+.rH{padding:11px 16px;font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.16em;font-weight:600;
   text-transform:uppercase;color:var(--white);display:flex;align-items:center;
-  justify-content:space-between;cursor:pointer;transition:.12s;}
-.rH:hover{color:var(--white);background:rgba(255,255,255,.03);}
-.rB{padding:12px 14px;}.rB.cl{display:none;}
+  justify-content:space-between;cursor:pointer;transition:.12s;background:var(--s2);}
+.rH:hover{color:var(--gold);background:var(--s3);}
+.rB{padding:14px 16px;}.rB.cl{display:none;}
+/* TAB SYSTEM */
+.rpTabs{display:flex;background:var(--s2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5;}
+.rpTab{flex:1;padding:13px 6px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--gray2);cursor:pointer;text-align:center;
+  border-right:1px solid var(--borderb);transition:.15s;background:transparent;border-top:2px solid transparent;border-bottom:none;border-left:none;outline:none;}
+.rpTab:last-child{border-right:none;}
+.rpTab:hover{color:var(--white);background:rgba(255,255,255,.03);}
+.rpTab.active{color:var(--gold);background:var(--bg);border-top-color:var(--gold);box-shadow:inset 0 -1px 0 var(--bg);}
+.rpPane{display:none;}
+.rpPane.active{display:block;animation:fadeIn .2s ease;}
 
 /* ── DOM ── */
-#domTab{width:14px;background:var(--s1);border-left:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
-#domTab:hover{background:var(--s2);}
-#domWrap{width:182px;background:var(--s1);border-left:1px solid var(--border);
+#domTab{width:16px;background:var(--s1);border-left:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s;}
+#domTab:hover{background:var(--s3);}
+#domWrap{width:188px;background:var(--s1);border-left:1px solid var(--border);
   display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .2s;
   box-shadow:-4px 0 24px rgba(0,0,0,.4);}
 #domWrap.cl{width:0;border:none;}
@@ -252,6 +268,31 @@ select.sym:hover{border-color:var(--border2);}
 </style>
 </head>
 <body style="display:flex;flex-direction:column;">
+
+<!-- BRANDED SPLASH (fades after 1.4s) -->
+<div id="splash" style="position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;transition:opacity .6s ease,visibility .6s ease;">
+  <div style="font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:#C9A84C;margin-bottom:32px;display:flex;align-items:center;gap:14px;opacity:0;animation:splashFade .8s ease .1s forwards;">
+    <span style="display:inline-block;width:32px;height:1px;background:#C9A84C;"></span>
+    <span>Initializing</span>
+  </div>
+  <div style="font-family:'Spectral',Georgia,serif;font-weight:300;font-size:64px;line-height:1;letter-spacing:-.02em;color:#FFF;margin-bottom:24px;opacity:0;animation:splashFade .8s ease .25s forwards;">
+    Trade<em style="font-style:italic;color:#C9A84C;font-weight:200;">phex.</em>
+  </div>
+  <div style="font-family:'JetBrains Mono',Menlo,monospace;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#3F3F3F;opacity:0;animation:splashFade .8s ease .4s forwards;">
+    Loading platform · 22 instruments · Live sim feed
+  </div>
+  <div style="margin-top:64px;width:240px;height:1px;background:rgba(201,168,76,.15);overflow:hidden;opacity:0;animation:splashFade .8s ease .5s forwards;">
+    <div style="height:100%;background:#C9A84C;animation:splashLoad 1s cubic-bezier(.4,0,.2,1) .55s forwards;width:0;"></div>
+  </div>
+</div>
+<style>
+@keyframes splashFade{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+@keyframes splashLoad{from{width:0;}to{width:100%;}}
+#splash.gone{opacity:0;visibility:hidden;pointer-events:none;}
+</style>
+<script>
+window.addEventListener('load',()=>{setTimeout(()=>{const s=document.getElementById('splash');if(s)s.classList.add('gone');setTimeout(()=>{if(s)s.remove();},700);},1400);});
+</script>
 
 <!-- LOCK OVERLAY -->
 <div id="lkOvl">
@@ -360,14 +401,14 @@ select.sym:hover{border-color:var(--border2);}
     </div>
   </div>
   <!-- RIGHT: SIM badge + session + lock status + dashboard -->
-  <div class="tbGroup" style="gap:8px;padding-right:0;">
-    <div style="display:flex;align-items:center;gap:5px;background:rgba(255,152,0,.08);border:1px solid rgba(255,152,0,.3);padding:3px 9px;border-radius:3px;">
-      <div style="width:5px;height:5px;border-radius:50%;background:var(--orange);animation:simPulse 1.8s infinite;"></div>
-      <span style="font-size:9px;letter-spacing:.12em;color:var(--orange);">SIM</span>
+  <div class="tbGroup" style="gap:10px;padding-right:0;">
+    <div style="display:flex;align-items:center;gap:6px;background:rgba(255,152,0,.08);border:1px solid rgba(255,152,0,.35);padding:5px 11px;border-radius:4px;box-shadow:0 0 12px rgba(255,152,0,.1);">
+      <div style="width:6px;height:6px;border-radius:50%;background:var(--orange);animation:simPulse 1.8s infinite;box-shadow:0 0 8px var(--orange);"></div>
+      <span style="font-size:10px;letter-spacing:.14em;color:var(--orange);font-weight:700;">SIM</span>
     </div>
-    <span id="sesLbl" style="font-size:9px;color:var(--white);font-weight:500;"></span>
-    <div id="lockSt" style="font-size:10px;color:var(--red);display:none;">🔒 <span id="lockCd"></span></div>
-    <a href="/journal" style="font-size:10px;color:var(--white);text-decoration:none;padding:3px 9px;border:1px solid var(--borderb);border-radius:3px;transition:.12s;flex-shrink:0;" onmouseover="this.style.borderColor='var(--border)'" onmouseout="this.style.borderColor='var(--borderb)'">Journal →</a>
+    <span id="sesLbl" style="font-size:10px;color:var(--gray);font-weight:500;letter-spacing:.06em;"></span>
+    <div id="lockSt" style="font-size:11px;color:var(--red);display:none;font-weight:600;">🔒 <span id="lockCd"></span></div>
+    <a href="/journal" style="font-size:11px;color:var(--white);text-decoration:none;padding:6px 14px;border:1px solid var(--border2);border-radius:4px;transition:.15s;flex-shrink:0;background:var(--s3);font-weight:600;letter-spacing:.04em;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--white)'">Journal →</a>
   </div>
 </div>
 
@@ -647,121 +688,139 @@ select.sym:hover{border-color:var(--border2);}
   <div id="rpTab" onclick="toggleRP()"><span id="rpArr" style="font-size:11px;color:var(--gold);">›</span></div>
 
   <div id="rp">
-    <!-- LOCKOUT -->
-    <div class="rS">
-      <div class="rH" onclick="togSec('sLock','aLock')">🔒 Trading Lockout <span id="aLock">►</span></div>
-      <div class="rB cl" id="sLock">
-        <div style="font-size:10px;color:var(--white);margin-bottom:8px;line-height:1.5;">Lock the chart after a losing streak. No unlock until time expires.</div>
-        <div id="lInactive">
-          <div style="font-size:8px;color:var(--gray2);letter-spacing:.1em;margin-bottom:5px;">SELECT DURATION</div>
-          <div class="lGrid">
-            <button class="lBtn" onclick="pickLock(10,this)">10 min</button>
-            <button class="lBtn" onclick="pickLock(15,this)">15 min</button>
-            <button class="lBtn" onclick="pickLock(30,this)">30 min</button>
-            <button class="lBtn" onclick="pickLock(60,this)">1 hour</button>
-            <button class="lBtn" onclick="pickLock(120,this)">2 hours</button>
-            <button class="lBtn" onclick="pickLock(240,this)">4 hours</button>
-            <button class="lBtn" onclick="pickLock(480,this)">Rest AM</button>
-            <button class="lBtn" onclick="pickLock(1440,this)">All Day</button>
-          </div>
-          <div id="lRW" style="display:none;">
-            <select id="lRS" style="width:100%;margin-top:7px;background:var(--s2);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:10px;padding:5px;outline:none;border-radius:2px;">
-              <option value="">Reason (optional)...</option>
-              <option>Hit daily loss limit</option><option>Emotional after a loss</option>
-              <option>Overtrading today</option><option>Reached profit target</option>
-              <option>Lunch hour</option><option>Taking a break</option><option>Manual discipline</option>
+    <!-- TAB BAR -->
+    <div class="rpTabs">
+      <button class="rpTab active" data-tab="trade" onclick="switchRpTab('trade')">📊 Trade</button>
+      <button class="rpTab" data-tab="setup" onclick="switchRpTab('setup')">📈 Setup</button>
+      <button class="rpTab" data-tab="status" onclick="switchRpTab('status')">⚡ Status</button>
+    </div>
+
+    <!-- ── TRADE TAB ── (default - SL/TP, Working Orders, Trade Ideas) -->
+    <div class="rpPane active" id="rpPane-trade">
+      <!-- SL/TP BRACKETS -->
+      <div class="rS">
+        <div class="rH" onclick="togSec('sBrk','aBrk')">🎯 Stop Loss &amp; Take Profit <span id="aBrk">▼</span></div>
+        <div class="rB" id="sBrk">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+            <span style="font-size:8px;color:var(--white);letter-spacing:.08em;">MODE</span>
+            <select id="slMode" style="flex:1;background:var(--s2);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:10px;padding:4px 6px;outline:none;border-radius:2px;">
+              <option value="ticks">Ticks</option><option value="dollars">Dollars ($)</option><option value="price">Price Level</option>
             </select>
-            <button class="aBtn" onclick="activateLock()">🔒 Lock Chart Now</button>
-            <button class="cBtn" onclick="cancelLock()">Cancel</button>
+          </div>
+          <div style="background:rgba(255,23,68,.05);border:1px solid rgba(255,23,68,.2);padding:8px;margin-bottom:6px;border-radius:2px;">
+            <div style="font-size:9px;color:var(--red);letter-spacing:.1em;font-weight:600;margin-bottom:6px;">STOP LOSS</div>
+            <div style="display:flex;gap:5px;align-items:center;">
+              <input id="slValue" type="number" placeholder="8" min="1" style="flex:1;background:var(--bg);border:1px solid rgba(255,23,68,.3);color:var(--white);font-family:'DM Mono',monospace;font-size:11px;padding:5px 7px;outline:none;border-radius:2px;text-align:center;">
+              <button onclick="setSL()" style="background:rgba(255,23,68,.2);border:1px solid rgba(255,23,68,.5);color:var(--red);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;padding:5px 12px;cursor:pointer;border-radius:2px;">SET SL</button>
+            </div>
+            <div id="slActiveRow" style="display:none;margin-top:6px;font-size:10px;color:var(--red);">Active: <span id="slActivePrice"></span> <button onclick="bracket.sl=null;updateSLLabel();redraw();" style="background:none;border:none;color:var(--gray2);cursor:pointer;font-size:10px;margin-left:4px;">✕</button></div>
+          </div>
+          <div style="background:rgba(0,230,118,.04);border:1px solid rgba(0,230,118,.18);padding:8px;margin-bottom:10px;border-radius:2px;">
+            <div style="font-size:9px;color:var(--green);letter-spacing:.1em;font-weight:600;margin-bottom:6px;">TAKE PROFIT</div>
+            <div style="display:flex;gap:5px;align-items:center;">
+              <input id="tpValue" type="number" placeholder="16" min="1" style="flex:1;background:var(--bg);border:1px solid rgba(0,230,118,.25);color:var(--white);font-family:'DM Mono',monospace;font-size:11px;padding:5px 7px;outline:none;border-radius:2px;text-align:center;">
+              <button onclick="setTP()" style="background:rgba(0,230,118,.12);border:1px solid rgba(0,230,118,.4);color:var(--green);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;padding:5px 12px;cursor:pointer;border-radius:2px;">SET TP</button>
+            </div>
+            <div id="tpActiveRow" style="display:none;margin-top:6px;font-size:10px;color:var(--green);">Active: <span id="tpActivePrice"></span> <button onclick="bracket.tp=null;updateSLLabel();redraw();" style="background:none;border:none;color:var(--gray2);cursor:pointer;font-size:10px;margin-left:4px;">✕</button></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--borderb);">
+            <div class="tog" id="autoBracketTog" onclick="toggleAutoBracket()"></div>
+            <div><div style="font-size:11px;">Auto Brackets</div><div style="font-size:9px;color:var(--gray2);">Auto SL/TP on every entry</div></div>
+          </div>
+          <button onclick="breakEven()" style="width:100%;margin-top:8px;background:rgba(201,168,76,.1);border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;padding:7px;cursor:pointer;letter-spacing:.08em;border-radius:2px;">⚖ MOVE SL TO BREAK EVEN</button>
+          <button onclick="clearBrackets();redraw();" style="width:100%;margin-top:4px;background:transparent;border:1px solid var(--borderb);color:var(--gray);font-family:'DM Mono',monospace;font-size:10px;padding:5px;cursor:pointer;border-radius:2px;">Clear All Brackets</button>
+        </div>
+      </div>
+      <!-- WORKING ORDERS -->
+      <div class="rS">
+        <div class="rH" onclick="togSec('sOrders','aOrders')">📋 Working Orders <span id="aOrders">▼</span></div>
+        <div class="rB" id="sOrders">
+          <div id="ordersList" style="font-size:11px;color:var(--gray);text-align:center;padding:8px 0;">No working orders</div>
+          <button onclick="cancelAllOrders()" style="width:100%;margin-top:4px;background:transparent;border:1px solid rgba(255,23,68,.3);color:var(--red);font-family:'DM Mono',monospace;font-size:10px;padding:5px;cursor:pointer;border-radius:2px;display:none;" id="cancelAllBtn">Cancel All Limit Orders</button>
+        </div>
+      </div>
+      <!-- TRADE IDEAS -->
+      <div class="rS">
+        <div class="rH" onclick="togSec('sIdeas','aIdeas')">💡 Trade Ideas <span id="aIdeas">▼</span></div>
+        <div class="rB" id="sIdeas">
+          <div id="ideasList" style="font-size:10px;color:var(--gray);padding:8px 0;text-align:center;">Scanning order flow...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETUP TAB ── (Indicators, Tool palette) -->
+    <div class="rpPane" id="rpPane-setup">
+      <!-- INDICATORS -->
+      <div class="rS">
+        <div class="rH" onclick="togSec('sOvr','aOvr')">📈 Indicators <span id="aOvr">▼</span></div>
+        <div class="rB" id="sOvr"><div id="ovrList"></div><button class="addBtn" onclick="openModal('overlay')">+ Add Indicator</button></div>
+      </div>
+      <!-- PANEL INDICATORS -->
+      <div class="rS">
+        <div class="rH" onclick="togSec('sPnl','aPnl')">📊 Panel Indicators <span id="aPnl">▼</span></div>
+        <div class="rB" id="sPnl"><div id="pnlList"></div><button class="addBtn" onclick="openModal('panel')">+ Add Panel</button></div>
+      </div>
+      <!-- TOOL HELP -->
+      <div class="rS">
+        <div class="rH">✏️ Tool: <span id="toolLbl" style="color:var(--gold);margin-left:4px;">Cursor</span></div>
+        <div class="rB" id="toolHelp" style="font-size:10px;color:var(--white);line-height:1.5;">Drag to pan. Scroll to zoom. Shift+scroll to pan. Double-click for quick order.</div>
+      </div>
+    </div>
+
+    <!-- ── STATUS TAB ── (Eval Status, Lockout) -->
+    <div class="rpPane" id="rpPane-status">
+      <!-- EVAL STATUS (open by default) -->
+      <div class="rS">
+        <div class="rH" onclick="togSec('sEval','aEval')">⚡ Eval Status <span id="aEval">▼</span></div>
+        <div class="rB" id="sEval">
+          <div class="evR"><span style="color:var(--white);">Account</span><span id="evAcct">$50,000</span></div>
+          <div class="evR"><span style="color:var(--white);">Balance</span><span id="evBal">$50,000.00</span></div>
+          <div class="evR"><span style="color:var(--white);">Net P&L</span><span id="evPnl" class="up">$0.00</span></div>
+          <div class="evR"><span style="color:var(--white);">Drawdown</span><span id="evDD">$0 / $2,500</span></div>
+          <div class="evBar"><div id="evDDBar" style="height:100%;width:0%;background:var(--green);border-radius:2px;transition:width .3s,background .3s;"></div></div>
+          <div class="evR"><span style="color:var(--white);">Daily P&L</span><span id="evDaily">$0.00</span></div>
+          <div class="evR"><span style="color:var(--white);">Trades</span><span id="evTrades">0</span></div>
+          <div class="evR"><span style="color:var(--white);">Win Rate</span><span id="evWR">—</span></div>
+          <div class="evR"><span style="color:var(--white);">Commissions</span><span id="evComm" style="color:var(--orange);">$0.00</span></div>
+          <div class="evR"><span style="color:var(--white);">Status</span><span id="evPhase" style="color:var(--gold);">Active — Day 0</span></div>
+          <div id="consec" style="font-size:11px;text-align:center;padding:4px 0;"></div>
+        </div>
+      </div>
+      <!-- LOCKOUT -->
+      <div class="rS">
+        <div class="rH" onclick="togSec('sLock','aLock')">🔒 Trading Lockout <span id="aLock">►</span></div>
+        <div class="rB cl" id="sLock">
+          <div style="font-size:10px;color:var(--white);margin-bottom:8px;line-height:1.5;">Lock the chart after a losing streak. No unlock until time expires.</div>
+          <div id="lInactive">
+            <div style="font-size:8px;color:var(--gray2);letter-spacing:.1em;margin-bottom:5px;">SELECT DURATION</div>
+            <div class="lGrid">
+              <button class="lBtn" onclick="pickLock(10,this)">10 min</button>
+              <button class="lBtn" onclick="pickLock(15,this)">15 min</button>
+              <button class="lBtn" onclick="pickLock(30,this)">30 min</button>
+              <button class="lBtn" onclick="pickLock(60,this)">1 hour</button>
+              <button class="lBtn" onclick="pickLock(120,this)">2 hours</button>
+              <button class="lBtn" onclick="pickLock(240,this)">4 hours</button>
+              <button class="lBtn" onclick="pickLock(480,this)">Rest AM</button>
+              <button class="lBtn" onclick="pickLock(1440,this)">All Day</button>
+            </div>
+            <div id="lRW" style="display:none;">
+              <select id="lRS" style="width:100%;margin-top:7px;background:var(--s2);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:10px;padding:5px;outline:none;border-radius:2px;">
+                <option value="">Reason (optional)...</option>
+                <option>Hit daily loss limit</option><option>Emotional after a loss</option>
+                <option>Overtrading today</option><option>Reached profit target</option>
+                <option>Lunch hour</option><option>Taking a break</option><option>Manual discipline</option>
+              </select>
+              <button class="aBtn" onclick="activateLock()">🔒 Lock Chart Now</button>
+              <button class="cBtn" onclick="cancelLock()">Cancel</button>
+            </div>
+          </div>
+          <div id="lActive" style="display:none;">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--red);text-align:center;" id="lTimerD">00:00</div>
+            <div style="font-size:9px;color:var(--red);text-align:center;letter-spacing:.12em;">REMAINING</div>
+            <div style="font-size:10px;color:#FF9999;text-align:center;margin-top:5px;" id="lReasonD"></div>
           </div>
         </div>
-        <div id="lActive" style="display:none;">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--red);text-align:center;" id="lTimerD">00:00</div>
-          <div style="font-size:9px;color:var(--red);text-align:center;letter-spacing:.12em;">REMAINING</div>
-          <div style="font-size:10px;color:#FF9999;text-align:center;margin-top:5px;" id="lReasonD"></div>
-        </div>
       </div>
-    </div>
-    <!-- INDICATORS -->
-    <div class="rS">
-      <div class="rH" onclick="togSec('sOvr','aOvr')">📈 Indicators <span id="aOvr">►</span></div>
-      <div class="rB cl" id="sOvr"><div id="ovrList"></div><button class="addBtn" onclick="openModal('overlay')">+ Add Indicator</button></div>
-    </div>
-    <!-- PANEL INDICATORS -->
-    <div class="rS">
-      <div class="rH" onclick="togSec('sPnl','aPnl')">📊 Panel Indicators <span id="aPnl">►</span></div>
-      <div class="rB cl" id="sPnl"><div id="pnlList"></div><button class="addBtn" onclick="openModal('panel')">+ Add Panel</button></div>
-    </div>
-    <!-- SL/TP BRACKETS -->
-    <div class="rS">
-      <div class="rH" onclick="togSec('sBrk','aBrk')">🎯 Stop Loss &amp; Take Profit <span id="aBrk">▼</span></div>
-      <div class="rB" id="sBrk">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
-          <span style="font-size:8px;color:var(--white);letter-spacing:.08em;">MODE</span>
-          <select id="slMode" style="flex:1;background:var(--s2);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:10px;padding:4px 6px;outline:none;border-radius:2px;">
-            <option value="ticks">Ticks</option><option value="dollars">Dollars ($)</option><option value="price">Price Level</option>
-          </select>
-        </div>
-        <div style="background:rgba(255,23,68,.05);border:1px solid rgba(255,23,68,.2);padding:8px;margin-bottom:6px;border-radius:2px;">
-          <div style="font-size:9px;color:var(--red);letter-spacing:.1em;font-weight:600;margin-bottom:6px;">STOP LOSS</div>
-          <div style="display:flex;gap:5px;align-items:center;">
-            <input id="slValue" type="number" placeholder="8" min="1" style="flex:1;background:var(--bg);border:1px solid rgba(255,23,68,.3);color:var(--white);font-family:'DM Mono',monospace;font-size:11px;padding:5px 7px;outline:none;border-radius:2px;text-align:center;">
-            <button onclick="setSL()" style="background:rgba(255,23,68,.2);border:1px solid rgba(255,23,68,.5);color:var(--red);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;padding:5px 12px;cursor:pointer;border-radius:2px;">SET SL</button>
-          </div>
-          <div id="slActiveRow" style="display:none;margin-top:6px;font-size:10px;color:var(--red);">Active: <span id="slActivePrice"></span> <button onclick="bracket.sl=null;updateSLLabel();redraw();" style="background:none;border:none;color:var(--gray2);cursor:pointer;font-size:10px;margin-left:4px;">✕</button></div>
-        </div>
-        <div style="background:rgba(0,230,118,.04);border:1px solid rgba(0,230,118,.18);padding:8px;margin-bottom:10px;border-radius:2px;">
-          <div style="font-size:9px;color:var(--green);letter-spacing:.1em;font-weight:600;margin-bottom:6px;">TAKE PROFIT</div>
-          <div style="display:flex;gap:5px;align-items:center;">
-            <input id="tpValue" type="number" placeholder="16" min="1" style="flex:1;background:var(--bg);border:1px solid rgba(0,230,118,.25);color:var(--white);font-family:'DM Mono',monospace;font-size:11px;padding:5px 7px;outline:none;border-radius:2px;text-align:center;">
-            <button onclick="setTP()" style="background:rgba(0,230,118,.12);border:1px solid rgba(0,230,118,.4);color:var(--green);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;padding:5px 12px;cursor:pointer;border-radius:2px;">SET TP</button>
-          </div>
-          <div id="tpActiveRow" style="display:none;margin-top:6px;font-size:10px;color:var(--green);">Active: <span id="tpActivePrice"></span> <button onclick="bracket.tp=null;updateSLLabel();redraw();" style="background:none;border:none;color:var(--gray2);cursor:pointer;font-size:10px;margin-left:4px;">✕</button></div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--borderb);">
-          <div class="tog" id="autoBracketTog" onclick="toggleAutoBracket()"></div>
-          <div><div style="font-size:11px;">Auto Brackets</div><div style="font-size:9px;color:var(--gray2);">Auto SL/TP on every entry</div></div>
-        </div>
-        <button onclick="breakEven()" style="width:100%;margin-top:8px;background:rgba(201,168,76,.1);border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;padding:7px;cursor:pointer;letter-spacing:.08em;border-radius:2px;">⚖ MOVE SL TO BREAK EVEN</button>
-        <button onclick="clearBrackets();redraw();" style="width:100%;margin-top:4px;background:transparent;border:1px solid var(--borderb);color:var(--gray);font-family:'DM Mono',monospace;font-size:10px;padding:5px;cursor:pointer;border-radius:2px;">Clear All Brackets</button>
-      </div>
-    </div>
-    <!-- TRADE IDEAS — auto-generated from microstructure -->
-    <div class="rS">
-      <div class="rH" onclick="togSec('sIdeas','aIdeas')">💡 Trade Ideas <span id="aIdeas">▼</span></div>
-      <div class="rB" id="sIdeas">
-        <div id="ideasList" style="font-size:10px;color:var(--gray);padding:8px 0;text-align:center;">Scanning order flow...</div>
-      </div>
-    </div>
-    <!-- WORKING ORDERS -->
-    <div class="rS">
-      <div class="rH" onclick="togSec('sOrders','aOrders')">📋 Working Orders <span id="aOrders">▼</span></div>
-      <div class="rB" id="sOrders">
-        <div id="ordersList" style="font-size:11px;color:var(--gray);text-align:center;padding:8px 0;">No working orders</div>
-        <button onclick="cancelAllOrders()" style="width:100%;margin-top:4px;background:transparent;border:1px solid rgba(255,23,68,.3);color:var(--red);font-family:'DM Mono',monospace;font-size:10px;padding:5px;cursor:pointer;border-radius:2px;display:none;" id="cancelAllBtn">Cancel All Limit Orders</button>
-      </div>
-    </div>
-    <!-- EVAL STATUS -->
-    <div class="rS">
-      <div class="rH" onclick="togSec('sEval','aEval')">⚡ Eval Status <span id="aEval">▼</span></div>
-      <div class="rB" id="sEval">
-        <div class="evR"><span style="color:var(--white);">Account</span><span id="evAcct">$50,000</span></div>
-        <div class="evR"><span style="color:var(--white);">Balance</span><span id="evBal">$50,000.00</span></div>
-        <div class="evR"><span style="color:var(--white);">Net P&L</span><span id="evPnl" class="up">$0.00</span></div>
-        <div class="evR"><span style="color:var(--white);">Drawdown</span><span id="evDD">$0 / $2,500</span></div>
-        <div class="evBar"><div id="evDDBar" style="height:100%;width:0%;background:var(--green);border-radius:2px;transition:width .3s,background .3s;"></div></div>
-        <div class="evR"><span style="color:var(--white);">Daily P&L</span><span id="evDaily">$0.00</span></div>
-        <div class="evR"><span style="color:var(--white);">Trades</span><span id="evTrades">0</span></div>
-        <div class="evR"><span style="color:var(--white);">Win Rate</span><span id="evWR">—</span></div>
-        <div class="evR"><span style="color:var(--white);">Commissions</span><span id="evComm" style="color:var(--orange);">$0.00</span></div>
-        <div class="evR"><span style="color:var(--white);">Phase</span><span id="evPhase" style="color:var(--gold);">Phase 1 — Day 0</span></div>
-        <div id="consec" style="font-size:11px;text-align:center;padding:4px 0;"></div>
-      </div>
-    </div>
-    <!-- TOOL HELP -->
-    <div class="rS">
-      <div class="rH">✏️ Tool: <span id="toolLbl" style="color:var(--gold);margin-left:4px;">Cursor</span></div>
-      <div class="rB" id="toolHelp" style="font-size:10px;color:var(--white);line-height:1.5;">Drag to pan. Scroll to zoom. Shift+scroll to pan.</div>
     </div>
   </div>
 
@@ -973,10 +1032,12 @@ const VOLUME_BY_HOUR=[
 
 function buildMaster(s){
   const info=SYM[s]||SYM.ES;
-  const baseVol=info.t*4;       // base 1-tick std deviation per bar
-  const jumpProb=0.012;          // 1.2% chance of news jump per bar
-  const trendStrength=0.00015;   // slow drift bias (≈0.015% per bar)
-  const meanReversion=0.02;      // pulls back toward longer-term mean
+  // Base sigma: each 1-min bar has typical 1.5-2 tick standard deviation
+  // For ES at 7000: ~$75-100 typical bar range, realistic
+  const baseVol=info.t*1.6;
+  const jumpProb=0.004;          // 0.4% chance of news jump per bar (was 1.2%)
+  const trendStrength=0.00008;   // half the prior drift bias
+  const meanReversion=0.025;     // pulls back toward longer-term mean
 
   // PRNG with normal distribution (Box-Muller transform)
   const randNorm=()=>{
@@ -989,6 +1050,7 @@ function buildMaster(s){
   const longTermMean=info.b;
   let trend=0; // current trend regime
   let trendDuration=0;
+  let lastJumpBar=-100; // prevent back-to-back jumps
 
   masterBars1m=[];
   for(let i=0;i<1500;i++){
@@ -997,53 +1059,62 @@ function buildMaster(s){
     const hour=dt.getHours();
     const minute=dt.getMinutes();
 
-    // Session-aware volatility multiplier
-    const volMult=VOL_BY_HOUR[hour]||1;
+    // Session-aware volatility (capped to prevent runaway)
+    const volMult=Math.min(1.8,VOL_BY_HOUR[hour]||1);
     const volMult2=VOLUME_BY_HOUR[hour]||1;
 
-    // Trend regime switching (every ~50-150 bars on average)
+    // Trend regime switching - longer durations now
     if(trendDuration<=0){
       const r=Math.random();
-      if(r<0.35)trend=trendStrength;        // bullish
-      else if(r<0.7)trend=-trendStrength;   // bearish
-      else trend=0;                          // ranging
-      trendDuration=Math.floor(50+Math.random()*100);
+      if(r<0.3)trend=trendStrength;        // bullish
+      else if(r<0.6)trend=-trendStrength;  // bearish
+      else trend=0;                         // ranging (40% of time - more realistic)
+      trendDuration=Math.floor(70+Math.random()*120); // 70-190 bars per regime
     }
     trendDuration--;
 
-    // Mean-reversion pull toward long-term level
+    // Mean-reversion pull toward long-term level - stronger now
     const meanPull=(longTermMean-p)/longTermMean*meanReversion;
 
-    // Diffusion component — Gaussian noise scaled by volatility
+    // Diffusion - Gaussian noise scaled by hourly volatility
     const sigma=baseVol*volMult;
     const diffusion=randNorm()*sigma;
 
-    // Jump component — rare large moves (news events)
+    // Jump component - rare and smaller, with cooldown
     let jump=0;
-    if(Math.random()<jumpProb*volMult){
-      const jumpSize=info.t*(15+Math.random()*50)*(Math.random()<0.5?-1:1);
+    if(Math.random()<jumpProb*volMult&&i-lastJumpBar>30){
+      // Jump size: 4-12 ticks (was 15-65). Smooth news reaction, not flash crash.
+      const jumpSize=info.t*(4+Math.random()*8)*(Math.random()<0.5?-1:1);
       jump=jumpSize;
+      lastJumpBar=i;
     }
 
-    // Opening gap at 9:30 ET — first bar of RTH
+    // Opening gap at 9:30 ET — first bar of RTH, smaller than before
     let gap=0;
     if(hour===9&&minute===30){
-      gap=randNorm()*info.t*8; // ±8 ticks typical gap
+      gap=randNorm()*info.t*4; // ±4 ticks typical gap (was 8)
     }
 
     // Combine all components
     const drift=p*trend;
     const o=p;
-    const c=p+drift+diffusion+jump+gap+meanPull*p;
+    let c=p+drift+diffusion+jump+gap+meanPull*p;
 
-    // Build realistic high/low — wider range when volatile
-    const intraBarRange=Math.abs(c-o)+sigma*(0.6+Math.random()*0.8);
-    const upWick=Math.random()*intraBarRange*0.4;
-    const dnWick=Math.random()*intraBarRange*0.4;
+    // Hard cap: no single bar moves more than 25 ticks (~$125 for ES)
+    // This is the typical max single-bar move for liquid futures during regular trading
+    const maxBarMove=info.t*25;
+    if(Math.abs(c-o)>maxBarMove){
+      c=o+Math.sign(c-o)*maxBarMove;
+    }
+
+    // Build realistic high/low — tighter wicks
+    const intraBarRange=Math.abs(c-o)+sigma*(0.4+Math.random()*0.6);
+    const upWick=Math.random()*intraBarRange*0.35;
+    const dnWick=Math.random()*intraBarRange*0.35;
     const h=Math.max(o,c)+upWick;
     const l=Math.min(o,c)-dnWick;
 
-    // Volume — base × hour multiplier × volatility multiplier × random factor
+    // Volume — scaled by hour and volatility
     const baseVolume=80000;
     const volNoise=0.7+Math.random()*0.6;
     let v=Math.floor(baseVolume*volMult2*volNoise*(0.8+volMult*0.4));
@@ -1084,30 +1155,36 @@ function genBars(s,t){if(!masterBars1m.length)buildMaster(s);return aggregateBar
 function genBarsFor(s,t){
   // Same logic as buildMaster but for a different symbol (used for multi-chart layouts)
   const info=SYM[s]||SYM.ES;
-  const baseVol=info.t*4,jumpProb=0.012,trendStrength=0.00015,meanReversion=0.02;
+  const baseVol=info.t*1.6,jumpProb=0.004,trendStrength=0.00008,meanReversion=0.025;
   const randNorm=()=>{let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
   const now=Date.now();
-  let p=info.b;const longTermMean=info.b;let trend=0,trendDuration=0;
+  let p=info.b;const longTermMean=info.b;let trend=0,trendDuration=0,lastJumpBar=-100;
   const m1=[];
   for(let i=0;i<600;i++){
     const ts=now-(599-i)*60000;
     const dt=new Date(ts);const hour=dt.getHours(),minute=dt.getMinutes();
-    const volMult=VOL_BY_HOUR[hour]||1,volMult2=VOLUME_BY_HOUR[hour]||1;
+    const volMult=Math.min(1.8,VOL_BY_HOUR[hour]||1),volMult2=VOLUME_BY_HOUR[hour]||1;
     if(trendDuration<=0){
       const r=Math.random();
-      trend=r<0.35?trendStrength:r<0.7?-trendStrength:0;
-      trendDuration=Math.floor(50+Math.random()*100);
+      trend=r<0.3?trendStrength:r<0.6?-trendStrength:0;
+      trendDuration=Math.floor(70+Math.random()*120);
     }
     trendDuration--;
     const meanPull=(longTermMean-p)/longTermMean*meanReversion;
     const sigma=baseVol*volMult;
     const diffusion=randNorm()*sigma;
     let jump=0;
-    if(Math.random()<jumpProb*volMult)jump=info.t*(15+Math.random()*50)*(Math.random()<0.5?-1:1);
-    const o=p,c=p+p*trend+diffusion+jump+meanPull*p;
-    const range=Math.abs(c-o)+sigma*(0.6+Math.random()*0.8);
-    const h=Math.max(o,c)+Math.random()*range*0.4;
-    const l=Math.min(o,c)-Math.random()*range*0.4;
+    if(Math.random()<jumpProb*volMult&&i-lastJumpBar>30){
+      jump=info.t*(4+Math.random()*8)*(Math.random()<0.5?-1:1);
+      lastJumpBar=i;
+    }
+    const o=p;
+    let c=p+p*trend+diffusion+jump+meanPull*p;
+    const maxBarMove=info.t*25;
+    if(Math.abs(c-o)>maxBarMove)c=o+Math.sign(c-o)*maxBarMove;
+    const range=Math.abs(c-o)+sigma*(0.4+Math.random()*0.6);
+    const h=Math.max(o,c)+Math.random()*range*0.35;
+    const l=Math.min(o,c)-Math.random()*range*0.35;
     let v=Math.floor(80000*volMult2*(0.7+Math.random()*0.6));
     if(hour===9&&minute===30)v=Math.floor(v*3);
     const rnd=x=>Math.round(x/info.t)*info.t;
@@ -1379,7 +1456,7 @@ function redraw(){if(rafPending)return;rafPending=true;requestAnimationFrame(()=
 function draw(){
   if(!ctx||!bars.length)return;
   const W=ctx.canvas.width,H=ctx.canvas.height;if(!W||!H)return;
-  ctx.clearRect(0,0,W,H);ctx.fillStyle='#06060A';ctx.fillRect(0,0,W,H);
+  ctx.clearRect(0,0,W,H);ctx.fillStyle=THEME.bg;ctx.fillRect(0,0,W,H);
   const vis=getVis();if(!vis.length)return;
   const PADR=72,PADB=22,PADT=8,cW=W-PADR,cH=H-PADB-PADT;
   let lo=Math.min(...vis.map(b=>b.l)),hi=Math.max(...vis.map(b=>b.h));
@@ -1744,19 +1821,19 @@ function draw(){
     ctx.beginPath();ctx.moveTo(0,mY);ctx.lineTo(cW,mY);ctx.stroke();ctx.setLineDash([]);
     // Price axis label only
     const hp=lo+(1-(mY-PADT)/cH)*(hi-lo);
-    ctx.fillStyle='#1E1E30';ctx.fillRect(cW+1,mY-9,PADR-2,18);
+    ctx.fillStyle=THEME.s3;ctx.fillRect(cW+1,mY-9,PADR-2,18);
     ctx.strokeStyle='rgba(201,168,76,.3)';ctx.lineWidth=.5;ctx.strokeRect(cW+1,mY-9,PADR-2,18);
     ctx.fillStyle='#E8E8F2';ctx.font='9px DM Mono,monospace';ctx.textAlign='center';ctx.fillText(hp.toFixed(2),cW+PADR/2,mY+4);ctx.textAlign='left';
   }
 
   // Price axis
-  ctx.fillStyle='#08080E';ctx.fillRect(cW,0,PADR,H);
+  ctx.fillStyle=THEME.s1;ctx.fillRect(cW,0,PADR,H);
   const numLv=Math.max(8,Math.floor(cH/38));
-  for(let i=0;i<=numLv;i++){const p=lo+(hi-lo)*(i/numLv),y=toY(p);if(y<PADT-5||y>H-PADB+5)continue;ctx.fillStyle='#FFFFFF';ctx.font='9px DM Mono,monospace';ctx.textAlign='right';ctx.fillText(p.toFixed(2),W-4,y+3);}
+  for(let i=0;i<=numLv;i++){const p=lo+(hi-lo)*(i/numLv),y=toY(p);if(y<PADT-5||y>H-PADB+5)continue;ctx.fillStyle=THEME.text;ctx.font='9px DM Mono,monospace';ctx.textAlign='right';ctx.fillText(p.toFixed(2),W-4,y+3);}
   const last=vis[vis.length-1];
   if(last){
     const cy=toY(last.c);ctx.fillStyle='#C9A84C';ctx.fillRect(cW+1,cy-9,PADR-2,18);
-    ctx.fillStyle='#FFF';ctx.font='bold 10px DM Mono,monospace';ctx.textAlign='center';ctx.fillText(last.c.toFixed(2),cW+PADR/2,cy+4);ctx.textAlign='left';
+    ctx.fillStyle=THEME.text;ctx.font='bold 10px DM Mono,monospace';ctx.textAlign='center';ctx.fillText(last.c.toFixed(2),cW+PADR/2,cy+4);ctx.textAlign='left';
     // 5: Bid/ask removed (kept in DOM panel only)
     const prev=vis[vis.length-2]||last,s=SYM[sym];
     const bigPEl=document.getElementById('bigP');
@@ -1778,9 +1855,9 @@ function draw(){
   }
 
   // Time axis
-  ctx.fillStyle='#08080E';ctx.fillRect(0,H-PADB,cW,PADB);
+  ctx.fillStyle=THEME.s1;ctx.fillRect(0,H-PADB,cW,PADB);
   const tStep=Math.max(1,Math.floor(vis.length/10));
-  vis.forEach((b,i)=>{if(i%tStep!==0)return;const x=toX(i),d=new Date(b.ts);const lbl=(tf==='D'||tf==='W')?d.toLocaleDateString('en-US',{month:'numeric',day:'numeric'}):d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});ctx.fillStyle='#FFFFFF';ctx.font='9px DM Mono,monospace';ctx.textAlign='center';ctx.fillText(lbl,x,H-5);});ctx.textAlign='left';
+  vis.forEach((b,i)=>{if(i%tStep!==0)return;const x=toX(i),d=new Date(b.ts);const lbl=(tf==='D'||tf==='W')?d.toLocaleDateString('en-US',{month:'numeric',day:'numeric'}):d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});ctx.fillStyle=THEME.text;ctx.font='9px DM Mono,monospace';ctx.textAlign='center';ctx.fillText(lbl,x,H-5);});ctx.textAlign='left';
 
   drawPanels(vis,si);
   // MTF confluence dots overlay on main chart
@@ -1798,7 +1875,7 @@ function drawPanels(vis,si){
   if(!vis.length)return;
   if(rsiCtx&&panels.RSI?.on&&!document.getElementById('bRSI')?.classList.contains('col')){
     const W=rsiCtx.canvas.width,H=rsiCtx.canvas.height;
-    rsiCtx.clearRect(0,0,W,H);rsiCtx.fillStyle='#06060A';rsiCtx.fillRect(0,0,W,H);
+    rsiCtx.clearRect(0,0,W,H);rsiCtx.fillStyle=THEME.bg;rsiCtx.fillRect(0,0,W,H);
     const vals=getInd('rsi',()=>calcRSI(bars)),bW=W/vis.length;
     [30,50,70].forEach(lv=>{const y=H-(lv/100)*H;rsiCtx.strokeStyle='rgba(255,255,255,.04)';rsiCtx.lineWidth=.5;rsiCtx.setLineDash(lv===50?[3,3]:[]);rsiCtx.beginPath();rsiCtx.moveTo(0,y);rsiCtx.lineTo(W,y);rsiCtx.stroke();rsiCtx.setLineDash([]);rsiCtx.fillStyle='rgba(255,255,255,.95)';rsiCtx.font='8px DM Mono,monospace';rsiCtx.textAlign='right';rsiCtx.fillText(lv,W-2,y+3);});
     rsiCtx.beginPath();rsiCtx.strokeStyle='#CE93D8';rsiCtx.lineWidth=1.2;let st=false;
@@ -1807,7 +1884,7 @@ function drawPanels(vis,si){
   }
   if(macdCtx&&panels.MACD?.on&&!document.getElementById('bMACD')?.classList.contains('col')){
     const W=macdCtx.canvas.width,H=macdCtx.canvas.height;
-    macdCtx.clearRect(0,0,W,H);macdCtx.fillStyle='#06060A';macdCtx.fillRect(0,0,W,H);
+    macdCtx.clearRect(0,0,W,H);macdCtx.fillStyle=THEME.bg;macdCtx.fillRect(0,0,W,H);
     const{ml,sl,hist}=getInd('macd',()=>calcMACD(bars));
     const hvs=hist.slice(si,si+vis.length).filter(v=>v!==null);const mxH=Math.max(...hvs.map(Math.abs))||1;
     const midY=H/2,bW=W/vis.length;
@@ -1818,7 +1895,7 @@ function drawPanels(vis,si){
   }
   if(volCtx&&panels.Volume?.on&&!document.getElementById('bVol')?.classList.contains('col')){
     const W=volCtx.canvas.width,H=volCtx.canvas.height;
-    volCtx.clearRect(0,0,W,H);volCtx.fillStyle='#06060A';volCtx.fillRect(0,0,W,H);
+    volCtx.clearRect(0,0,W,H);volCtx.fillStyle=THEME.bg;volCtx.fillRect(0,0,W,H);
     const mV=Math.max(...vis.map(b=>b.v))||1,bW=W/vis.length;
     vis.forEach((b,i)=>{const h=(b.v/mV)*(H-3),x=i*bW;volCtx.fillStyle=b.c>=b.o?'rgba(38,166,154,.75)':'rgba(239,83,80,.75)';volCtx.fillRect(x,H-h,bW*.8,h);});
     const el=document.getElementById('vVol');if(el)el.textContent=(vis[vis.length-1]?.v/1000||0).toFixed(0)+'K';
@@ -1836,7 +1913,7 @@ function drawExtraCells(){
     const dc=cs.ctx;
     const W=dc.canvas.width,H=dc.canvas.height;
     if(!W||!H)continue;
-    dc.clearRect(0,0,W,H);dc.fillStyle='#06060A';dc.fillRect(0,0,W,H);
+    dc.clearRect(0,0,W,H);dc.fillStyle=THEME.bg;dc.fillRect(0,0,W,H);
 
     // Per-cell zoom/offset
     const cZoom=cs.zoom||1;const cOff=Math.max(0,cs.offset||0);
@@ -1873,11 +1950,11 @@ function drawExtraCells(){
     // Price axis
     dc.fillStyle='rgba(8,8,14,.95)';dc.fillRect(cW,0,PADR,H);
     const numLv=Math.max(5,Math.floor(cH/36));
-    for(let j=0;j<=numLv;j++){const p=lo+(hi-lo)*(j/numLv),y=toY(p);if(y<PADT-3||y>H-PADB+3)continue;dc.fillStyle='#FFFFFF';dc.font='8px DM Mono,monospace';dc.textAlign='right';dc.fillText(p.toFixed(info.t<1?2:0),W-2,y+3);}
+    for(let j=0;j<=numLv;j++){const p=lo+(hi-lo)*(j/numLv),y=toY(p);if(y<PADT-3||y>H-PADB+3)continue;dc.fillStyle=THEME.text;dc.font='8px DM Mono,monospace';dc.textAlign='right';dc.fillText(p.toFixed(info.t<1?2:0),W-2,y+3);}
     const last2=vis[vis.length-1];
     if(last2){
       const cy=toY(last2.c);dc.fillStyle='#C9A84C';dc.fillRect(cW+1,cy-7,PADR-2,14);
-      dc.fillStyle='#FFF';dc.font='bold 8px DM Mono,monospace';dc.textAlign='center';
+      dc.fillStyle=THEME.text;dc.font='bold 8px DM Mono,monospace';dc.textAlign='center';
       dc.fillText(last2.c.toFixed(info.t<1?2:0),cW+PADR/2,cy+4);dc.textAlign='left';
       const cp2=document.getElementById('cprice'+ci);
       if(cp2)cp2.textContent=last2.c.toFixed(info.t<1?2:0);
@@ -2982,10 +3059,55 @@ function rebindHotkey(action,btn){
 // THEME SWITCHER
 // ════════════════════════════════════════════════
 let currentTheme=localStorage.getItem('tx_theme')||'dark';
+
+// Read computed CSS variable values — used by canvas drawing
+// so canvas updates when theme changes
+let THEME={};
+
+// Switch right-panel tabs
+function switchRpTab(tab){
+  document.querySelectorAll('.rpTab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tab));
+  document.querySelectorAll('.rpPane').forEach(p=>p.classList.toggle('active',p.id==='rpPane-'+tab));
+  localStorage.setItem('tx_rp_tab',tab);
+}
+// Restore last tab on load
+window.addEventListener('DOMContentLoaded',()=>{
+  const saved=localStorage.getItem('tx_rp_tab');
+  if(saved&&['trade','setup','status'].includes(saved))switchRpTab(saved);
+});
+
+function refreshThemeColors(){
+  const cs=getComputedStyle(document.body);
+  THEME={
+    bg:cs.getPropertyValue('--bg').trim()||'#06060A',
+    s1:cs.getPropertyValue('--s1').trim()||'#0B0B12',
+    s2:cs.getPropertyValue('--s2').trim()||'#10101A',
+    s3:cs.getPropertyValue('--s3').trim()||'#151520',
+    text:cs.getPropertyValue('--white').trim()||'#FFFFFF',
+    gray:cs.getPropertyValue('--gray').trim()||'#B0B0C8',
+    gray2:cs.getPropertyValue('--gray2').trim()||'#505068',
+    gold:cs.getPropertyValue('--gold').trim()||'#C9A84C',
+    gold2:cs.getPropertyValue('--gold2').trim()||'#E8C870',
+    border:cs.getPropertyValue('--border').trim()||'rgba(255,255,255,0.06)',
+    green:'#00E676',
+    red:'#FF1744',
+    candleUp:cs.getPropertyValue('--candleUp').trim()||'#26A69A',
+    candleDown:cs.getPropertyValue('--candleDown').trim()||'#EF5350'
+  };
+  // Set fallback rgba versions
+  const isLight=currentTheme==='light';
+  THEME.gridLine=isLight?'rgba(0,0,0,0.06)':'rgba(255,255,255,0.06)';
+  THEME.crosshair=isLight?'rgba(0,0,0,0.4)':'rgba(255,255,255,0.4)';
+  THEME.axisText=THEME.text;
+  THEME.bgPanel=isLight?'rgba(255,255,255,0.92)':'rgba(8,8,18,0.92)';
+}
+refreshThemeColors();
+
 function applyTheme(t){
   currentTheme=t;
   document.body.dataset.theme=t==='dark'?'':t;
   localStorage.setItem('tx_theme',t);
+  refreshThemeColors();
   const item=document.getElementById('themeItem');
   if(item){
     const labels={dark:'Dark',light:'Light',amber:'Amber'};
@@ -3425,10 +3547,15 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 
 async function syncTradeToJournal(t){
   try{
-    // Use the authenticated client created in the auth guard (chartUser is set there)
     if(!chartUser||!_authClient){
       console.log('Trade sync skipped: not authenticated');
       return;
+    }
+    // Convert duration string (e.g. "120s") to integer minutes
+    let durationMin=null;
+    if(t.duration&&typeof t.duration==='string'){
+      const seconds=parseInt(t.duration);
+      if(!isNaN(seconds))durationMin=Math.round(seconds/60);
     }
     const body={
       user_id:chartUser.id,
@@ -3439,11 +3566,14 @@ async function syncTradeToJournal(t){
       contracts:t.qty,
       pnl:t.pnl,
       r_multiple:t.r||null,
-      notes:'Eval Chart — '+new Date().toLocaleString(),
-      duration:t.duration||null,
-      quality:t.quality||3,
-      emotion:t.emotion||'calm',
-      tags:t.tags||[]
+      duration_minutes:durationMin,
+      status:'closed',
+      setup_notes:'Eval Chart — '+new Date().toLocaleString(),
+      execution_quality:t.quality||3,
+      emotional_state:t.emotion||'calm',
+      tags:t.tags||[],
+      entry_time:new Date(Date.now()-(durationMin||0)*60000).toISOString(),
+      exit_time:new Date().toISOString()
     };
     const {error}=await _authClient.from('trades').insert(body);
     if(error){
@@ -3680,43 +3810,82 @@ function tick(){
   const dt=new Date(simTime);
   const hour=dt.getHours(),minute=dt.getMinutes();
   const hourlyVol=(VOL_BY_HOUR[hour]||1);
-  const finalVol=vol*hourlyVol*0.5+vol*0.5; // blend session + hour
+  // Blend: hourly contributes 70%, session 30%. Cap at 2.0 to prevent runaway.
+  const finalVol=Math.min(2.0,hourlyVol*0.7+vol*0.3);
 
-  // News spike events (now scaled by volatility — quiet hours rarely spike)
+  // ── NEWS SPIKES ──
+  // Spike now decays smoothly using exponential, not divide-by-counter.
+  // Magnitudes are tick-based (small) not point-based (huge).
   let spike=0;
   if(pendingSpike){
-    spike=(pendingSpike.mag/pendingSpike.left)*info.b*.0008;
+    // Each tick gets a fraction proportional to remaining decay
+    const totalSpike=pendingSpike.totalTicks*info.t;
+    const decayFactor=pendingSpike.left/pendingSpike.duration;
+    // Smooth bell curve - peaks in middle, fades at start and end
+    const bellCurve=Math.sin(decayFactor*Math.PI);
+    spike=(totalSpike/pendingSpike.duration)*bellCurve*pendingSpike.dir*1.2;
     pendingSpike.left--;
     if(pendingSpike.left<=0)pendingSpike=null;
   }
-  if(!pendingSpike&&Math.random()<.004*hourlyVol){
+  // Spawn news event - much rarer + smaller magnitude
+  if(!pendingSpike&&Math.random()<.0015*hourlyVol){
     const dir=Math.random()>.5?1:-1;
-    const mag=dir*(1+Math.random()*3.5);
-    pendingSpike={mag,left:Math.floor(5+Math.random()*8)};
-    const pts=Math.abs(mag*info.b*.0008).toFixed(2);
+    // Total move: 4-15 ticks across 8-20 ticks of duration
+    // For ES: 4-15 ticks = $50-$187 over ~3 seconds, realistic news reaction
+    const totalTicks=4+Math.floor(Math.random()*12);
+    const duration=8+Math.floor(Math.random()*13);
+    pendingSpike={totalTicks,duration,left:duration,dir};
+    const pts=(totalTicks*info.t).toFixed(2);
     const news=['Fed comment','Jobless claims','CPI release','Block print','Treasury auction','Risk-off flow','Technical stop run','Algo cascade','Options expiry pin','Corporate guidance'];
     showToast(`📰 ${dir>0?'▲':'▼'} ${news[Math.floor(Math.random()*news.length)]} · ${pts} pts`,dir>0?'rgba(0,230,118,.9)':'rgba(255,23,68,.9)');
     playSound('news');
   }
 
-  // Trend regime evolution (with mean reversion)
-  simTrend=simTrend*.94+(Math.random()-.502)*.18;
-  // Soft pull back toward neutral when trend gets extreme
-  if(Math.abs(simTrend)>2)simTrend*=0.7;
+  // ── TREND REGIME ──
+  // Tighter decay (.92) + smaller noise (.06) + harder cap to prevent runaway
+  simTrend=simTrend*.92+(Math.random()-.5)*.06;
+  if(Math.abs(simTrend)>1.5)simTrend=Math.sign(simTrend)*1.5;
+  // Mean reversion - if price has drifted far from session VWAP, pull back
+  const sessionStartIdx=Math.max(0,bars.length-150);
+  const sessionPrices=bars.slice(sessionStartIdx).map(b=>(b.h+b.l+b.c)/3);
+  const sessionVwap=sessionPrices.reduce((a,b)=>a+b,0)/sessionPrices.length;
+  const distFromVwap=(last.c-sessionVwap)/sessionVwap;
+  // If we're more than 0.4% from session VWAP, gently pull back
+  let meanReversion=0;
+  if(Math.abs(distFromVwap)>0.004){
+    meanReversion=-distFromVwap*0.08;
+  }
 
-  // Box-Muller normal distribution for realistic price jumps
+  // ── PRICE TICK ──
+  // Box-Muller normal random
   const u=Math.random()||0.0001,v2=Math.random()||0.0001;
   const norm=Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v2);
 
-  // Tick movement: drift + diffusion + spike
-  const sigma=info.b*.00018*finalVol;
-  const drift=simTrend*sigma*0.4;
+  // Sigma: significantly reduced base. Was .00018, now .00007 (60% smaller)
+  // For ES at 7000: sigma was 1.26 ticks → now 0.49 ticks
+  // This means typical tick moves are 0.5-1.5 ticks, not 3-5
+  const sigma=info.b*.00007*finalVol;
+
+  // Drift contribution from trend - very small bias
+  const drift=simTrend*sigma*0.25;
+
+  // Diffusion - the Gaussian random walk
   const diffusion=norm*sigma;
-  const t=drift+diffusion+spike;
 
-  const nc=Math.round((last.c+t)/info.t)*info.t;
+  // Mean reversion pull
+  const mrPull=meanReversion*info.b;
 
-  // Volume tick: scaled by hourly profile
+  // Combined movement
+  const t=drift+diffusion+spike+mrPull;
+
+  // Hard cap on single-tick movement: max 4 ticks per 200ms tick
+  // This is the MOST important change - prevents monstrous candles
+  const maxMove=info.t*4;
+  const tCapped=Math.max(-maxMove,Math.min(maxMove,t));
+
+  const nc=Math.round((last.c+tCapped)/info.t)*info.t;
+
+  // Volume tick: scaled by hourly profile + slight randomness
   const volTick=Math.floor((300+Math.random()*600)*finalVol*(VOLUME_BY_HOUR[hour]||1));
 
   bars[bars.length-1]={
@@ -3737,7 +3906,7 @@ function tick(){
     let gapPrice=nc;
     if(newHour===9&&newMin===30){
       const gapNorm=Math.sqrt(-2*Math.log(Math.random()||.001))*Math.cos(2*Math.PI*(Math.random()||.001));
-      gapPrice=nc+gapNorm*info.t*6;
+      gapPrice=nc+gapNorm*info.t*4; // smaller gap, was 6
       gapPrice=Math.round(gapPrice/info.t)*info.t;
     }
     // Initial bar volume larger during peak hours
@@ -3752,7 +3921,7 @@ function tick(){
     bars=genBars(sym,tf);clearCache();
   }
 
-  // Tick extra cells (multi-chart layouts) — also realistic
+  // Tick extra cells (multi-chart layouts)
   if(currentLayout!==1){
     for(let i=1;i<6;i++){
       const cs=cellStates[i];
@@ -3761,9 +3930,10 @@ function tick(){
       const l2=cs.bars[cs.bars.length-1];
       const u2=Math.random()||0.0001,v3=Math.random()||0.0001;
       const n2=Math.sqrt(-2*Math.log(u2))*Math.cos(2*Math.PI*v3);
-      const sig2=s2.b*.00018*finalVol;
+      const sig2=s2.b*.00007*finalVol; // matched to main
       const t2=n2*sig2;
-      const nc2=Math.round((l2.c+t2)/s2.t)*s2.t;
+      const t2Capped=Math.max(-s2.t*4,Math.min(s2.t*4,t2));
+      const nc2=Math.round((l2.c+t2Capped)/s2.t)*s2.t;
       cs.bars[cs.bars.length-1]={...l2,c:nc2,h:Math.max(l2.h,nc2),l:Math.min(l2.l,nc2)};
     }
     drawExtraCells();
@@ -4324,7 +4494,7 @@ function drawFootprint(ctx,vis,toX,toY,bW,cndW,lo,hi,cH,PADT){
         if(fpW>=28&&lH>=11){
           ctx.font=`${Math.max(7,Math.min(9,lH-3))}px DM Mono,monospace`;
           ctx.textAlign='center';
-          ctx.fillStyle='#FFFFFF';
+          ctx.fillStyle=THEME.text;
           ctx.fillText((d.delta>=0?'+':'')+d.delta,x,y+3);
         }
       } else {
@@ -4608,7 +4778,7 @@ function drawDeltaPanel(vis,si){
   if(!showDelta||!deltaCtx)return;
   const W=deltaCtx.canvas.width,H=deltaCtx.canvas.height;
   deltaCtx.clearRect(0,0,W,H);
-  deltaCtx.fillStyle='#06060A';deltaCtx.fillRect(0,0,W,H);
+  deltaCtx.fillStyle=THEME.bg;deltaCtx.fillRect(0,0,W,H);
   if(!vis.length)return;
 
   const bW=W/vis.length;
