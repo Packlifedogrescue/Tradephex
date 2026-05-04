@@ -3,724 +3,981 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tradephex — Elite Futures Prop Firm</title>
-<meta name="description" content="The only prop firm with pro-grade trading tools built in. Footprint candles, order flow, AI trade scoring. Get funded from $79/mo. No time limits.">
+<title>Tradephex</title>
+<meta name="description" content="The platform is the edge. A futures evaluation firm built around proprietary trading tools, not gamified rules.">
 <link rel="icon" type="image/png" href="/favicon.png">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@300;400;500;600;700&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@200;300;400;500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#06060A;--s1:#0B0B12;--s2:#10101A;--s3:#15151F;
-  --gold:#C9A84C;--gold2:#E8C870;--gold3:#9B7E2B;
-  --white:#FFFFFF;--gray:#B0B0C8;--gray2:#7A7A92;--gray3:#4A4A5A;
-  --green:#00E676;--red:#FF1744;
-  --border:rgba(201,168,76,.12);--border2:rgba(201,168,76,.28);
+  --black:#000000;
+  --soft:#0A0A0A;
+  --line:rgba(255,255,255,.06);
+  --line2:rgba(255,255,255,.12);
+  --gold:#C9A84C;
+  --gold-soft:#9F8638;
+  --text:#E8E8E8;
+  --mute:#6F6F6F;
+  --mute2:#3F3F3F;
+  --serif:'Spectral',Georgia,serif;
+  --sans:'Inter',-apple-system,sans-serif;
+  --mono:'JetBrains Mono',Menlo,monospace;
 }
 html{scroll-behavior:smooth;}
-body{background:var(--bg);color:var(--white);font-family:'Barlow',sans-serif;overflow-x:hidden;line-height:1.5;}
-::-webkit-scrollbar{width:6px;}
-::-webkit-scrollbar-track{background:var(--s1);}
-::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:3px;}
-::-webkit-scrollbar-thumb:hover{background:var(--gold);}
-a{color:inherit;text-decoration:none;}
-button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+body{
+  background:var(--black);
+  color:var(--text);
+  font-family:var(--sans);
+  font-weight:300;
+  line-height:1.6;
+  overflow-x:hidden;
+  cursor:none;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+::selection{background:var(--gold);color:#000;}
+::-webkit-scrollbar{width:0;}
+a{color:inherit;text-decoration:none;cursor:none;}
+button{font-family:inherit;cursor:none;border:none;background:none;color:inherit;}
+
+/* ── CUSTOM CURSOR ── */
+.cursor{position:fixed;width:6px;height:6px;border-radius:50%;background:var(--gold);pointer-events:none;z-index:9999;transition:transform .15s ease,width .25s ease,height .25s ease,background .2s ease;mix-blend-mode:difference;will-change:transform;top:0;left:0;}
+.cursor.hover{width:32px;height:32px;background:transparent;border:1px solid var(--gold);transform:translate(-13px,-13px);}
+@media(hover:none){.cursor{display:none;}body,a,button{cursor:auto;}}
 
 /* ── NAV ── */
-nav{position:fixed;top:0;left:0;right:0;height:62px;background:rgba(6,6,10,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);z-index:100;display:flex;align-items:center;padding:0 5%;justify-content:space-between;}
-.logo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;letter-spacing:.1em;color:var(--white);}
-.logo span{color:var(--gold);}
-.navLinks{display:flex;gap:28px;align-items:center;}
-.navLinks a{color:var(--gray);font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:.12em;text-transform:uppercase;transition:.15s;}
-.navLinks a:hover{color:var(--white);}
-.btnPrimary{padding:11px 24px;background:var(--gold);color:#000;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:.12em;cursor:pointer;border:none;transition:.2s;display:inline-block;text-transform:uppercase;}
-.btnPrimary:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 8px 24px rgba(201,168,76,.25);}
-.btnOutline{padding:11px 24px;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.1em;cursor:pointer;background:transparent;transition:.2s;display:inline-block;text-transform:uppercase;}
-.btnOutline:hover{background:rgba(201,168,76,.06);border-color:var(--gold);}
-.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;}
-.hamburger span{width:24px;height:2px;background:var(--gold);}
+nav{
+  position:fixed;top:0;left:0;right:0;
+  padding:24px 64px;
+  display:flex;align-items:center;justify-content:space-between;
+  z-index:100;
+  mix-blend-mode:difference;
+}
+nav.scrolled{
+  background:rgba(0,0,0,.7);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  mix-blend-mode:normal;
+  border-bottom:1px solid var(--line);
+}
+.brand{
+  font-family:var(--mono);
+  font-size:13px;
+  font-weight:500;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+  color:#FFF;
+}
+.brand span{color:var(--gold);}
+.navL{display:flex;gap:48px;align-items:center;}
+.navL a{
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:400;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:#999;
+  transition:color .25s;
+  position:relative;
+}
+.navL a:hover{color:#FFF;}
+.navL .nav-cta{
+  color:var(--gold);
+  padding:10px 22px;
+  border:1px solid var(--gold-soft);
+  transition:.3s;
+}
+.navL .nav-cta:hover{background:var(--gold);color:#000;border-color:var(--gold);}
 
 /* ── HERO ── */
-.hero{position:relative;min-height:100vh;display:flex;align-items:center;padding:90px 5% 60px;overflow:hidden;}
-#heroChart{position:absolute;inset:0;width:100%;height:100%;z-index:0;opacity:.55;}
-.heroOverlay{position:absolute;inset:0;background:radial-gradient(ellipse at right,transparent 0%,var(--bg) 75%),linear-gradient(180deg,transparent 60%,var(--bg) 100%);z-index:1;pointer-events:none;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
-.heroContent{position:relative;z-index:2;max-width:680px;}
-.eyebrow{display:inline-block;padding:6px 14px;background:rgba(201,168,76,.08);border:1px solid var(--border2);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;margin-bottom:24px;}
-h1.heroH{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(48px,7vw,84px);line-height:.95;letter-spacing:.005em;margin-bottom:20px;text-transform:uppercase;}
-h1.heroH .gd{color:var(--gold);}
-.heroSub{font-size:18px;color:var(--gray);margin-bottom:32px;max-width:540px;font-weight:400;line-height:1.65;}
-.heroBtns{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:48px;}
-.btnHero{padding:16px 36px;font-size:14px;letter-spacing:.14em;}
-.heroStats{display:flex;gap:48px;border-top:1px solid var(--border);padding-top:28px;flex-wrap:wrap;}
-.heroStat{display:flex;flex-direction:column;}
-.heroStat .v{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;color:var(--gold);line-height:1;letter-spacing:.02em;}
-.heroStat .l{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--gray2);text-transform:uppercase;margin-top:6px;}
+.hero{
+  min-height:100vh;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:0 64px;
+  overflow:hidden;
+}
+#heroChart{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:0;
+  opacity:.18;
+  filter:blur(.4px);
+  pointer-events:none;
+}
+.heroVignette{
+  position:absolute;
+  inset:0;
+  background:radial-gradient(ellipse at 30% 50%,transparent 0%,rgba(0,0,0,.6) 50%,#000 100%);
+  z-index:1;
+  pointer-events:none;
+}
+.heroInner{
+  position:relative;
+  z-index:2;
+  max-width:1200px;
+}
+.heroEyebrow{
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:400;
+  letter-spacing:.32em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:48px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  opacity:0;
+  animation:fadeUp 1.2s ease .2s forwards;
+}
+.heroEyebrow::before{
+  content:'';
+  width:32px;
+  height:1px;
+  background:var(--gold);
+}
+h1.heroH{
+  font-family:var(--serif);
+  font-weight:300;
+  font-size:clamp(56px,9vw,128px);
+  line-height:.96;
+  letter-spacing:-.025em;
+  color:#FFF;
+  margin-bottom:48px;
+  opacity:0;
+  animation:fadeUp 1.4s ease .4s forwards;
+}
+h1.heroH em{
+  font-style:italic;
+  color:var(--gold);
+  font-weight:200;
+}
+.heroSub{
+  font-family:var(--sans);
+  font-size:18px;
+  font-weight:300;
+  color:var(--mute);
+  max-width:520px;
+  line-height:1.7;
+  margin-bottom:64px;
+  opacity:0;
+  animation:fadeUp 1.4s ease .6s forwards;
+}
+.heroCTA{
+  display:inline-flex;
+  align-items:center;
+  gap:14px;
+  font-family:var(--mono);
+  font-size:12px;
+  font-weight:500;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+  color:var(--gold);
+  padding:18px 32px;
+  border:1px solid var(--gold-soft);
+  transition:.4s cubic-bezier(.4,0,.2,1);
+  position:relative;
+  overflow:hidden;
+  opacity:0;
+  animation:fadeUp 1.4s ease .8s forwards;
+}
+.heroCTA::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:var(--gold);
+  transform:translateX(-100%);
+  transition:transform .5s cubic-bezier(.4,0,.2,1);
+  z-index:0;
+}
+.heroCTA:hover::before{transform:translateX(0);}
+.heroCTA span{position:relative;z-index:1;transition:color .3s;}
+.heroCTA:hover span{color:#000;}
+.heroCTA .arr{
+  position:relative;z-index:1;
+  width:24px;height:1px;background:var(--gold);
+  transition:background .3s;
+}
+.heroCTA .arr::after{
+  content:'';
+  position:absolute;
+  right:0;top:-4px;
+  width:8px;height:8px;
+  border-top:1px solid var(--gold);
+  border-right:1px solid var(--gold);
+  transform:rotate(45deg);
+  transition:border-color .3s;
+}
+.heroCTA:hover .arr,.heroCTA:hover .arr::after{background:#000;border-color:#000;}
+.heroScroll{
+  position:absolute;
+  bottom:48px;
+  left:50%;
+  transform:translateX(-50%);
+  font-family:var(--mono);
+  font-size:9px;
+  letter-spacing:.32em;
+  text-transform:uppercase;
+  color:var(--mute2);
+  z-index:2;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:14px;
+  opacity:0;
+  animation:fadeUp 1.4s ease 1.2s forwards;
+}
+.heroScroll::after{
+  content:'';
+  width:1px;
+  height:48px;
+  background:linear-gradient(to bottom,var(--gold),transparent);
+  animation:scrollHint 2s ease infinite;
+}
+@keyframes scrollHint{0%{transform:scaleY(0);transform-origin:top;}50%{transform:scaleY(1);transform-origin:top;}51%{transform:scaleY(1);transform-origin:bottom;}100%{transform:scaleY(0);transform-origin:bottom;}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
 
-/* ── SECTION TEMPLATES ── */
-section{padding:100px 5%;position:relative;}
-section h2{font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:clamp(36px,5vw,56px);line-height:1.05;text-transform:uppercase;letter-spacing:.005em;margin-bottom:14px;}
-section h2 .gd{color:var(--gold);}
-.sectionEyebrow{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.22em;color:var(--gold);text-transform:uppercase;margin-bottom:18px;font-weight:600;}
-.sectionSub{font-size:16px;color:var(--gray);max-width:620px;margin-bottom:48px;line-height:1.7;}
-.scrollRevealItem{opacity:0;transform:translateY(40px);transition:opacity .8s ease,transform .8s ease;}
-.scrollRevealItem.shown{opacity:1;transform:translateY(0);}
+/* ── SECTIONS ── */
+section{padding:200px 64px;position:relative;}
+.sectionLine{height:1px;background:var(--line);max-width:1400px;margin:0 auto;}
 
-/* ── RISK VISUALIZER ── */
-.riskBox{background:var(--s1);border:1px solid var(--border2);padding:42px;display:grid;grid-template-columns:1fr 1fr;gap:42px;align-items:center;max-width:1100px;margin:0 auto;}
-.riskControls .riskLabel{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.16em;color:var(--gray);text-transform:uppercase;margin-bottom:10px;}
-.riskRow{margin-bottom:28px;}
-.riskValue{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:38px;color:var(--gold);line-height:1;}
-.riskSlider{-webkit-appearance:none;width:100%;height:6px;background:var(--s3);border:1px solid var(--border);outline:none;margin-top:10px;cursor:pointer;}
-.riskSlider::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;background:var(--gold);cursor:pointer;border:3px solid var(--bg);box-shadow:0 0 12px rgba(201,168,76,.5);}
-.riskSlider::-moz-range-thumb{width:22px;height:22px;background:var(--gold);cursor:pointer;border:3px solid var(--bg);}
-.riskAccountSelect{display:flex;gap:8px;margin-top:8px;}
-.riskAcct{flex:1;padding:11px;background:var(--s2);border:1px solid var(--border);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.06em;color:var(--gray);cursor:pointer;transition:.15s;text-align:center;}
-.riskAcct:hover{color:var(--white);border-color:var(--border2);}
-.riskAcct.active{background:var(--gold);color:#000;border-color:var(--gold);}
-.riskOutput{background:var(--bg);border:1px solid var(--border);padding:32px;display:flex;flex-direction:column;justify-content:center;}
-.riskOutTitle{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.16em;color:var(--gray);margin-bottom:16px;text-transform:uppercase;}
-.riskBarWrap{margin-bottom:22px;}
-.riskBarLabel{display:flex;justify-content:space-between;margin-bottom:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--gray);}
-.riskBarLabel .v{color:var(--white);font-weight:600;}
-.riskBar{height:10px;background:var(--s3);border:1px solid var(--border);position:relative;overflow:hidden;}
-.riskFill{height:100%;background:linear-gradient(90deg,var(--green) 0%,var(--gold) 70%,var(--red) 100%);transition:width .3s cubic-bezier(.34,1.4,.64,1);position:relative;}
-.riskBar::after{content:'';position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:rgba(255,152,0,.5);}
-.riskVerdict{padding:14px 18px;border:1px solid var(--border);font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.06em;text-align:center;margin-top:14px;}
-.riskVerdict.safe{background:rgba(0,230,118,.06);border-color:rgba(0,230,118,.3);color:var(--green);}
-.riskVerdict.warn{background:rgba(255,152,0,.06);border-color:rgba(255,152,0,.3);color:#FFB347;}
-.riskVerdict.danger{background:rgba(255,23,68,.06);border-color:rgba(255,23,68,.3);color:var(--red);}
+/* ── THESIS ── */
+.thesis{
+  max-width:1200px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:240px 1fr;
+  gap:96px;
+}
+.thesisLabel{
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:400;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+  color:var(--gold);
+  position:sticky;
+  top:120px;
+  align-self:start;
+  height:max-content;
+}
+.thesisLabel::before{
+  content:'';
+  display:block;
+  width:48px;
+  height:1px;
+  background:var(--gold);
+  margin-bottom:18px;
+}
+.thesisBody{
+  font-family:var(--serif);
+  font-weight:300;
+  font-size:clamp(28px,3vw,40px);
+  line-height:1.4;
+  letter-spacing:-.012em;
+  color:var(--text);
+}
+.thesisBody p{margin-bottom:36px;}
+.thesisBody p:last-child{margin-bottom:0;color:var(--mute);}
+.thesisBody em{color:var(--gold);font-style:italic;}
 
-/* ── FEATURES (hover reveal) ── */
-.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;max-width:1280px;margin:0 auto;}
-.feat{background:var(--s1);border:1px solid var(--border);padding:32px 28px;cursor:default;transition:.3s cubic-bezier(.4,0,.2,1);position:relative;overflow:hidden;}
-.feat::before{content:'';position:absolute;top:0;left:0;width:0;height:2px;background:var(--gold);transition:width .4s ease;}
-.feat:hover{border-color:var(--border2);transform:translateY(-4px);}
-.feat:hover::before{width:100%;}
-.featIcon{width:42px;height:42px;background:rgba(201,168,76,.08);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;margin-bottom:18px;color:var(--gold);transition:.3s;}
-.feat:hover .featIcon{background:var(--gold);color:#000;}
-.feat h3{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;letter-spacing:.04em;margin-bottom:10px;text-transform:uppercase;}
-.feat p{font-size:13px;color:var(--gray);line-height:1.65;}
+/* ── NUMBERS ── */
+.numbers{
+  max-width:1400px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:0;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+}
+.num{
+  padding:64px 32px;
+  border-right:1px solid var(--line);
+  position:relative;
+  cursor:none;
+}
+.num:last-child{border-right:none;}
+.numV{
+  font-family:var(--mono);
+  font-weight:300;
+  font-size:clamp(48px,5vw,72px);
+  line-height:1;
+  color:var(--text);
+  letter-spacing:-.02em;
+  margin-bottom:8px;
+  transition:color .3s;
+}
+.num:hover .numV{color:var(--gold);}
+.numL{
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+  color:var(--mute2);
+  transition:color .3s;
+}
+.num:hover .numL{color:var(--text);}
 
-/* ── ACCOUNT FLIPPER ── */
-/* ── PRODUCT CARD BUTTON (used by 3 ways section) ── */
-.flipperBtn{width:100%;padding:14px;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:.14em;cursor:pointer;transition:.2s;text-transform:uppercase;text-align:center;display:block;text-decoration:none;}
-.flipperBtn:hover{background:var(--gold);color:#000;border-color:var(--gold);}
+/* ── PLATFORM ── */
+.platform{max-width:1400px;margin:0 auto;}
+.platformHead{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:96px;
+  margin-bottom:120px;
+  align-items:end;
+}
+.platformLabel{
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:400;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:32px;
+}
+.platformLabel::before{
+  content:'';
+  display:inline-block;
+  width:32px;
+  height:1px;
+  background:var(--gold);
+  vertical-align:middle;
+  margin-right:14px;
+}
+.platformH{
+  font-family:var(--serif);
+  font-weight:300;
+  font-size:clamp(40px,5vw,72px);
+  line-height:1;
+  letter-spacing:-.02em;
+  color:#FFF;
+}
+.platformH em{font-style:italic;color:var(--gold);font-weight:200;}
+.platformDesc{
+  font-family:var(--sans);
+  font-size:17px;
+  line-height:1.7;
+  font-weight:300;
+  color:var(--mute);
+  max-width:480px;
+  padding-bottom:8px;
+}
+.featureList{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);}
+.featureItem{
+  background:var(--black);
+  padding:48px 40px;
+  transition:background .4s;
+  position:relative;
+}
+.featureItem:hover{background:var(--soft);}
+.featureNum{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.2em;
+  color:var(--gold);
+  margin-bottom:24px;
+}
+.featureH{
+  font-family:var(--serif);
+  font-weight:300;
+  font-size:32px;
+  line-height:1.15;
+  letter-spacing:-.015em;
+  color:#FFF;
+  margin-bottom:18px;
+}
+.featureP{
+  font-family:var(--sans);
+  font-size:14px;
+  font-weight:300;
+  line-height:1.7;
+  color:var(--mute);
+}
 
-/* ── 3 PRODUCTS GRID ── */
-.prodGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1200px;margin:0 auto;}
-.prodCard{background:var(--bg);border:1px solid var(--border);padding:36px 32px;display:flex;flex-direction:column;transition:.3s cubic-bezier(.34,1.5,.64,1);position:relative;}
-.prodCard:hover{transform:translateY(-6px);border-color:var(--border2);box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 0 1px rgba(201,168,76,.15);}
-.prodIcon{font-size:38px;line-height:1;margin-bottom:18px;}
-.prodEyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--gold);font-weight:600;margin-bottom:14px;}
-.prodH{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:32px;letter-spacing:.02em;line-height:1;margin-bottom:14px;text-transform:none;}
-.prodDesc{font-size:14px;color:var(--gray);line-height:1.65;margin-bottom:24px;}
-.prodPrice{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;color:var(--gold);line-height:1;margin-bottom:6px;}
-.prodPrice .per{font-family:'DM Mono',monospace;font-size:14px;color:var(--gray2);font-weight:400;}
-.prodBonus{font-size:13px;color:var(--green);font-family:'DM Mono',monospace;margin-bottom:24px;font-weight:500;}
-.prodList{list-style:none;margin-bottom:28px;border-top:1px solid var(--border);padding-top:18px;}
-.prodList li{padding:7px 0;font-size:13px;color:var(--gray);position:relative;padding-left:18px;}
-.prodList li::before{content:'·';position:absolute;left:6px;color:var(--gold);font-weight:700;}
-.prodBtn{width:100%;padding:14px;background:transparent;border:1px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;letter-spacing:.14em;cursor:pointer;transition:.2s;text-transform:uppercase;text-align:center;display:block;text-decoration:none;margin-top:auto;}
-.prodBtn:hover{background:var(--gold);color:#000;border-color:var(--gold);}
+/* ── PATHS ── */
+.paths{max-width:1400px;margin:0 auto;}
+.pathsHead{margin-bottom:96px;max-width:720px;}
+.pathsGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.path{
+  background:var(--black);
+  padding:64px 48px;
+  transition:.4s;
+  position:relative;
+}
+.path:hover{background:var(--soft);}
+.pathNum{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.24em;
+  color:var(--gold);
+  margin-bottom:32px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.pathNum::before{
+  content:'';
+  width:24px;
+  height:1px;
+  background:var(--gold);
+}
+.pathH{
+  font-family:var(--serif);
+  font-weight:300;
+  font-size:36px;
+  line-height:1.1;
+  letter-spacing:-.018em;
+  margin-bottom:18px;
+  color:#FFF;
+}
+.pathH em{font-style:italic;color:var(--gold);font-weight:200;}
+.pathPrice{
+  font-family:var(--mono);
+  font-size:14px;
+  font-weight:400;
+  letter-spacing:.06em;
+  color:var(--gold);
+  margin-bottom:24px;
+}
+.pathDesc{
+  font-family:var(--sans);
+  font-size:14px;
+  font-weight:300;
+  line-height:1.75;
+  color:var(--mute);
+  margin-bottom:48px;
+}
+.pathLink{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+  color:var(--text);
+  display:inline-flex;
+  align-items:center;
+  gap:14px;
+  position:relative;
+  padding-bottom:8px;
+}
+.pathLink::after{
+  content:'';
+  position:absolute;
+  left:0;bottom:0;
+  width:100%;
+  height:1px;
+  background:var(--gold);
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform .4s cubic-bezier(.4,0,.2,1);
+}
+.pathLink:hover{color:var(--gold);}
+.pathLink:hover::after{transform:scaleX(1);}
+.pathLink .a{
+  display:inline-block;
+  transition:transform .3s;
+}
+.pathLink:hover .a{transform:translateX(8px);}
 
-/* ── HOW IT WORKS ── */
-.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;max-width:1280px;margin:0 auto;position:relative;}
-.steps::before{content:'';position:absolute;top:38px;left:5%;right:5%;height:1px;background:linear-gradient(90deg,transparent,var(--border2) 20%,var(--border2) 80%,transparent);z-index:0;}
-.step{position:relative;padding:0 18px;text-align:center;}
-.stepNum{width:76px;height:76px;border-radius:50%;background:var(--bg);border:2px solid var(--border2);color:var(--gold);font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:32px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;position:relative;z-index:1;transition:.3s;}
-.step:hover .stepNum{background:var(--gold);color:#000;border-color:var(--gold);transform:scale(1.08);box-shadow:0 0 32px rgba(201,168,76,.4);}
-.step h3{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:.04em;margin-bottom:10px;text-transform:uppercase;}
-.step p{font-size:13px;color:var(--gray);line-height:1.65;}
+/* ── PROCESS (How It Works) ── */
+.process{max-width:1400px;margin:0 auto;}
+.processHead{margin-bottom:96px;max-width:720px;}
+.processList{}
+.step{
+  display:grid;
+  grid-template-columns:120px 1fr 1fr;
+  gap:64px;
+  padding:72px 0;
+  border-top:1px solid var(--line);
+  align-items:start;
+}
+.step:last-child{border-bottom:1px solid var(--line);}
+.stepN{
+  font-family:var(--mono);
+  font-weight:300;
+  font-size:14px;
+  letter-spacing:.2em;
+  color:var(--mute);
+}
+.stepH{
+  font-family:var(--serif);
+  font-weight:300;
+  font-size:36px;
+  line-height:1.1;
+  letter-spacing:-.018em;
+  color:#FFF;
+}
+.stepH em{font-style:italic;color:var(--gold);font-weight:200;}
+.stepP{
+  font-family:var(--sans);
+  font-size:15px;
+  font-weight:300;
+  line-height:1.75;
+  color:var(--mute);
+}
 
-/* ── FINAL CTA ── */
-.finalCTA{text-align:center;padding:120px 5%;border-top:1px solid var(--border);background:radial-gradient(ellipse at center,rgba(201,168,76,.04) 0%,transparent 70%);}
-.finalCTA h2{font-size:clamp(40px,6vw,72px);}
+/* ── CLOSE ── */
+.close{
+  padding:240px 64px;
+  text-align:center;
+  position:relative;
+  border-top:1px solid var(--line);
+}
+.closeH{
+  font-family:var(--serif);
+  font-weight:300;
+  font-size:clamp(48px,7vw,96px);
+  line-height:1.05;
+  letter-spacing:-.025em;
+  color:#FFF;
+  margin-bottom:64px;
+  max-width:1100px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.closeH em{font-style:italic;color:var(--gold);font-weight:200;}
 
 /* ── FOOTER ── */
-footer{background:var(--s1);padding:48px 5% 32px;border-top:1px solid var(--border);}
-.footGrid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;max-width:1280px;margin:0 auto 32px;}
-.footGrid h4{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.18em;color:var(--gold);text-transform:uppercase;margin-bottom:16px;font-weight:600;}
-.footGrid a{display:block;font-size:13px;color:var(--gray);padding:5px 0;transition:.15s;}
-.footGrid a:hover{color:var(--gold);}
-.footBottom{max-width:1280px;margin:0 auto;padding-top:24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;font-size:11px;color:var(--gray2);font-family:'DM Mono',monospace;}
+footer{
+  padding:96px 64px 48px;
+  border-top:1px solid var(--line);
+  background:var(--black);
+}
+.footInner{
+  max-width:1400px;
+  margin:0 auto;
+}
+.footTop{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1fr;
+  gap:64px;
+  margin-bottom:96px;
+}
+.footBrand{
+  font-family:var(--mono);
+  font-size:14px;
+  font-weight:500;
+  letter-spacing:.24em;
+  color:#FFF;
+  margin-bottom:24px;
+}
+.footBrand span{color:var(--gold);}
+.footMission{
+  font-family:var(--serif);
+  font-size:18px;
+  line-height:1.55;
+  color:var(--mute);
+  font-weight:300;
+  max-width:340px;
+  font-style:italic;
+}
+.footCol h4{
+  font-family:var(--mono);
+  font-size:10px;
+  font-weight:400;
+  letter-spacing:.24em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:24px;
+}
+.footCol a{
+  display:block;
+  padding:8px 0;
+  font-family:var(--sans);
+  font-size:14px;
+  font-weight:300;
+  color:var(--mute);
+  transition:color .25s;
+}
+.footCol a:hover{color:var(--text);}
+.footBot{
+  border-top:1px solid var(--line);
+  padding-top:32px;
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:14px;
+  font-family:var(--mono);
+  font-size:10px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--mute2);
+}
 
-/* ── SOUND TOGGLE ── */
-.soundTog{position:fixed;bottom:24px;right:24px;width:44px;height:44px;background:var(--s2);border:1px solid var(--border2);color:var(--gold);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:50;transition:.15s;border-radius:50%;}
-.soundTog:hover{background:var(--s3);border-color:var(--gold);}
-.soundTog svg{width:18px;height:18px;}
+/* ── REVEAL ── */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity 1.2s cubic-bezier(.2,.8,.2,1),transform 1.2s cubic-bezier(.2,.8,.2,1);}
+.reveal.shown{opacity:1;transform:translateY(0);}
 
-/* ── MOBILE ── */
-@media(max-width:900px){
-  .navLinks a:not(.btnPrimary):not(.btnOutline){display:none;}
-  .hamburger{display:flex;}
-  .heroStats{gap:32px;}
-  .heroStat .v{font-size:26px;}
-  .riskBox{grid-template-columns:1fr;padding:28px;}
-  .prodGrid{grid-template-columns:1fr;}
-  .steps{grid-template-columns:1fr 1fr;gap:32px 18px;}
-  .steps::before{display:none;}
-  .footGrid{grid-template-columns:1fr 1fr;gap:32px;}
+/* ── RESPONSIVE ── */
+@media(max-width:980px){
+  nav{padding:18px 24px;}
+  .navL{gap:24px;}
+  .navL a:not(.nav-cta){display:none;}
+  .hero,section{padding-left:24px;padding-right:24px;}
+  section{padding-top:120px;padding-bottom:120px;}
+  .thesis{grid-template-columns:1fr;gap:40px;}
+  .thesisLabel{position:static;}
+  .numbers{grid-template-columns:repeat(2,1fr);}
+  .num{border-bottom:1px solid var(--line);}
+  .num:nth-child(2){border-right:none;}
+  .num:nth-child(3),.num:nth-child(4){border-bottom:none;}
+  .num:nth-child(4){border-right:none;}
+  .platformHead{grid-template-columns:1fr;gap:32px;}
+  .featureList,.pathsGrid{grid-template-columns:1fr;}
+  .step{grid-template-columns:1fr;gap:24px;padding:48px 0;}
+  .stepN{font-size:11px;letter-spacing:.24em;color:var(--gold);}
+  .footTop{grid-template-columns:1fr 1fr;gap:48px;}
+  .close{padding:120px 24px;}
 }
 @media(max-width:560px){
-  section{padding:64px 5%;}
-  .heroStats{gap:20px;}
-  .footGrid{grid-template-columns:1fr;}
-  .heroBtns .btnHero{padding:14px 22px;font-size:12px;}
+  .heroEyebrow{margin-bottom:32px;}
+  h1.heroH{margin-bottom:32px;}
+  .heroSub{margin-bottom:48px;font-size:16px;}
+  .footTop{grid-template-columns:1fr;}
 }
 </style>
 </head>
 <body>
 
+<div class="cursor" id="cursor"></div>
+
 <!-- ── NAV ── -->
-<nav>
-  <a href="/" class="logo">TRADE<span>PHEX</span></a>
-  <div class="navLinks">
-    <a href="/evaluations">Evaluations</a>
-    <a href="/charting">Charting</a>
-    <a href="/journal-plans">Journal</a>
-    <a href="#how">How It Works</a>
-    <a href="/login" class="btnOutline">Log In</a>
-    <a href="/signup" class="btnPrimary">Get Funded</a>
-    <div class="hamburger" onclick="toggleMobileMenu()"><span></span><span></span><span></span></div>
+<nav id="nav">
+  <a href="/" class="brand">TRADE<span>PHEX</span></a>
+  <div class="navL">
+    <a href="/evaluations" data-hover>Evaluations</a>
+    <a href="/charting" data-hover>Charting</a>
+    <a href="/journal-plans" data-hover>Journal</a>
+    <a href="/login" data-hover>Sign In</a>
+    <a href="/signup" class="nav-cta" data-hover>Get Funded</a>
   </div>
 </nav>
 
 <!-- ── HERO ── -->
 <section class="hero">
   <canvas id="heroChart"></canvas>
-  <div class="heroOverlay"></div>
-  <div class="heroContent">
-    <h1 class="heroH">Trade Like<br/>The <span class="gd">Pros</span><br/>Get <span class="gd">Funded</span>.</h1>
-    <p class="heroSub">The only futures prop firm with footprint candles, order flow delta, market profile, and AI trade scoring built into the platform. No third-party tools. No extra fees. Just a real trader's edge.</p>
-    <div class="heroBtns">
-      <a href="/evaluations" class="btnPrimary btnHero" onclick="playClick()">Buy A Challenge</a>
-      <a href="#how" class="btnOutline btnHero" onclick="playClick()">See How It Works</a>
-    </div>
-    <div class="heroStats">
-      <div class="heroStat"><span class="v" data-target="150000" data-prefix="$">$0</span><span class="l">Max Account</span></div>
-      <div class="heroStat"><span class="v" data-target="79" data-prefix="$">$0</span><span class="l">Starting / Mo</span></div>
-      <div class="heroStat"><span class="v" data-target="90" data-suffix="%">0%</span><span class="l">Profit Split</span></div>
-      <div class="heroStat"><span class="v" data-target="5">0</span><span class="l">Min Days</span></div>
+  <div class="heroVignette"></div>
+  <div class="heroInner">
+    <div class="heroEyebrow">Tradephex · Futures Prop Firm</div>
+    <h1 class="heroH">The platform<br/>is the <em>edge.</em></h1>
+    <p class="heroSub">A futures evaluation firm built around proprietary trading tools, not gamified rules. Pass once. Get funded. Keep ninety percent of every dollar.</p>
+    <a href="/evaluations" class="heroCTA" data-hover>
+      <span>Begin Evaluation</span>
+      <span class="arr"></span>
+    </a>
+  </div>
+  <div class="heroScroll">Scroll</div>
+</section>
+
+<!-- ── THESIS ── -->
+<section>
+  <div class="thesis">
+    <div class="thesisLabel reveal">The Thesis</div>
+    <div class="thesisBody reveal">
+      <p>Most prop firms compete on price. We compete on what happens after you fund.</p>
+      <p>Footprint candles. Order flow. Real depth. Market profile. AI trade scoring. <em>Built into the platform</em> — not bolted on with a third-party subscription.</p>
+      <p>Because the firm that gives you better tools is the firm that helps you stay funded.</p>
     </div>
   </div>
 </section>
 
-<!-- ── FEATURES ── -->
-<section id="features">
-  <div style="text-align:center;margin-bottom:60px;">
-    <div class="sectionEyebrow">The Tradephex Edge</div>
-    <h2>Built For <span class="gd">Real Traders</span></h2>
-    <p class="sectionSub" style="margin-left:auto;margin-right:auto;">Every prop firm gives you charts. We give you the same tools institutional desks use — built into the eval, included in your fee.</p>
+<!-- ── NUMBERS ── -->
+<section style="padding-top:0;padding-bottom:0;">
+  <div class="numbers">
+    <div class="num"><div class="numV">$150K</div><div class="numL">Maximum Account</div></div>
+    <div class="num"><div class="numV">90%</div><div class="numL">Profit Split</div></div>
+    <div class="num"><div class="numV">5</div><div class="numL">Days Minimum</div></div>
+    <div class="num"><div class="numV">6%</div><div class="numL">Profit Target</div></div>
   </div>
-  <div class="features">
-    <div class="feat scrollRevealItem">
-      <div class="featIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="6" height="18"/><rect x="11" y="8" width="6" height="13"/><rect x="19" y="14" width="2" height="7"/></svg></div>
-      <h3>Footprint Candles</h3>
-      <p>See bid×ask volume at every price level. Identify absorption, imbalances, and POC in real time. The only prop firm that doesn't make you pay extra for this.</p>
+</section>
+
+<!-- ── PLATFORM ── -->
+<section>
+  <div class="platform">
+    <div class="platformHead">
+      <div class="reveal">
+        <div class="platformLabel">The Platform</div>
+        <h2 class="platformH">Tools that institutional desks use,<br/><em>built into your evaluation.</em></h2>
+      </div>
+      <div class="platformDesc reveal">
+        Six features other prop firms either don't have, or charge extra for. They come standard at Tradephex. Every account size. Every plan.
+      </div>
     </div>
-    <div class="feat scrollRevealItem">
-      <div class="featIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg></div>
-      <h3>Order Flow Delta</h3>
-      <p>Cumulative delta line, per-bar delta histogram, and CVD-vs-price divergence detection. See who's actually buying versus selling each candle.</p>
-    </div>
-    <div class="feat scrollRevealItem">
-      <div class="featIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg></div>
-      <h3>Market Profile (TPO)</h3>
-      <p>30-min letter blocks, real POC, 70% Value Area, Initial Balance bracket, single prints. Trade the auction the way institutions actually see it.</p>
-    </div>
-    <div class="feat scrollRevealItem">
-      <div class="featIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="1"/><line x1="6" y1="10" x2="6" y2="14"/><line x1="10" y1="10" x2="10" y2="14"/><line x1="14" y1="10" x2="14" y2="14"/><line x1="18" y1="10" x2="18" y2="14"/></svg></div>
-      <h3>Real DOM</h3>
-      <p>18-level depth of market with iceberg detection. Drag SL/TP brackets directly on the chart. Place limit orders by clicking price levels.</p>
-    </div>
-    <div class="feat scrollRevealItem">
-      <div class="featIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-      <h3>No Time Limits</h3>
-      <p>Pass your evaluation in 5 days or 50 days. We don't care. Trade your best setups, not every setup. Single phase to funded — no Phase 2 trap.</p>
-    </div>
-    <div class="feat scrollRevealItem">
-      <div class="featIcon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-      <h3>Trade Journal Built In</h3>
-      <p>Auto-syncs every trade. R-multiple analytics, setup tagging, performance by hour and day, replay mode. No need for a separate Notion or Excel.</p>
+    <div class="featureList">
+      <div class="featureItem reveal">
+        <div class="featureNum">01</div>
+        <div class="featureH">Footprint Candles</div>
+        <div class="featureP">Bid-by-ask volume printed on every bar. Identify absorption, imbalance, and POC in real time. Standard in institutional terminals. Standard here.</div>
+      </div>
+      <div class="featureItem reveal">
+        <div class="featureNum">02</div>
+        <div class="featureH">Order Flow Delta</div>
+        <div class="featureP">Cumulative delta line, per-bar histogram, and CVD-versus-price divergence detection. Read intent, not just direction.</div>
+      </div>
+      <div class="featureItem reveal">
+        <div class="featureNum">03</div>
+        <div class="featureH">Market Profile (TPO)</div>
+        <div class="featureP">Thirty-minute letter blocks, real Point of Control, seventy-percent Value Area, Initial Balance bracket. Trade the auction the way auctions actually work.</div>
+      </div>
+      <div class="featureItem reveal">
+        <div class="featureNum">04</div>
+        <div class="featureH">Real Depth of Market</div>
+        <div class="featureP">Eighteen-level DOM with iceberg detection. Drag stop-loss and take-profit brackets directly on the chart. Place limit orders at any price by clicking.</div>
+      </div>
+      <div class="featureItem reveal">
+        <div class="featureNum">05</div>
+        <div class="featureH">AI Trade Scoring</div>
+        <div class="featureP">Pattern recognition trained on institutional setups. Each potential trade is scored on confluence, risk-to-reward, and historical edge before you click.</div>
+      </div>
+      <div class="featureItem reveal">
+        <div class="featureNum">06</div>
+        <div class="featureH">Integrated Journal</div>
+        <div class="featureP">Every trade auto-syncs. R-multiple analytics, setup tagging, replay mode, performance by hour and day. No separate spreadsheet. No exporting.</div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ── RISK VISUALIZER ── -->
-<section style="background:var(--s1);">
-  <div style="text-align:center;margin-bottom:60px;">
-    <div class="sectionEyebrow">Interactive · Try It</div>
-    <h2>Find Your <span class="gd">Risk Zone</span></h2>
-    <p class="sectionSub" style="margin-left:auto;margin-right:auto;">Most traders fail evaluations because they size positions wrong. Use the visualizer below to see exactly how your risk-per-trade affects your drawdown limit.</p>
-  </div>
-  <div class="riskBox">
-    <div class="riskControls">
-      <div class="riskRow">
-        <div class="riskLabel">Account Size</div>
-        <div class="riskAccountSelect">
-          <button class="riskAcct active" data-size="50000" onclick="setRiskAcct(50000,this)">$50K</button>
-          <button class="riskAcct" data-size="100000" onclick="setRiskAcct(100000,this)">$100K</button>
-          <button class="riskAcct" data-size="150000" onclick="setRiskAcct(150000,this)">$150K</button>
-        </div>
-      </div>
-      <div class="riskRow">
-        <div class="riskLabel">Risk Per Trade</div>
-        <div class="riskValue"><span id="riskPctOut">1.0</span>%</div>
-        <input type="range" min="0.1" max="5" step="0.1" value="1" class="riskSlider" id="riskSlider" oninput="updateRisk()">
-      </div>
-      <div class="riskRow">
-        <div class="riskLabel">Win Rate</div>
-        <div class="riskValue"><span id="winRateOut">50</span>%</div>
-        <input type="range" min="30" max="75" step="1" value="50" class="riskSlider" id="winRateSlider" oninput="updateRisk()">
-      </div>
+<!-- ── PATHS ── -->
+<section>
+  <div class="paths">
+    <div class="pathsHead reveal">
+      <div class="platformLabel">Three Paths</div>
+      <h2 class="platformH">One platform.<br/><em>Three ways in.</em></h2>
     </div>
-    <div class="riskOutput">
-      <div class="riskOutTitle">Real-Time Analysis</div>
-      <div class="riskBarWrap">
-        <div class="riskBarLabel"><span>Risk per Trade</span><span class="v" id="riskDollarOut">$500</span></div>
-        <div class="riskBar"><div class="riskFill" id="riskFill" style="width:20%;"></div></div>
+    <div class="pathsGrid">
+      <div class="path reveal">
+        <div class="pathNum">01 · Evaluation</div>
+        <h3 class="pathH">Get <em>Funded.</em></h3>
+        <div class="pathPrice">From $79 / month</div>
+        <div class="pathDesc">Pass our evaluation and trade with up to one hundred fifty thousand dollars in funding. Ninety percent profit split. Single phase. No time limits.</div>
+        <a href="/evaluations" class="pathLink" data-hover><span>View Evaluations</span><span class="a">→</span></a>
       </div>
-      <div class="riskBarWrap">
-        <div class="riskBarLabel"><span>Trades to Hit Max DD</span><span class="v" id="tradesToBlow">5</span></div>
-        <div class="riskBar"><div class="riskFill" id="tradesFill" style="width:30%;background:linear-gradient(90deg,var(--red),var(--gold) 50%,var(--green));"></div></div>
+      <div class="path reveal">
+        <div class="pathNum">02 · Charting</div>
+        <h3 class="pathH">Trade <em>standalone.</em></h3>
+        <div class="pathPrice">From $29 / month</div>
+        <div class="pathDesc">The platform without the evaluation. Footprint, order flow, profile, depth — everything. Pro and Elite tiers available. Free during any active eval.</div>
+        <a href="/charting" class="pathLink" data-hover><span>View Charting</span><span class="a">→</span></a>
       </div>
-      <div class="riskBarWrap">
-        <div class="riskBarLabel"><span>Expected Days to Pass</span><span class="v" id="daysOut">21</span></div>
-        <div class="riskBar"><div class="riskFill" id="daysFill" style="width:50%;background:linear-gradient(90deg,var(--red),var(--gold) 50%,var(--green));"></div></div>
+      <div class="path reveal">
+        <div class="pathNum">03 · Journal</div>
+        <h3 class="pathH">Track <em>what works.</em></h3>
+        <div class="pathPrice">$19 / month</div>
+        <div class="pathDesc">Auto-sync from any chart. R-multiples, setup performance, win rate by symbol, expectancy curves. The data layer most traders skip — until they need it.</div>
+        <a href="/journal-plans" class="pathLink" data-hover><span>View Journal</span><span class="a">→</span></a>
       </div>
-      <div class="riskVerdict safe" id="riskVerdict">✓ Solid risk profile · keep it up</div>
     </div>
   </div>
 </section>
 
-<!-- ── HOW IT WORKS ── -->
-<section id="how">
-  <div style="text-align:center;margin-bottom:60px;">
-    <div class="sectionEyebrow">The Path</div>
-    <h2>Get Funded In <span class="gd">4 Steps</span></h2>
-  </div>
-  <div class="steps">
-    <div class="step scrollRevealItem">
-      <div class="stepNum">01</div>
-      <h3>Pick A Challenge</h3>
-      <p>$50K, $100K, or $150K. Intraday or end-of-day. Pay your eval fee once.</p>
+<!-- ── PROCESS ── -->
+<section>
+  <div class="process">
+    <div class="processHead reveal">
+      <div class="platformLabel">The Path</div>
+      <h2 class="platformH">From evaluation<br/>to <em>first payout.</em></h2>
     </div>
-    <div class="step scrollRevealItem">
-      <div class="stepNum">02</div>
-      <h3>Hit Your Target</h3>
-      <p>6% profit. 5 trading days minimum. No time pressure. Trade your edge.</p>
+    <div class="processList">
+      <div class="step reveal">
+        <div class="stepN">01 · BEGIN</div>
+        <h3 class="stepH">Buy your <em>challenge.</em></h3>
+        <p class="stepP">Pick an account size. Pick intraday or end-of-day drawdown style. Pay your evaluation fee. The platform unlocks immediately — no waiting period, no email confirmation delay.</p>
+      </div>
+      <div class="step reveal">
+        <div class="stepN">02 · TRADE</div>
+        <h3 class="stepH">Hit your <em>target.</em></h3>
+        <p class="stepP">Six percent profit. Stay under five percent maximum drawdown. Trade a minimum of five days. Use whatever timeframe, instrument, or strategy fits your edge — twenty-two CME futures contracts available.</p>
+      </div>
+      <div class="step reveal">
+        <div class="stepN">03 · FUND</div>
+        <h3 class="stepH">Get <em>funded.</em></h3>
+        <p class="stepP">Pass the evaluation and you're funded the same day. No second phase. No additional verification trades. The same platform. Real position sizes. Real money on the line.</p>
+      </div>
+      <div class="step reveal">
+        <div class="stepN">04 · CASH OUT</div>
+        <h3 class="stepH">Keep <em>ninety percent.</em></h3>
+        <p class="stepP">Request payouts on demand once funded. Ninety percent split. ACH, PayPal, or stablecoin — funds typically arrive within one to three business days. No surprise deductions. No quarterly minimums.</p>
+      </div>
     </div>
-    <div class="step scrollRevealItem">
-      <div class="stepNum">03</div>
-      <h3>Get Funded</h3>
-      <p>Pass and you're funded immediately. Trade the same simulated capital.</p>
-    </div>
-    <div class="step scrollRevealItem">
-      <div class="stepNum">04</div>
-      <h3>Cash Out</h3>
-      <p>Request payouts on demand. Keep 90% of every dollar you earn.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ── 3 PRODUCTS ── -->
-<section style="background:var(--s1);">
-  <div style="text-align:center;margin-bottom:60px;">
-    <div class="sectionEyebrow">Three Ways To Use Tradephex</div>
-    <h2>One Platform. <span class="gd">Three Products.</span></h2>
-    <p class="sectionSub" style="margin-left:auto;margin-right:auto;">Pass an evaluation to get funded. Or subscribe to use the platform standalone. Or grab the journal to track and improve your trading.</p>
-  </div>
-  <div class="prodGrid">
-
-    <!-- Evaluation -->
-    <div class="prodCard scrollRevealItem">
-      <div class="prodIcon">🎯</div>
-      <div class="prodEyebrow">EVALUATION PROGRAM</div>
-      <h3 class="prodH">Get Funded</h3>
-      <p class="prodDesc">Hit your profit target while staying within drawdown. Pass and get funded up to 90% profit split.</p>
-      <div class="prodPrice">$79<span class="per">/mo</span></div>
-      <div class="prodBonus">✓ Full platform included</div>
-      <ul class="prodList">
-        <li>$50K, $100K, $150K accounts</li>
-        <li>Intraday or EOD drawdown</li>
-        <li>Up to 90% profit split</li>
-        <li>5 business day payouts</li>
-        <li>Real-time risk enforcement</li>
-      </ul>
-      <a href="/evaluations" class="prodBtn" onclick="playClick()">VIEW EVALUATIONS →</a>
-    </div>
-
-    <!-- Charting -->
-    <div class="prodCard scrollRevealItem">
-      <div class="prodIcon">📈</div>
-      <div class="prodEyebrow">CHART PLATFORM</div>
-      <h3 class="prodH">Trade Standalone</h3>
-      <p class="prodDesc">Footprint candles, order flow, market profile, AI scoring — all built in. No third-party tools needed.</p>
-      <div class="prodPrice">$29<span class="per">/mo</span></div>
-      <div class="prodBonus">✓ Free during active eval</div>
-      <ul class="prodList">
-        <li>Footprint candles + order flow</li>
-        <li>Market profile (TPO)</li>
-        <li>Pattern recognition</li>
-        <li>AI trade scoring</li>
-        <li>Up to 6-chart layouts</li>
-      </ul>
-      <a href="/charting" class="prodBtn" onclick="playClick()">VIEW CHART PLANS →</a>
-    </div>
-
-    <!-- Journal -->
-    <div class="prodCard scrollRevealItem">
-      <div class="prodIcon">📓</div>
-      <div class="prodEyebrow">TRADE JOURNAL</div>
-      <h3 class="prodH">Track &amp; Improve</h3>
-      <p class="prodDesc">Session analytics, win rate by symbol, expectancy, streak tracking. Auto-syncs from the chart.</p>
-      <div class="prodPrice">$19<span class="per">/mo</span></div>
-      <div class="prodBonus">✓ Included with all evals</div>
-      <ul class="prodList">
-        <li>Auto-sync from chart</li>
-        <li>Session P&amp;L breakdown</li>
-        <li>Win rate by symbol</li>
-        <li>Avg winner vs loser</li>
-        <li>Streak tracking + tilt alerts</li>
-      </ul>
-      <a href="/journal-plans" class="prodBtn" onclick="playClick()">VIEW JOURNAL PLANS →</a>
-    </div>
-
   </div>
 </section>
 
-<!-- ── FINAL CTA ── -->
-<section class="finalCTA">
-  <div class="sectionEyebrow">Ready?</div>
-  <h2>The Edge Is <span class="gd">Built In</span>.</h2>
-  <p class="sectionSub" style="margin:0 auto 36px;">Join the only futures prop firm where pro tools come standard. No third-party fees. No Phase 2. No time limits.</p>
-  <a href="/evaluations" class="btnPrimary btnHero" onclick="playClick()" style="padding:18px 48px;font-size:15px;">Start Your Challenge →</a>
+<!-- ── CLOSE ── -->
+<section class="close">
+  <h2 class="closeH reveal">Built for traders who don't<br/>need to be told <em>twice.</em></h2>
+  <a href="/evaluations" class="heroCTA reveal" data-hover>
+    <span>Begin Evaluation</span>
+    <span class="arr"></span>
+  </a>
 </section>
 
 <!-- ── FOOTER ── -->
 <footer>
-  <div class="footGrid">
-    <div>
-      <div class="logo" style="margin-bottom:14px;">TRADE<span>PHEX</span></div>
-      <p style="font-size:12px;color:var(--gray2);max-width:340px;line-height:1.7;">Tradephex LLC operates a futures evaluation platform with simulated trading data. Not a registered broker-dealer.</p>
+  <div class="footInner">
+    <div class="footTop">
+      <div>
+        <div class="footBrand">TRADE<span>PHEX</span></div>
+        <p class="footMission">A futures evaluation firm where the platform is the edge.</p>
+      </div>
+      <div class="footCol">
+        <h4>Platform</h4>
+        <a href="/evaluations">Evaluations</a>
+        <a href="/charting">Charting</a>
+        <a href="/journal-plans">Journal</a>
+        <a href="/login">Sign In</a>
+      </div>
+      <div class="footCol">
+        <h4>Company</h4>
+        <a href="/support">Support</a>
+        <a href="/legal">Legal</a>
+        <a href="mailto:support@tradephex.com">Contact</a>
+      </div>
+      <div class="footCol">
+        <h4>Disclosures</h4>
+        <a href="/terms">Terms of Service</a>
+        <a href="/privacy">Privacy Policy</a>
+        <a href="/risk">Risk Disclaimer</a>
+        <a href="/refund">Refund Policy</a>
+      </div>
     </div>
-    <div>
-      <h4>Platform</h4>
-      <a href="/evaluations">Evaluations</a>
-      <a href="/charting">Charting</a>
-      <a href="/journal-plans">Journal</a>
-      <a href="/login">Log In</a>
+    <div class="footBot">
+      <span>© 2026 Tradephex LLC</span>
+      <span>Tradephex LLC operates a futures evaluation platform with simulated trading data. Not a registered broker-dealer.</span>
     </div>
-    <div>
-      <h4>Company</h4>
-      <a href="/support">Support</a>
-      <a href="/legal">Legal Docs</a>
-      <a href="mailto:support@tradephex.com">Contact</a>
-    </div>
-    <div>
-      <h4>Legal</h4>
-      <a href="/terms">Terms</a>
-      <a href="/privacy">Privacy</a>
-      <a href="/risk">Risk Disclaimer</a>
-      <a href="/refund">Refund Policy</a>
-    </div>
-  </div>
-  <div class="footBottom">
-    <span>© 2026 Tradephex LLC · All rights reserved.</span>
-    <span>Built for traders, by traders.</span>
   </div>
 </footer>
 
-<!-- ── SOUND TOGGLE ── -->
-<button class="soundTog" id="soundTog" onclick="toggleSound()" title="Toggle sound effects">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="soundIcon">
-    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-    <path d="M15.54 8.46a5 5 0 010 7.07"/>
-    <path d="M19.07 4.93a10 10 0 010 14.14"/>
-  </svg>
-</button>
-
 <script>
-// ════════════════════════════════════════════════════════════════
-// SOUND ENGINE - Subtle Web Audio API tones
-// ════════════════════════════════════════════════════════════════
-let audioCtx = null;
-let soundOn = localStorage.getItem('tx_sound') !== 'off';
-
-function ensureAudio(){
-  if (!audioCtx) {
-    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-    catch(e) { return null; }
-  }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  return audioCtx;
+// ── CUSTOM CURSOR ──
+const cursor = document.getElementById('cursor');
+let cx = 0, cy = 0, tx = 0, ty = 0;
+window.addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; });
+function tickCursor(){
+  cx += (tx - cx) * 0.18;
+  cy += (ty - cy) * 0.18;
+  cursor.style.transform = `translate(${cx - 3}px, ${cy - 3}px)`;
+  requestAnimationFrame(tickCursor);
 }
-
-function playTone(freq, duration, type='sine', vol=0.04){
-  if (!soundOn) return;
-  const ctx = ensureAudio();
-  if (!ctx) return;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = type;
-  osc.frequency.setValueAtTime(freq, ctx.currentTime);
-  gain.gain.setValueAtTime(0, ctx.currentTime);
-  gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(ctx.currentTime);
-  osc.stop(ctx.currentTime + duration);
-}
-
-function playClick(){ playTone(880, 0.06, 'square', 0.03); }
-function playHover(){ playTone(1200, 0.04, 'sine', 0.015); }
-function playSuccess(){
-  playTone(523, 0.08, 'triangle', 0.04);
-  setTimeout(() => playTone(784, 0.12, 'triangle', 0.04), 60);
-}
-function playError(){ playTone(220, 0.15, 'sawtooth', 0.04); }
-function playTick(){ playTone(2200, 0.02, 'sine', 0.008); }
-
-function toggleSound(){
-  soundOn = !soundOn;
-  localStorage.setItem('tx_sound', soundOn ? 'on' : 'off');
-  const icon = document.getElementById('soundIcon');
-  if (soundOn) {
-    icon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07"/><path d="M19.07 4.93a10 10 0 010 14.14"/>';
-    playSuccess();
-  } else {
-    icon.innerHTML = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>';
-  }
-}
-if (!soundOn) toggleSound(); // Set initial icon if sound was off
-
-// Hover sound on buttons
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.btnPrimary, .btnOutline, .flipperBtn, .feat').forEach(el => {
-    el.addEventListener('mouseenter', playHover);
-  });
+tickCursor();
+document.querySelectorAll('[data-hover], a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
 });
 
-// ════════════════════════════════════════════════════════════════
-// HERO LIVE SIM CHART
-// ════════════════════════════════════════════════════════════════
-const heroCanvas = document.getElementById('heroChart');
-const heroCtx = heroCanvas.getContext('2d');
-let heroBars = [];
-const HERO_BAR_COUNT = 80;
+// ── NAV SCROLL STATE ──
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 50) nav.classList.add('scrolled');
+  else nav.classList.remove('scrolled');
+});
 
-function initHeroChart(){
-  // Build initial bars with realistic price action
+// ── HERO CHART (subtle background animation) ──
+const canvas = document.getElementById('heroChart');
+const ctx = canvas.getContext('2d');
+let bars = [];
+const BAR_COUNT = 100;
+function initChart(){
   let p = 7050;
-  for (let i = 0; i < HERO_BAR_COUNT; i++) {
+  for (let i = 0; i < BAR_COUNT; i++){
     const o = p;
-    const move = (Math.random() - 0.5) * 8;
+    const move = (Math.random() - 0.5) * 6;
     const c = o + move;
-    const range = Math.abs(c - o) + Math.random() * 6;
+    const range = Math.abs(c - o) + Math.random() * 5;
     const h = Math.max(o, c) + Math.random() * range * 0.4;
     const l = Math.min(o, c) - Math.random() * range * 0.4;
-    heroBars.push({ o, h, l, c });
+    bars.push({ o, h, l, c });
     p = c;
   }
-  resizeHeroChart();
+  resizeChart();
 }
-
-function resizeHeroChart(){
-  heroCanvas.width = window.innerWidth;
-  heroCanvas.height = Math.max(window.innerHeight, 700);
-  drawHeroChart();
+function resizeChart(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  drawChart();
 }
-
-function drawHeroChart(){
-  const W = heroCanvas.width, H = heroCanvas.height;
-  heroCtx.clearRect(0, 0, W, H);
-
-  // Find price range
+function drawChart(){
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
   let lo = Infinity, hi = -Infinity;
-  heroBars.forEach(b => { if (b.l < lo) lo = b.l; if (b.h > hi) hi = b.h; });
-  const pad = (hi - lo) * 0.08;
+  bars.forEach(b => { if (b.l < lo) lo = b.l; if (b.h > hi) hi = b.h; });
+  const pad = (hi - lo) * 0.1;
   lo -= pad; hi += pad;
-
-  const bW = W / HERO_BAR_COUNT;
-  const candleW = bW * 0.6;
-  const toY = p => H * 0.15 + (1 - (p - lo) / (hi - lo)) * H * 0.7;
-
-  // Grid lines
-  heroCtx.strokeStyle = 'rgba(201,168,76,0.04)';
-  heroCtx.lineWidth = 1;
-  for (let i = 1; i < 5; i++) {
-    const y = (H / 5) * i;
-    heroCtx.beginPath();
-    heroCtx.moveTo(0, y);
-    heroCtx.lineTo(W, y);
-    heroCtx.stroke();
-  }
-
-  // Bars
-  heroBars.forEach((b, i) => {
+  const bW = W / BAR_COUNT;
+  const candleW = bW * 0.55;
+  const toY = p => H * 0.2 + (1 - (p - lo) / (hi - lo)) * H * 0.6;
+  bars.forEach((b, i) => {
     const x = i * bW + bW / 2;
     const isUp = b.c >= b.o;
-    const color = isUp ? 'rgba(0,230,118,0.55)' : 'rgba(255,23,68,0.55)';
-    heroCtx.strokeStyle = color;
-    heroCtx.fillStyle = color;
-    heroCtx.lineWidth = 1.2;
-    // Wick
-    heroCtx.beginPath();
-    heroCtx.moveTo(x, toY(b.h));
-    heroCtx.lineTo(x, toY(b.l));
-    heroCtx.stroke();
-    // Body
+    const color = isUp ? 'rgba(201,168,76,.55)' : 'rgba(232,232,232,.35)';
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, toY(b.h));
+    ctx.lineTo(x, toY(b.l));
+    ctx.stroke();
     const bodyTop = toY(Math.max(b.o, b.c));
-    const bodyH = Math.abs(toY(b.o) - toY(b.c)) || 1;
-    heroCtx.fillRect(x - candleW / 2, bodyTop, candleW, bodyH);
+    const bodyH = Math.max(1, Math.abs(toY(b.o) - toY(b.c)));
+    ctx.fillRect(x - candleW / 2, bodyTop, candleW, bodyH);
   });
-
-  // Highlight last price line
-  const lastP = heroBars[heroBars.length - 1].c;
-  const yLast = toY(lastP);
-  heroCtx.strokeStyle = 'rgba(201,168,76,0.4)';
-  heroCtx.setLineDash([4, 4]);
-  heroCtx.lineWidth = 1;
-  heroCtx.beginPath();
-  heroCtx.moveTo(0, yLast);
-  heroCtx.lineTo(W, yLast);
-  heroCtx.stroke();
-  heroCtx.setLineDash([]);
-
-  // Price label
-  heroCtx.fillStyle = 'var(--gold)';
-  heroCtx.fillStyle = '#C9A84C';
-  heroCtx.fillRect(W - 80, yLast - 10, 76, 20);
-  heroCtx.fillStyle = '#000';
-  heroCtx.font = 'bold 11px DM Mono, monospace';
-  heroCtx.textAlign = 'right';
-  heroCtx.fillText(lastP.toFixed(2), W - 8, yLast + 4);
 }
-
-function tickHeroChart(){
-  const last = heroBars[heroBars.length - 1];
-  const move = (Math.random() - 0.5) * 1.5;
-  const newC = last.c + move;
-  last.c = newC;
-  if (newC > last.h) last.h = newC;
-  if (newC < last.l) last.l = newC;
-  // Roll bar every ~12 ticks
-  if (Math.random() < 0.08) {
-    heroBars.push({ o: newC, h: newC + Math.random() * 2, l: newC - Math.random() * 2, c: newC });
-    if (heroBars.length > HERO_BAR_COUNT) heroBars.shift();
+function tickChart(){
+  const last = bars[bars.length - 1];
+  const move = (Math.random() - 0.5) * 1.2;
+  last.c += move;
+  if (last.c > last.h) last.h = last.c;
+  if (last.c < last.l) last.l = last.c;
+  if (Math.random() < 0.07){
+    bars.push({ o: last.c, h: last.c + Math.random() * 1.5, l: last.c - Math.random() * 1.5, c: last.c });
+    if (bars.length > BAR_COUNT) bars.shift();
   }
-  drawHeroChart();
+  drawChart();
 }
+initChart();
+window.addEventListener('resize', resizeChart);
+setInterval(tickChart, 350);
 
-initHeroChart();
-window.addEventListener('resize', resizeHeroChart);
-setInterval(tickHeroChart, 200);
-
-// ════════════════════════════════════════════════════════════════
-// COUNT UP STATS
-// ════════════════════════════════════════════════════════════════
-function animateCountUp(el){
-  const target = parseFloat(el.dataset.target);
-  const prefix = el.dataset.prefix || '';
-  const suffix = el.dataset.suffix || '';
-  const duration = 1400;
-  const start = performance.now();
-  function step(now){
-    const t = Math.min(1, (now - start) / duration);
-    const eased = 1 - Math.pow(1 - t, 3);
-    const current = target * eased;
-    let display;
-    if (target >= 1000) display = Math.round(current).toLocaleString();
-    else display = current >= 10 ? Math.round(current) : current.toFixed(1);
-    el.textContent = prefix + display + suffix;
-    if (t < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
-document.querySelectorAll('[data-target]').forEach(el => {
-  // Trigger when in viewport
-  const obs = new IntersectionObserver(([entry]) => {
-    if (entry.isIntersecting) {
-      animateCountUp(el);
-      obs.disconnect();
+// ── REVEAL ON SCROLL ──
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting){
+      e.target.classList.add('shown');
+      obs.unobserve(e.target);
     }
   });
-  obs.observe(el);
-});
+}, { threshold: 0.12, rootMargin: '0px 0px -80px 0px' });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 
-// ════════════════════════════════════════════════════════════════
-// RISK VISUALIZER
-// ════════════════════════════════════════════════════════════════
-let riskAcct = 50000;
-function setRiskAcct(size, btn){
-  riskAcct = size;
-  document.querySelectorAll('.riskAcct').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  playClick();
-  updateRisk();
-}
-function updateRisk(){
-  const pct = parseFloat(document.getElementById('riskSlider').value);
-  const wr = parseFloat(document.getElementById('winRateSlider').value);
-  document.getElementById('riskPctOut').textContent = pct.toFixed(1);
-  document.getElementById('winRateOut').textContent = wr;
-  const dollars = riskAcct * (pct / 100);
-  document.getElementById('riskDollarOut').textContent = '$' + Math.round(dollars).toLocaleString();
-  // Risk fill: 1% = sweet spot, scale 0-100% (5% maxes out red)
-  const riskFillPct = Math.min(100, pct * 20);
-  document.getElementById('riskFill').style.width = riskFillPct + '%';
-  // Trades to blow: 5% account / risk per trade (worst case losing streak)
-  const maxDD = riskAcct * 0.05;
-  const trades = Math.max(1, Math.floor(maxDD / dollars));
-  document.getElementById('tradesToBlow').textContent = trades + ' losses';
-  document.getElementById('tradesFill').style.width = Math.min(100, (trades / 25) * 100) + '%';
-  // Days to pass: based on win rate + avg R
-  // Simple model: target = 6%, expectancy = (winRate × R - lossRate × 1) × pct
-  const avgR = 1.8;
-  const expectancy = ((wr / 100) * avgR - (1 - wr / 100) * 1) * pct / 100;
-  let days;
-  if (expectancy <= 0) days = 999;
-  else days = Math.max(5, Math.ceil(0.06 / expectancy / 3)); // ~3 trades/day
-  document.getElementById('daysOut').textContent = days >= 999 ? '∞ (negative edge)' : days + ' days';
-  document.getElementById('daysFill').style.width = days >= 999 ? '5%' : Math.max(10, Math.min(100, (50 / days) * 100)) + '%';
-  // Verdict
-  const verdict = document.getElementById('riskVerdict');
-  verdict.classList.remove('safe', 'warn', 'danger');
-  if (pct <= 1.5 && wr >= 45) {
-    verdict.classList.add('safe');
-    verdict.textContent = '✓ Solid risk profile · this is what funded traders do';
-  } else if (pct <= 2.5 && wr >= 40) {
-    verdict.classList.add('warn');
-    verdict.textContent = '⚠ Elevated risk · one bad streak could fail you';
-  } else {
-    verdict.classList.add('danger');
-    verdict.textContent = '✗ High risk · you will likely fail this evaluation';
-  }
-}
-document.getElementById('riskSlider').addEventListener('change', playTick);
-document.getElementById('winRateSlider').addEventListener('change', playTick);
-updateRisk();
-
-// ════════════════════════════════════════════════════════════════
-// SCROLL REVEAL
-// ════════════════════════════════════════════════════════════════
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('shown');
-      revealObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
-document.querySelectorAll('.scrollRevealItem').forEach(el => revealObserver.observe(el));
-
-// ════════════════════════════════════════════════════════════════
-// MOBILE MENU (placeholder)
-// ════════════════════════════════════════════════════════════════
-function toggleMobileMenu(){
-  alert('Mobile menu coming soon. Use the buttons below for now.');
-}
+// ── HERO LOAD CHIME (subtle) ──
+let chimePlayed = false;
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    if (chimePlayed) return;
+    try {
+      const a = new (window.AudioContext || window.webkitAudioContext)();
+      const o = a.createOscillator();
+      const g = a.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(880, a.currentTime);
+      o.frequency.exponentialRampToValueAtTime(1320, a.currentTime + 0.4);
+      g.gain.setValueAtTime(0, a.currentTime);
+      g.gain.linearRampToValueAtTime(0.012, a.currentTime + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.001, a.currentTime + 0.6);
+      o.connect(g);
+      g.connect(a.destination);
+      o.start(a.currentTime);
+      o.stop(a.currentTime + 0.6);
+      chimePlayed = true;
+    } catch(e){}
+  }, 800);
+}, { once: true });
 </script>
 
 </body>
