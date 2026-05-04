@@ -3,362 +3,488 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Tradephex Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Admin — Tradephex</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@200;300;400;500&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#06060A;--s1:#0B0B12;--s2:#10101A;--s3:#15151F;
-  --gold:#C9A84C;--gold2:#E8C870;--white:#E8E8F2;
-  --gray:#606078;--gray2:#9090A8;
-  --green:#00E676;--red:#FF1744;--orange:#FF9800;--blue:#4FC3F7;
-  --border:rgba(201,168,76,.12);--border2:rgba(201,168,76,.28);
-  --borderb:rgba(255,255,255,.05);
+  --black:#000;--soft:#0A0A0A;--surface:#0E0E0E;--surface2:#161616;
+  --line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.12);
+  --gold:#C9A84C;--gold-soft:#9F8638;
+  --text:#E8E8E8;--mute:#6F6F6F;--mute2:#3F3F3F;
+  --green:#00C97A;--red:#D85B5B;--orange:#E8A547;--blue:#4A8FE3;
+  --serif:'Spectral',Georgia,serif;
+  --sans:'Inter',-apple-system,sans-serif;
+  --mono:'JetBrains Mono',Menlo,monospace;
 }
-body{background:var(--bg);color:var(--white);font-family:'DM Mono',monospace;font-size:12px;line-height:1.5;}
+body{background:var(--black);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.5;-webkit-font-smoothing:antialiased;}
+::selection{background:var(--gold);color:#000;}
 ::-webkit-scrollbar{width:6px;height:6px;}
-::-webkit-scrollbar-track{background:var(--s1);}
-::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:3px;}
-::-webkit-scrollbar-thumb:hover{background:var(--gold);}
+::-webkit-scrollbar-thumb{background:var(--line2);}
+::-webkit-scrollbar-thumb:hover{background:var(--gold-soft);}
+::-webkit-scrollbar-track{background:transparent;}
+a{color:inherit;text-decoration:none;}
+button,input,select,textarea{font-family:inherit;color:inherit;}
 
 /* ── LOGIN GATE ── */
-#loginGate{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:1000;}
-.loginBox{background:var(--s1);border:1px solid var(--border);padding:42px 36px;width:380px;max-width:90vw;box-shadow:0 16px 60px rgba(0,0,0,.6);}
-.loginLogo{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;letter-spacing:.1em;margin-bottom:6px;}
-.loginLogo span{color:var(--gold);}
-.loginSub{font-size:10px;letter-spacing:.18em;color:var(--gray);margin-bottom:32px;text-transform:uppercase;}
-.loginInput{width:100%;background:var(--s2);border:1px solid var(--border);color:var(--white);font-family:'DM Mono',monospace;font-size:13px;padding:12px 14px;outline:none;margin-bottom:12px;border-radius:2px;}
+#loginGate{position:fixed;inset:0;background:var(--black);display:flex;align-items:center;justify-content:center;padding:24px;z-index:1000;}
+.loginBox{width:100%;max-width:440px;}
+.loginEyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--red);margin-bottom:32px;display:flex;align-items:center;gap:14px;}
+.loginEyebrow::before{content:'';width:32px;height:1px;background:var(--red);}
+.loginH{font-family:var(--serif);font-weight:300;font-size:48px;line-height:.96;color:#FFF;margin-bottom:14px;letter-spacing:-.025em;}
+.loginH em{font-style:italic;color:var(--gold);font-weight:200;}
+.loginSub{font-family:var(--sans);font-size:14px;color:var(--mute);margin-bottom:48px;}
+.loginInput{width:100%;background:transparent;border:none;border-bottom:1px solid var(--line2);padding:14px 0;font-family:var(--sans);font-size:16px;color:var(--text);outline:none;transition:border-color .3s;margin-bottom:24px;font-weight:300;}
 .loginInput:focus{border-color:var(--gold);}
-.loginBtn{width:100%;background:var(--gold);color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.12em;padding:12px;cursor:pointer;text-transform:uppercase;}
-.loginBtn:hover{background:var(--gold2);}
-.loginErr{color:var(--red);font-size:11px;margin-top:8px;display:none;}
+.loginInput::placeholder{color:var(--mute2);}
+.loginBtn{width:100%;padding:18px;background:transparent;border:1px solid var(--gold-soft);color:var(--gold);font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;cursor:pointer;transition:.4s;position:relative;overflow:hidden;margin-top:24px;}
+.loginBtn::before{content:'';position:absolute;inset:0;background:var(--gold);transform:translateX(-100%);transition:transform .5s;z-index:0;}
+.loginBtn:hover::before{transform:translateX(0);}
+.loginBtn span{position:relative;z-index:1;transition:color .3s;}
+.loginBtn:hover span{color:#000;}
+.loginErr{margin-top:18px;padding:14px 18px;border:1px solid rgba(216,91,91,.3);background:rgba(216,91,91,.04);font-family:var(--mono);font-size:12px;color:var(--red);display:none;}
+.loginErr.show,.loginErr[style*="display:block"]{display:block;}
+#currentSessionInfo{margin-top:24px;padding:18px;background:var(--surface);border:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--mute);text-align:center;}
+#currentSessionInfo button{margin-top:12px;background:transparent;border:1px solid var(--line2);color:var(--gold);font-family:var(--mono);font-size:10px;padding:8px 16px;cursor:pointer;letter-spacing:.18em;text-transform:uppercase;transition:.3s;}
+#currentSessionInfo button:hover{border-color:var(--gold);background:var(--gold);color:#000;}
 
-/* ── LAYOUT ── */
-#app{display:flex;height:100vh;}
-nav{width:220px;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
-.navLogo{padding:20px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;border-bottom:1px solid var(--border);letter-spacing:.04em;}
-.navLogo span{color:var(--gold);}
-.navLogo .badge{display:inline-block;font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.16em;color:var(--red);background:rgba(255,23,68,.1);padding:2px 6px;margin-left:8px;border:1px solid rgba(255,23,68,.3);vertical-align:middle;}
-.navSection{padding:14px 18px 6px;font-size:9px;letter-spacing:.16em;color:var(--gray);text-transform:uppercase;}
-.navItem{padding:10px 18px;cursor:pointer;display:flex;align-items:center;gap:10px;color:var(--gray2);transition:.12s;font-size:11px;letter-spacing:.04em;border-left:2px solid transparent;}
-.navItem:hover{background:rgba(201,168,76,.04);color:var(--white);}
-.navItem.on{background:rgba(201,168,76,.08);color:var(--gold);border-left-color:var(--gold);}
-.navItem .navCount{margin-left:auto;font-size:10px;color:var(--orange);}
-.navFoot{margin-top:auto;padding:14px 18px;border-top:1px solid var(--border);font-size:10px;color:var(--gray);}
-.navFoot a{color:var(--gold);text-decoration:none;cursor:pointer;}
+/* ── APP LAYOUT ── */
+#app{display:none;min-height:100vh;}
+#app.ready{display:grid;grid-template-columns:260px 1fr;}
+.sidebar{background:var(--soft);border-right:1px solid var(--line);padding:32px 0;display:flex;flex-direction:column;height:100vh;position:sticky;top:0;}
+.sideBrand{padding:0 32px 32px;border-bottom:1px solid var(--line);margin-bottom:24px;}
+.sideBrand .logo{font-family:var(--mono);font-size:13px;font-weight:500;letter-spacing:.24em;color:#FFF;}
+.sideBrand .logo span{color:var(--gold);}
+.sideBrand .badge{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:.2em;color:var(--red);background:rgba(216,91,91,.1);padding:3px 8px;margin-left:8px;border:1px solid rgba(216,91,91,.3);text-transform:uppercase;vertical-align:middle;}
+.navItem{padding:14px 32px;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);cursor:pointer;transition:.3s;display:flex;align-items:center;gap:14px;border-left:1px solid transparent;}
+.navItem::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--mute2);transition:.3s;}
+.navItem:hover{color:var(--text);}
+.navItem:hover::before{background:var(--gold-soft);}
+.navItem.on{color:var(--gold);border-left-color:var(--gold);background:linear-gradient(90deg,rgba(201,168,76,.04),transparent);}
+.navItem.on::before{background:var(--gold);box-shadow:0 0 12px var(--gold);}
+.badgeCount{margin-left:auto;background:var(--gold);color:#000;font-family:var(--mono);font-size:9px;letter-spacing:.05em;padding:2px 7px;font-weight:500;}
+.badgeCount[data-count="0"]{display:none;}
+.navFoot{margin-top:auto;padding:24px 32px;border-top:1px solid var(--line);font-family:var(--mono);font-size:10px;color:var(--mute2);letter-spacing:.05em;}
+.navFoot a{cursor:pointer;color:var(--gold);transition:color .3s;display:inline-block;margin-top:6px;padding:4px 0;}
+.navFoot a:hover{color:var(--text);}
 
-main{flex:1;overflow-y:auto;padding:28px 32px;}
-h1{font-family:'Barlow Condensed',sans-serif;font-size:28px;letter-spacing:.06em;margin-bottom:6px;font-weight:700;}
-.sub{font-size:11px;color:var(--gray2);margin-bottom:28px;}
+/* ── MAIN AREA ── */
+.main{padding:48px 64px;overflow-x:auto;}
+.section{display:none;}
+.section.on{display:block;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
-/* ── STAT CARDS ── */
-.statsRow{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px;}
-.statCard{background:var(--s1);border:1px solid var(--border);padding:18px 20px;transition:.15s;position:relative;overflow:hidden;}
-.statCard:hover{border-color:var(--border2);}
-.statCard::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--gold);opacity:.3;}
-.statLabel{font-size:9px;letter-spacing:.14em;color:var(--gray);margin-bottom:6px;text-transform:uppercase;}
-.statVal{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:30px;letter-spacing:.02em;line-height:1.1;}
-.statSub{font-size:10px;color:var(--gray2);margin-top:5px;}
-.statVal.up{color:var(--green);}
-.statVal.dn{color:var(--red);}
+.head{margin-bottom:48px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:24px;}
+.headEyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:14px;}
+.headEyebrow::before{content:'';width:32px;height:1px;background:var(--gold);}
+.headH{font-family:var(--serif);font-weight:300;font-size:56px;line-height:.96;letter-spacing:-.025em;color:#FFF;}
+.headH em{font-style:italic;color:var(--gold);font-weight:200;}
+.headSub{font-family:var(--sans);font-size:14px;color:var(--mute);max-width:480px;}
+
+/* ── KPI GRID ── */
+.kpiGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:64px;}
+.kpi{background:var(--black);padding:36px 32px;transition:background .4s;}
+.kpi:hover{background:var(--soft);}
+.kpiLabel{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);margin-bottom:18px;}
+.kpiValue{font-family:var(--mono);font-weight:300;font-size:42px;line-height:1;letter-spacing:-.02em;color:var(--text);margin-bottom:10px;}
+.kpiValue.gold{color:var(--gold);}
+.kpiValue.italic{font-family:var(--serif);font-style:italic;font-weight:300;color:var(--gold);font-size:48px;}
+.kpiSub{font-family:var(--mono);font-size:11px;color:var(--mute2);letter-spacing:.04em;}
+.kpiSub.up{color:var(--green);}
+.kpiSub.down{color:var(--red);}
+
+/* ── PANELS ── */
+.panels{display:grid;grid-template-columns:1.5fr 1fr;gap:48px;margin-bottom:64px;}
+.panel{background:var(--black);}
+.panelHead{padding-bottom:24px;border-bottom:1px solid var(--line);margin-bottom:0;display:flex;justify-content:space-between;align-items:flex-end;}
+.panelLabel{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+.panelH{font-family:var(--serif);font-weight:300;font-size:28px;line-height:1;color:#FFF;letter-spacing:-.015em;}
+.panelH em{font-style:italic;color:var(--gold);font-weight:200;}
+.panelMeta{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);}
+
+/* ── ACTIVITY LIST ── */
+.activityList{}
+.activity{padding:18px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;}
+.activity:last-child{border-bottom:none;}
+.activityDot{width:8px;height:8px;border-radius:50%;background:var(--gold-soft);}
+.activityDot.gold{background:var(--gold);box-shadow:0 0 8px var(--gold);}
+.activityDot.green{background:var(--green);}
+.activityDot.red{background:var(--red);}
+.activityText{font-family:var(--sans);font-size:13px;color:var(--text);font-weight:300;}
+.activityText strong{color:var(--gold);font-weight:500;}
+.activityTime{font-family:var(--mono);font-size:10px;color:var(--mute2);letter-spacing:.05em;}
+
+/* ── ACTION REQUIRED ── */
+.actionList{}
+.actionItem{padding:20px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;}
+.actionItem:last-child{border-bottom:none;}
+.actionInfo{font-family:var(--sans);font-size:13px;color:var(--text);font-weight:300;}
+.actionAmt{font-family:var(--mono);font-weight:400;font-size:18px;color:var(--gold);}
+.actionMeta{font-family:var(--mono);font-size:10px;color:var(--mute);letter-spacing:.05em;margin-top:4px;}
 
 /* ── TABLES ── */
-.tableWrap{background:var(--s1);border:1px solid var(--border);overflow:hidden;}
-.tableHead{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:var(--s2);}
-.tableHead h2{font-family:'Barlow Condensed',sans-serif;font-size:14px;letter-spacing:.1em;font-weight:700;flex:1;}
-table{width:100%;border-collapse:collapse;font-size:11px;}
-thead{background:var(--s2);}
-th{text-align:left;padding:10px 14px;font-size:9px;letter-spacing:.12em;color:var(--gray);font-weight:600;border-bottom:1px solid var(--border);text-transform:uppercase;}
-td{padding:11px 14px;border-bottom:1px solid var(--borderb);}
-tr:hover td{background:rgba(255,255,255,.02);}
-.searchInput{background:var(--s3);border:1px solid var(--border);color:var(--white);padding:6px 10px;font-family:'DM Mono',monospace;font-size:11px;outline:none;border-radius:2px;width:240px;}
-.searchInput:focus{border-color:var(--gold);}
-.filterSel{background:var(--s3);border:1px solid var(--border);color:var(--white);padding:6px 10px;font-family:'DM Mono',monospace;font-size:11px;outline:none;border-radius:2px;}
+.tableWrap{border:1px solid var(--line);overflow:hidden;}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;}
+thead{background:var(--soft);}
+thead tr{border-bottom:1px solid var(--line);}
+th{text-align:left;padding:18px 20px;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:400;}
+tbody tr{border-bottom:1px solid var(--line);transition:background .3s;}
+tbody tr:hover{background:var(--soft);}
+tbody tr:last-child{border-bottom:none;}
+td{padding:18px 20px;font-family:var(--mono);font-size:12px;color:var(--text);font-weight:300;vertical-align:middle;}
+td strong{color:#FFF;font-weight:400;}
 
 /* ── BADGES ── */
-.badge{display:inline-block;font-size:9px;letter-spacing:.1em;padding:3px 8px;font-family:'DM Mono',monospace;border-radius:2px;font-weight:600;}
-.b-active{background:rgba(0,230,118,.12);color:var(--green);}
-.b-passed{background:rgba(0,230,118,.18);color:var(--green);}
-.b-failed{background:rgba(255,23,68,.12);color:var(--red);}
-.b-pending{background:rgba(255,152,0,.12);color:var(--orange);}
-.b-paid{background:rgba(79,195,247,.12);color:var(--blue);}
-.b-approved{background:rgba(0,230,118,.12);color:var(--green);}
-.b-rejected{background:rgba(255,23,68,.12);color:var(--red);}
+.badge{display:inline-block;padding:4px 10px;font-family:var(--mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;font-weight:500;border:1px solid;background:transparent;}
+.b-pending{color:var(--orange);border-color:rgba(232,165,71,.3);background:rgba(232,165,71,.05);}
+.b-approved{color:var(--blue);border-color:rgba(74,143,227,.3);background:rgba(74,143,227,.05);}
+.b-paid{color:var(--green);border-color:rgba(0,201,122,.3);background:rgba(0,201,122,.05);}
+.b-rejected{color:var(--red);border-color:rgba(216,91,91,.3);background:rgba(216,91,91,.05);}
+.b-active{color:var(--green);border-color:rgba(0,201,122,.3);background:rgba(0,201,122,.05);}
+.b-passed{color:var(--gold);border-color:rgba(201,168,76,.3);background:rgba(201,168,76,.05);}
+.b-failed{color:var(--red);border-color:rgba(216,91,91,.3);background:rgba(216,91,91,.05);}
 
 /* ── BUTTONS ── */
-.btn{background:var(--gold);color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;padding:7px 14px;cursor:pointer;letter-spacing:.08em;text-transform:uppercase;border-radius:2px;}
-.btn:hover{background:var(--gold2);}
-.btnSm{padding:5px 10px;font-size:10px;}
-.btnGhost{background:transparent;border:1px solid var(--border2);color:var(--gold);}
-.btnGhost:hover{background:rgba(201,168,76,.08);}
-.btnRed{background:rgba(255,23,68,.15);color:var(--red);border:1px solid rgba(255,23,68,.4);}
-.btnRed:hover{background:rgba(255,23,68,.25);}
-.btnGreen{background:rgba(0,230,118,.15);color:var(--green);border:1px solid rgba(0,230,118,.4);}
-.btnGreen:hover{background:rgba(0,230,118,.25);}
-.btnBlue{background:rgba(79,195,247,.15);color:var(--blue);border:1px solid rgba(79,195,247,.4);}
-.btnBlue:hover{background:rgba(79,195,247,.25);}
+.btn{padding:10px 18px;background:transparent;border:1px solid var(--line2);color:var(--gold);font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:.3s;font-weight:400;}
+.btn:hover{border-color:var(--gold);background:var(--gold);color:#000;}
+.btn.primary{border-color:var(--gold-soft);color:var(--gold);}
+.btn.danger{color:var(--red);}
+.btn.danger:hover{border-color:var(--red);background:var(--red);color:#FFF;}
+.btn.green{color:var(--green);}
+.btn.green:hover{border-color:var(--green);background:var(--green);color:#000;}
+.btnSm{padding:7px 12px;font-size:9px;letter-spacing:.16em;}
+.btnGreen{color:var(--green);border-color:rgba(0,201,122,.3);}
+.btnGreen:hover{background:var(--green);color:#000;border-color:var(--green);}
+.btnRed{color:var(--red);border-color:rgba(216,91,91,.3);}
+.btnRed:hover{background:var(--red);color:#FFF;border-color:var(--red);}
+.btnBlue{color:var(--blue);border-color:rgba(74,143,227,.3);}
+.btnBlue:hover{background:var(--blue);color:#FFF;border-color:var(--blue);}
+.btnGroup{display:flex;gap:6px;flex-wrap:wrap;}
+.toast{position:fixed;bottom:32px;right:32px;padding:18px 24px;background:var(--soft);border:1px solid var(--gold);font-family:var(--mono);font-size:12px;color:var(--gold);z-index:600;display:none;}
+.toast.show{display:block;animation:fadeIn .3s ease;}
 
-/* ── MODAL ── */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px);}
-.modal.show{display:flex;}
-.modalBox{background:var(--s1);border:1px solid var(--border2);width:520px;max-width:90vw;max-height:90vh;overflow-y:auto;padding:28px;}
-.modalH{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;letter-spacing:.06em;margin-bottom:18px;}
-.modalLabel{font-size:9px;letter-spacing:.14em;color:var(--gray);margin-bottom:6px;text-transform:uppercase;}
-.modalRow{margin-bottom:14px;}
-.modalInput,.modalTextarea{width:100%;background:var(--s2);border:1px solid var(--border);color:var(--white);padding:10px 12px;font-family:'DM Mono',monospace;font-size:12px;outline:none;border-radius:2px;}
-.modalInput:focus,.modalTextarea:focus{border-color:var(--gold);}
-.modalTextarea{resize:vertical;min-height:80px;}
-.modalActions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
+/* ── FILTER ROW ── */
+.filterRow{display:flex;gap:12px;margin-bottom:32px;flex-wrap:wrap;}
+.filterTab{padding:10px 18px;background:transparent;border:1px solid var(--line2);color:var(--mute);font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;transition:.3s;}
+.filterTab:hover{color:var(--text);border-color:var(--gold-soft);}
+.filterTab.on{background:var(--gold);color:#000;border-color:var(--gold);}
+.searchInput{flex:1;min-width:200px;padding:10px 18px;background:transparent;border:1px solid var(--line2);color:var(--text);font-family:var(--mono);font-size:12px;outline:none;transition:.3s;}
+.searchInput:focus{border-color:var(--gold);}
+.searchInput::placeholder{color:var(--mute2);}
 
 /* ── EMPTY STATE ── */
-.empty{padding:48px 32px;text-align:center;color:var(--gray);}
-.empty .emptyIcon{font-size:32px;opacity:.4;margin-bottom:12px;}
-.empty .emptyTitle{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.06em;color:var(--white);margin-bottom:6px;}
-.empty .emptyText{font-size:11px;color:var(--gray2);}
-
-/* ── TOAST ── */
-.toast{position:fixed;bottom:20px;right:20px;background:var(--s2);border:1px solid var(--gold);color:var(--white);padding:14px 18px;font-size:11px;font-family:'DM Mono',monospace;z-index:300;display:none;border-radius:2px;box-shadow:0 8px 24px rgba(0,0,0,.5);}
-.toast.show{display:block;}
-.toast.err{border-color:var(--red);}
+.empty{padding:80px 32px;text-align:center;border:1px solid var(--line);}
+.emptyIcon{font-size:32px;margin-bottom:18px;opacity:.4;}
+.emptyTitle{font-family:var(--serif);font-weight:300;font-size:24px;color:#FFF;margin-bottom:14px;}
+.emptyText{font-family:var(--sans);font-size:13px;color:var(--mute);max-width:480px;margin:0 auto 18px;line-height:1.7;}
 
 /* ── REVENUE CHART ── */
-.chartBox{background:var(--s1);border:1px solid var(--border);padding:20px;margin-bottom:24px;}
-.chartBox h3{font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.1em;margin-bottom:16px;color:var(--gold);}
-canvas{display:block;width:100%;}
+.revGrid{display:grid;grid-template-columns:2fr 1fr;gap:48px;margin-bottom:64px;}
+.revBars{height:280px;display:flex;align-items:flex-end;gap:4px;padding:24px 0;border-bottom:1px solid var(--line);}
+.revBar{flex:1;background:var(--gold-soft);transition:.3s;min-height:1px;position:relative;}
+.revBar:hover{background:var(--gold);}
+.revBar .tip{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:var(--soft);border:1px solid var(--line);padding:6px 10px;font-family:var(--mono);font-size:10px;color:var(--gold);white-space:nowrap;margin-bottom:6px;}
+.revBar:hover .tip{display:block;}
 
-/* Hide page until login */
-#app{display:none;}
-#app.ready{display:flex;}
+/* ── EMAIL COMPOSER ── */
+.composer{display:grid;grid-template-columns:1fr 1fr;gap:48px;}
+.composerForm{display:flex;flex-direction:column;gap:18px;}
+.fieldLabel{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);margin-bottom:8px;display:block;}
+.fieldInput,.fieldSelect,.fieldText{width:100%;background:transparent;border:none;border-bottom:1px solid var(--line2);padding:12px 0;font-family:var(--sans);font-size:14px;color:var(--text);outline:none;transition:border-color .3s;font-weight:300;}
+.fieldInput:focus,.fieldSelect:focus,.fieldText:focus{border-color:var(--gold);}
+.fieldText{resize:vertical;min-height:160px;border:1px solid var(--line2);padding:14px;}
+.fieldText:focus{border-color:var(--gold);}
+.fieldSelect{cursor:pointer;}
+.fieldSelect option{background:var(--black);color:var(--text);}
+.composerPreview{padding:32px;border:1px solid var(--line);background:var(--soft);}
+.composerPreview h4{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:18px;}
+.previewBox{font-family:var(--mono);font-size:12px;color:var(--text);line-height:1.7;white-space:pre-wrap;}
+
+/* ── PAYOUT MODAL ── */
+.modalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:500;padding:24px;}
+.modalOverlay.on{display:flex;}
+.modal{width:100%;max-width:520px;background:var(--black);border:1px solid var(--line2);}
+.modalHead{padding:32px;border-bottom:1px solid var(--line);}
+.modalEyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:14px;}
+.modalH{font-family:var(--serif);font-weight:300;font-size:32px;color:#FFF;line-height:1;letter-spacing:-.02em;}
+.modalH em{font-style:italic;color:var(--gold);font-weight:200;}
+.modalBody{padding:32px;}
+.modalBody p{font-family:var(--sans);font-size:14px;color:var(--mute);line-height:1.7;margin-bottom:24px;}
+.modalBody strong{color:var(--text);font-weight:400;}
+.modalActions{padding:24px 32px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:12px;}
+.modalInput{width:100%;background:transparent;border:none;border-bottom:1px solid var(--line2);padding:12px 0;font-family:var(--sans);font-size:14px;color:var(--text);outline:none;transition:border-color .3s;font-weight:300;margin-top:14px;}
+.modalInput:focus{border-color:var(--gold);}
+.modalInput::placeholder{color:var(--mute2);}
+.modalTextarea{width:100%;background:transparent;border:1px solid var(--line2);padding:14px;font-family:var(--sans);font-size:13px;color:var(--text);outline:none;transition:border-color .3s;font-weight:300;margin-top:14px;resize:vertical;min-height:100px;line-height:1.6;}
+.modalTextarea:focus{border-color:var(--gold);}
+.modalTextarea::placeholder{color:var(--mute2);}
+
+/* ── RESPONSIVE ── */
+@media(max-width:980px){
+  #app.ready{grid-template-columns:1fr;}
+  .sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+  .sidebar .navItem{padding:12px 24px;}
+  .main{padding:32px 24px;}
+  .headH{font-size:40px;}
+  .kpiGrid{grid-template-columns:1fr;}
+  .panels,.revGrid,.composer{grid-template-columns:1fr;gap:32px;}
+}
 </style>
 </head>
 <body>
 
-<!-- LOGIN GATE -->
+<!-- ── LOGIN GATE ── -->
 <div id="loginGate">
   <div class="loginBox">
-    <div class="loginLogo">TRADE<span>PHEX</span> <span class="badge" style="font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.16em;color:var(--red);background:rgba(255,23,68,.1);padding:2px 6px;margin-left:8px;border:1px solid rgba(255,23,68,.3);vertical-align:middle;">ADMIN</span></div>
-    <div class="loginSub">Authorized personnel only</div>
+    <div class="loginEyebrow">Restricted · Admin Access</div>
+    <h1 class="loginH">Authorized<br/><em>personnel.</em></h1>
+    <p class="loginSub">This area is for Tradephex administrators only. Sign in with an admin email to continue.</p>
     <input id="adminEmail" class="loginInput" type="email" placeholder="Email" autocomplete="username">
     <input id="adminPass" class="loginInput" type="password" placeholder="Password" autocomplete="current-password">
-    <button class="loginBtn" onclick="adminLogin()">Sign In</button>
+    <button class="loginBtn" onclick="adminLogin()"><span>Sign In</span></button>
     <div id="loginErr" class="loginErr"></div>
+    <div id="currentSessionInfo" style="display:none;">
+      Currently signed in as <span id="currentSessionEmail" style="color:var(--gold);"></span>
+      <br>
+      <button onclick="clearSession()">Clear Session</button>
+    </div>
   </div>
 </div>
 
-<!-- APP -->
+<!-- ── APP ── -->
 <div id="app">
-  <nav>
-    <div class="navLogo">TRADE<span>PHEX</span> <span class="badge">ADMIN</span></div>
 
-    <div class="navSection">Overview</div>
-    <div class="navItem on" data-section="dashboard" onclick="showSection('dashboard')">📊 Dashboard</div>
-
-    <div class="navSection">Operations</div>
-    <div class="navItem" data-section="payouts" onclick="showSection('payouts')">
-      💸 Payouts <span class="navCount" id="pendingPayoutCount"></span>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sideBrand">
+      <a href="/" class="logo">TRADE<span>PHEX</span><span class="badge">Admin</span></a>
     </div>
-    <div class="navItem" data-section="evals" onclick="showSection('evals')">⚡ Evaluations</div>
-    <div class="navItem" data-section="users" onclick="showSection('users')">👥 Users</div>
-
-    <div class="navSection">Insights</div>
-    <div class="navItem" data-section="revenue" onclick="showSection('revenue')">📈 Revenue</div>
-    <div class="navItem" data-section="trades" onclick="showSection('trades')">📒 All Trades</div>
-
-    <div class="navSection">Tools</div>
-    <div class="navItem" data-section="email" onclick="showSection('email')">✉️ Send Email</div>
-
+    <div class="navItem on" data-section="dashboard" onclick="showSection('dashboard')">Dashboard</div>
+    <div class="navItem" data-section="payouts" onclick="showSection('payouts')">Payouts <span class="badgeCount" id="pendingPayoutCount" data-count="0">0</span></div>
+    <div class="navItem" data-section="evals" onclick="showSection('evals')">Evaluations</div>
+    <div class="navItem" data-section="users" onclick="showSection('users')">Users</div>
+    <div class="navItem" data-section="revenue" onclick="showSection('revenue')">Revenue</div>
+    <div class="navItem" data-section="trades" onclick="showSection('trades')">All Trades</div>
+    <div class="navItem" data-section="email" onclick="showSection('email')">Send Email</div>
     <div class="navFoot">
       Signed in as <span id="adminWho" style="color:var(--gold);"></span><br>
-      <a onclick="adminLogout()" style="cursor:pointer;display:inline-block;margin-top:6px;padding:4px 0;">↩ Sign out</a>
+      <a onclick="adminLogout()">↩ Sign out</a>
     </div>
-  </nav>
+  </aside>
 
-  <main>
-    <!-- ─── DASHBOARD ─── -->
-    <section id="sec-dashboard">
-      <h1>Dashboard</h1>
-      <div class="sub">Real-time operational view of Tradephex</div>
+  <!-- Main Content Area -->
+  <main class="main">
 
-      <div class="statsRow">
-        <div class="statCard"><div class="statLabel">Total Users</div><div class="statVal" id="kpiUsers">—</div><div class="statSub" id="kpiUsersSub">— this week</div></div>
-        <div class="statCard"><div class="statLabel">Active Evals</div><div class="statVal" id="kpiActive">—</div><div class="statSub" id="kpiActiveSub">— in progress</div></div>
-        <div class="statCard"><div class="statLabel">Funded Traders</div><div class="statVal up" id="kpiFunded">—</div><div class="statSub">passed evals</div></div>
-        <div class="statCard"><div class="statLabel">Pending Payouts</div><div class="statVal" id="kpiPending">—</div><div class="statSub" id="kpiPendingSub">$— total</div></div>
-        <div class="statCard"><div class="statLabel">Lifetime Revenue</div><div class="statVal up" id="kpiRevenue">$—</div><div class="statSub">from evals</div></div>
-        <div class="statCard"><div class="statLabel">MRR (est.)</div><div class="statVal up" id="kpiMRR">$—</div><div class="statSub">monthly recurring</div></div>
-      </div>
-
-      <div class="tableWrap" style="margin-bottom:20px;">
-        <div class="tableHead"><h2>Recent Activity (Last 24 Hours)</h2></div>
-        <div id="recentActivity">
-          <div class="empty"><div class="emptyIcon">⏳</div><div class="emptyText">Loading...</div></div>
+    <!-- DASHBOARD -->
+    <section class="section" id="sec-dashboard" data-section="dashboard" style="display:block;">
+      <div class="head">
+        <div>
+          <div class="headEyebrow">Operations</div>
+          <h1 class="headH">Dashboard.</h1>
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
-        <div class="tableWrap">
-          <div class="tableHead"><h2>🚨 Action Required</h2></div>
-          <div id="actionList">
-            <div class="empty"><div class="emptyText">Loading…</div></div>
+      <div class="kpiGrid">
+        <div class="kpi"><div class="kpiLabel">Total Users</div><div class="kpiValue gold" id="kpiUsers">—</div><div class="kpiSub" id="kpiUsersSub">—</div></div>
+        <div class="kpi"><div class="kpiLabel">Active Evals</div><div class="kpiValue" id="kpiActive">—</div><div class="kpiSub" id="kpiActiveSub">—</div></div>
+        <div class="kpi"><div class="kpiLabel">Funded Traders</div><div class="kpiValue gold" id="kpiFunded">—</div><div class="kpiSub">Currently funded</div></div>
+        <div class="kpi"><div class="kpiLabel">Pending Payouts</div><div class="kpiValue" id="kpiPending">—</div><div class="kpiSub" id="kpiPendingSub">—</div></div>
+        <div class="kpi"><div class="kpiLabel">Lifetime Revenue</div><div class="kpiValue italic" id="kpiRevenue">—</div><div class="kpiSub">All-time</div></div>
+        <div class="kpi"><div class="kpiLabel">Monthly Recurring</div><div class="kpiValue italic" id="kpiMRR">—</div><div class="kpiSub">Estimated</div></div>
+      </div>
+
+      <div class="panels">
+        <div class="panel">
+          <div class="panelHead">
+            <div>
+              <div class="panelLabel">Activity</div>
+              <div class="panelH">Recent <em>activity.</em></div>
+            </div>
+            <div class="panelMeta">Last 24h</div>
           </div>
+          <div id="recentActivity"></div>
         </div>
-        <div class="tableWrap">
-          <div class="tableHead"><h2>📊 Quick Stats</h2></div>
-          <div id="quickStats" style="padding:18px;">
-            <div class="empty"><div class="emptyText">Loading…</div></div>
+        <div class="panel">
+          <div class="panelHead">
+            <div>
+              <div class="panelLabel">Action</div>
+              <div class="panelH">Action <em>required.</em></div>
+            </div>
           </div>
+          <div id="actionList"></div>
+        </div>
+      </div>
+
+      <div class="head" style="margin-top:32px;">
+        <div>
+          <div class="headEyebrow">Quick Stats</div>
+          <h2 class="headH" style="font-size:36px;">Aggregates.</h2>
+        </div>
+      </div>
+      <div id="quickStats" style="border:1px solid var(--line);padding:36px 32px;"></div>
+    </section>
+
+    <!-- PAYOUTS -->
+    <section class="section" id="sec-payouts" data-section="payouts" style="display:none;">
+      <div class="head">
+        <div>
+          <div class="headEyebrow">Disbursements</div>
+          <h1 class="headH">Payouts.</h1>
+        </div>
+      </div>
+      <div class="kpiGrid">
+        <div class="kpi"><div class="kpiLabel">Pending</div><div class="kpiValue" id="poutPending">—</div></div>
+        <div class="kpi"><div class="kpiLabel">Approved</div><div class="kpiValue gold" id="poutApproved">—</div></div>
+        <div class="kpi"><div class="kpiLabel">Paid This Month</div><div class="kpiValue italic" id="poutPaidMonth">—</div></div>
+        <div class="kpi"><div class="kpiLabel">Total Paid LTD</div><div class="kpiValue italic" id="poutTotal">—</div></div>
+      </div>
+      <div class="filterRow">
+        <select id="poutFilter" class="searchInput" onchange="renderPayouts()" style="max-width:200px;flex:0 0 auto;">
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="paid">Paid</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <input class="searchInput" id="poutSearch" placeholder="Search by email, user ID..." oninput="renderPayouts()">
+      </div>
+      <div id="payoutTable"></div>
+    </section>
+
+    <!-- EVALUATIONS -->
+    <section class="section" id="sec-evals" data-section="evals" style="display:none;">
+      <div class="head">
+        <div>
+          <div class="headEyebrow">Programs</div>
+          <h1 class="headH">Evaluations.</h1>
+        </div>
+      </div>
+      <div class="filterRow">
+        <select id="evalFilter" class="searchInput" onchange="renderEvals()" style="max-width:200px;flex:0 0 auto;">
+          <option value="all">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="passed">Passed</option>
+          <option value="failed">Failed</option>
+        </select>
+        <input class="searchInput" id="evalSearch" placeholder="Search by email, user ID, account size..." oninput="renderEvals()">
+      </div>
+      <div id="evalsTable"></div>
+    </section>
+
+    <!-- USERS -->
+    <section class="section" id="sec-users" data-section="users" style="display:none;">
+      <div class="head">
+        <div>
+          <div class="headEyebrow">Customers</div>
+          <h1 class="headH">Users.</h1>
+        </div>
+      </div>
+      <div class="filterRow">
+        <input class="searchInput" id="userSearch" placeholder="Search by email/name..." oninput="renderUsers()">
+      </div>
+      <div id="usersTable"></div>
+    </section>
+
+    <!-- REVENUE -->
+    <section class="section" id="sec-revenue" data-section="revenue" style="display:none;">
+      <div class="head">
+        <div>
+          <div class="headEyebrow">Financials</div>
+          <h1 class="headH">Revenue.</h1>
+        </div>
+      </div>
+      <div class="kpiGrid">
+        <div class="kpi"><div class="kpiLabel">This Month</div><div class="kpiValue italic" id="revMonth">—</div></div>
+        <div class="kpi"><div class="kpiLabel">Last Month</div><div class="kpiValue" id="revLastMonth">—</div></div>
+        <div class="kpi"><div class="kpiLabel">Year-to-Date</div><div class="kpiValue gold" id="revYTD">—</div></div>
+        <div class="kpi"><div class="kpiLabel">Total Sales</div><div class="kpiValue" id="revCount">—</div></div>
+      </div>
+      <div class="revGrid">
+        <div class="panel">
+          <div class="panelHead"><div><div class="panelLabel">Last 30 Days</div><div class="panelH">Daily <em>revenue.</em></div></div></div>
+          <div id="revChart" class="revBars"></div>
+        </div>
+        <div class="panel">
+          <div class="panelHead"><div><div class="panelLabel">Breakdown</div><div class="panelH">By <em>plan.</em></div></div></div>
+          <div id="revByPlan"></div>
         </div>
       </div>
     </section>
 
-    <!-- ─── PAYOUTS ─── -->
-    <section id="sec-payouts" style="display:none;">
-      <h1>Payouts</h1>
-      <div class="sub">Approve, reject, or mark payout requests as paid</div>
-
-      <div class="statsRow">
-        <div class="statCard"><div class="statLabel">Pending</div><div class="statVal" id="poutPending" style="color:var(--orange);">—</div></div>
-        <div class="statCard"><div class="statLabel">Approved</div><div class="statVal up" id="poutApproved">—</div></div>
-        <div class="statCard"><div class="statLabel">Paid This Month</div><div class="statVal up" id="poutPaidMonth">$—</div></div>
-        <div class="statCard"><div class="statLabel">Total Paid LTD</div><div class="statVal" id="poutTotal">$—</div></div>
-      </div>
-
-      <div class="tableWrap">
-        <div class="tableHead">
-          <h2>Payout Requests</h2>
-          <input class="searchInput" id="poutSearch" placeholder="Search by user/email...">
-          <select class="filterSel" id="poutFilter" onchange="renderPayouts()">
-            <option value="">All</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="paid">Paid</option>
-            <option value="rejected">Rejected</option>
-          </select>
+    <!-- TRADES -->
+    <section class="section" id="sec-trades" data-section="trades" style="display:none;">
+      <div class="head">
+        <div>
+          <div class="headEyebrow">Activity</div>
+          <h1 class="headH">All <em>trades.</em></h1>
         </div>
-        <div id="payoutTable">
-          <div class="empty"><div class="emptyIcon">⏳</div><div class="emptyText">Loading...</div></div>
+      </div>
+      <div id="tradesTable"></div>
+    </section>
+
+    <!-- EMAIL COMPOSER -->
+    <section class="section" id="sec-email" data-section="email" style="display:none;">
+      <div class="head">
+        <div>
+          <div class="headEyebrow">Communication</div>
+          <h1 class="headH">Send <em>email.</em></h1>
+        </div>
+      </div>
+      <div class="composer">
+        <div class="composerForm">
+          <div>
+            <label class="fieldLabel">Template</label>
+            <select id="emailTemplate" class="fieldSelect" onchange="loadEmailTemplate()">
+              <option value="custom">Custom message</option>
+              <option value="welcome">Welcome email</option>
+              <option value="w9">W-9 request</option>
+              <option value="payout_sent">Payout sent</option>
+              <option value="general">General announcement</option>
+            </select>
+          </div>
+          <div>
+            <label class="fieldLabel">To (Email)</label>
+            <input type="email" id="emailTo" class="fieldInput" placeholder="trader@example.com">
+          </div>
+          <div>
+            <label class="fieldLabel">Subject</label>
+            <input type="text" id="emailSubject" class="fieldInput" placeholder="Subject line">
+          </div>
+          <div>
+            <label class="fieldLabel">Message</label>
+            <textarea id="emailBody" class="fieldText" placeholder="Write your message..."></textarea>
+          </div>
+          <button class="btn primary" style="align-self:flex-start;padding:14px 28px;font-size:11px;" onclick="sendCustomEmail()">Send Email</button>
+          <div id="emailResult" style="font-family:var(--mono);font-size:11px;"></div>
+        </div>
+        <div class="composerPreview">
+          <h4>Preview</h4>
+          <div class="previewBox" id="emailPreview">Select a template or write a custom message — preview appears here.</div>
         </div>
       </div>
     </section>
 
-    <!-- ─── EVALUATIONS ─── -->
-    <section id="sec-evals" style="display:none;">
-      <h1>Evaluations</h1>
-      <div class="sub">All evaluation accounts in the system</div>
-
-      <div class="tableWrap">
-        <div class="tableHead">
-          <h2>Evaluations</h2>
-          <input class="searchInput" id="evalSearch" placeholder="Search...">
-          <select class="filterSel" id="evalFilter" onchange="renderEvals()">
-            <option value="">All</option>
-            <option value="active">Active</option>
-            <option value="passed">Passed</option>
-            <option value="failed">Failed</option>
-          </select>
-        </div>
-        <div id="evalsTable"></div>
-      </div>
-    </section>
-
-    <!-- ─── USERS ─── -->
-    <section id="sec-users" style="display:none;">
-      <h1>Users</h1>
-      <div class="sub">All registered users</div>
-
-      <div class="tableWrap">
-        <div class="tableHead">
-          <h2>User Directory</h2>
-          <input class="searchInput" id="userSearch" placeholder="Search by email/name..." oninput="renderUsers()">
-        </div>
-        <div id="usersTable"></div>
-      </div>
-    </section>
-
-    <!-- ─── REVENUE ─── -->
-    <section id="sec-revenue" style="display:none;">
-      <h1>Revenue</h1>
-      <div class="sub">Sales by month and product</div>
-
-      <div class="statsRow">
-        <div class="statCard"><div class="statLabel">This Month</div><div class="statVal up" id="revMonth">$—</div></div>
-        <div class="statCard"><div class="statLabel">Last Month</div><div class="statVal" id="revLastMonth">$—</div></div>
-        <div class="statCard"><div class="statLabel">YTD</div><div class="statVal up" id="revYTD">$—</div></div>
-        <div class="statCard"><div class="statLabel">Total Sales</div><div class="statVal" id="revCount">—</div></div>
-      </div>
-
-      <div class="chartBox">
-        <h3>REVENUE — LAST 30 DAYS</h3>
-        <canvas id="revChart" height="200"></canvas>
-      </div>
-
-      <div class="tableWrap">
-        <div class="tableHead"><h2>Sales by Plan</h2></div>
-        <div id="revByPlan"></div>
-      </div>
-    </section>
-
-    <!-- ─── TRADES ─── -->
-    <section id="sec-trades" style="display:none;">
-      <h1>All Trades</h1>
-      <div class="sub">Cross-account trade activity</div>
-      <div class="tableWrap">
-        <div class="tableHead"><h2>Recent Trades (last 100)</h2></div>
-        <div id="tradesTable"></div>
-      </div>
-    </section>
-
-    <!-- ─── SEND EMAIL ─── -->
-    <section id="sec-email" style="display:none;">
-      <h1>Send Email</h1>
-      <div class="sub">Manual email composer for support and announcements</div>
-
-      <div style="background:var(--s1);border:1px solid var(--border);padding:24px;max-width:720px;">
-        <div class="modalRow">
-          <div class="modalLabel">To</div>
-          <input id="emailTo" class="modalInput" placeholder="trader@example.com (or leave blank to broadcast)">
-        </div>
-        <div class="modalRow">
-          <div class="modalLabel">Template</div>
-          <select id="emailTemplate" class="modalInput" onchange="loadEmailTemplate()">
-            <option value="">Custom (write your own)</option>
-            <option value="welcome">Welcome to Tradephex</option>
-            <option value="w9_request">W-9 Required</option>
-            <option value="payout_sent">Payout Sent</option>
-            <option value="general">General Announcement</option>
-          </select>
-        </div>
-        <div class="modalRow">
-          <div class="modalLabel">Subject</div>
-          <input id="emailSubject" class="modalInput" placeholder="Subject line">
-        </div>
-        <div class="modalRow">
-          <div class="modalLabel">Body (HTML or plain text supported)</div>
-          <textarea id="emailBody" class="modalTextarea" style="min-height:200px;" placeholder="Email body..."></textarea>
-        </div>
-        <div class="modalActions">
-          <button class="btn btnGhost" onclick="document.getElementById('emailBody').value='';document.getElementById('emailSubject').value='';">Clear</button>
-          <button class="btn" onclick="sendCustomEmail()">Send Email</button>
-        </div>
-      </div>
-    </section>
   </main>
 </div>
 
-<!-- PAYOUT ACTION MODAL -->
-<div class="modal" id="payoutModal">
-  <div class="modalBox">
-    <div class="modalH" id="payoutModalTitle">Process Payout</div>
-    <div id="payoutModalBody"></div>
+<!-- TOAST NOTIFICATION -->
+<div class="toast" id="toast"></div>
+
+<!-- PAYOUT MODAL -->
+<div class="modalOverlay" id="payoutModal">
+  <div class="modal">
+    <div class="modalHead">
+      <div class="modalEyebrow">Confirm Action</div>
+      <div class="modalH" id="payoutModalTitle">Approve <em>payout.</em></div>
+    </div>
+    <div class="modalBody" id="payoutModalBody"></div>
     <div class="modalActions">
-      <button class="btn btnGhost" onclick="closePayoutModal()">Cancel</button>
-      <button class="btn" id="payoutModalAction">Confirm</button>
+      <button class="btn" onclick="closePayoutModal()">Cancel</button>
+      <button class="btn primary" id="payoutModalAction">Confirm</button>
     </div>
   </div>
 </div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
 
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -408,11 +534,17 @@ window.adminLogin = async function(){
   document.getElementById('loginGate').style.display = 'none';
   document.getElementById('app').classList.add('ready');
   document.getElementById('adminWho').textContent = email;
+  ensureAdminKey(); // Prompt for ADMIN_API_SECRET if not stored
   await loadAll();
 };
 
 window.adminLogout = async function(){
   if (!confirm('Sign out of admin?')) return;
+  await clearSession(false);
+};
+
+window.clearSession = async function(showConfirm = true){
+  if (showConfirm && !confirm('Sign out of current session?')) return;
   try {
     await sb.auth.signOut();
   } catch(e) { console.warn('Sign out warning:', e); }
@@ -423,8 +555,8 @@ window.adminLogout = async function(){
   Object.keys(sessionStorage).forEach(k => {
     if (k.startsWith('sb-') || k.includes('supabase')) sessionStorage.removeItem(k);
   });
-  // Redirect to homepage so they can sign up fresh
-  location.href = '/';
+  // Reload to clean state (hard reload, no cache)
+  location.replace('/admin');
 };
 
 // Try to restore session
@@ -437,9 +569,15 @@ window.adminLogout = async function(){
       document.getElementById('loginGate').style.display = 'none';
       document.getElementById('app').classList.add('ready');
       document.getElementById('adminWho').textContent = email;
+      ensureAdminKey();
       await loadAll();
     } else {
-      await sb.auth.signOut();
+      // Non-admin signed in — show clear session UI
+      document.getElementById('currentSessionInfo').style.display = 'block';
+      document.getElementById('currentSessionEmail').textContent = email;
+      const errEl = document.getElementById('loginErr');
+      errEl.textContent = 'You\'re signed in as a non-admin account. Clear the session to switch.';
+      errEl.style.display = 'block';
     }
   }
 })();
@@ -479,24 +617,71 @@ async function loadTrades(){
 }
 
 async function loadUsers(){
-  // Note: admin-only access via a service-role function would normally fetch this
-  // For now, derive users from evaluations and payouts
-  const userIds = new Set();
-  allEvals.forEach(e => e.user_id && userIds.add(e.user_id));
-  allPayouts.forEach(p => p.user_id && userIds.add(p.user_id));
-  allTrades.forEach(t => t.user_id && userIds.add(t.user_id));
-  allUsers = Array.from(userIds).map(id => {
-    const userEvals = allEvals.filter(e => e.user_id === id);
-    const userPayouts = allPayouts.filter(p => p.user_id === id);
-    const userTrades = allTrades.filter(t => t.user_id === id);
-    return {
-      id,
-      eval_count: userEvals.length,
-      latest_eval: userEvals[0] || null,
-      total_payouts: userPayouts.reduce((s, p) => s + (p.status === 'paid' ? parseFloat(p.amount_requested) : 0), 0),
-      trade_count: userTrades.length,
-    };
-  });
+  // Try fetching real auth.users via admin API endpoint (uses service role key server-side)
+  let realUsers = [];
+  try {
+    const adminKey = sessionStorage.getItem('admin_api_key');
+    if (adminKey) {
+      const r = await fetch('/api/admin-list-users', {
+        method: 'POST',
+        headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json' },
+      });
+      if (r.ok) {
+        const data = await r.json();
+        realUsers = data.users || [];
+      } else if (r.status === 401) {
+        sessionStorage.removeItem('admin_api_key'); // bad key
+      }
+    }
+  } catch(e) { console.warn('Real user fetch failed, falling back to derived:', e); }
+
+  // If we got real users, use them. Otherwise fall back to deriving from evals/payouts/trades
+  if (realUsers.length > 0) {
+    allUsers = realUsers.map(u => {
+      const userEvals = allEvals.filter(e => e.user_id === u.id);
+      const userPayouts = allPayouts.filter(p => p.user_id === u.id);
+      const userTrades = allTrades.filter(t => t.user_id === u.id);
+      return {
+        id: u.id,
+        email: u.email,
+        created_at: u.created_at,
+        last_sign_in_at: u.last_sign_in_at,
+        confirmed: !!u.email_confirmed_at,
+        eval_count: userEvals.length,
+        latest_eval: userEvals[0] || null,
+        total_payouts: userPayouts.reduce((s, p) => s + (p.status === 'paid' ? parseFloat(p.amount_requested) : 0), 0),
+        trade_count: userTrades.length,
+      };
+    });
+  } else {
+    // FALLBACK: derive from existing data only (won't show signup-only users)
+    const userIds = new Set();
+    allEvals.forEach(e => e.user_id && userIds.add(e.user_id));
+    allPayouts.forEach(p => p.user_id && userIds.add(p.user_id));
+    allTrades.forEach(t => t.user_id && userIds.add(t.user_id));
+    allUsers = Array.from(userIds).map(id => {
+      const userEvals = allEvals.filter(e => e.user_id === id);
+      const userPayouts = allPayouts.filter(p => p.user_id === id);
+      const userTrades = allTrades.filter(t => t.user_id === id);
+      return {
+        id, email: '—',
+        eval_count: userEvals.length,
+        latest_eval: userEvals[0] || null,
+        total_payouts: userPayouts.reduce((s, p) => s + (p.status === 'paid' ? parseFloat(p.amount_requested) : 0), 0),
+        trade_count: userTrades.length,
+      };
+    });
+  }
+}
+
+// Ask for admin API key once per session
+function ensureAdminKey() {
+  let key = sessionStorage.getItem('admin_api_key');
+  if (!key) {
+    key = prompt('Enter ADMIN_API_SECRET (you set this in Vercel env vars). This unlocks user data and admin actions.');
+    if (key) sessionStorage.setItem('admin_api_key', key);
+  }
+  return key;
 }
 
 // ── NAV ──
@@ -749,17 +934,19 @@ window.renderUsers = function(){
   if (search) list = list.filter(u => JSON.stringify(u).toLowerCase().includes(search));
 
   if (!list.length) {
-    document.getElementById('usersTable').innerHTML = '<div class="empty"><div class="emptyIcon">👥</div><div class="emptyTitle">NO USERS YET</div><div class="emptyText">Users appear here when they sign up and purchase</div></div>';
+    document.getElementById('usersTable').innerHTML = '<div class="empty"><div class="emptyIcon">👥</div><div class="emptyTitle">NO USERS YET</div><div class="emptyText">Users appear here when they sign up. If you have signups but they\'re not showing, set ADMIN_API_SECRET in Vercel env vars and click below to enter it.</div><button class="btn" style="margin-top:18px;" onclick="sessionStorage.removeItem(\'admin_api_key\');ensureAdminKey();loadUsers().then(renderUsers).then(renderDashboard);">Enter Admin Key</button></div>';
     return;
   }
   document.getElementById('usersTable').innerHTML = `
     <table>
-      <thead><tr><th>User ID</th><th>Evals</th><th>Latest Eval</th><th>Trades</th><th>Lifetime Payouts</th></tr></thead>
+      <thead><tr><th>Email</th><th>Signed Up</th><th>Last Login</th><th>Confirmed</th><th>Evals</th><th>Trades</th><th>Lifetime Payouts</th></tr></thead>
       <tbody>${list.map(u => `
         <tr>
-          <td style="font-family:monospace;font-size:10px;">${u.id.slice(0,12)}…</td>
+          <td><strong>${u.email || '—'}</strong><br><span style="font-size:9px;color:var(--gray2);font-family:monospace;">${u.id.slice(0,12)}…</span></td>
+          <td style="color:var(--gray2);">${u.created_at ? formatDate(u.created_at) : '—'}</td>
+          <td style="color:var(--gray2);">${u.last_sign_in_at ? timeAgo(u.last_sign_in_at) : 'Never'}</td>
+          <td>${u.confirmed ? '<span style="color:var(--green);">✓</span>' : '<span style="color:var(--orange);">⚠ Pending</span>'}</td>
           <td>${u.eval_count}</td>
-          <td>${u.latest_eval ? `<span class="badge b-${u.latest_eval.status}">${u.latest_eval.status.toUpperCase()}</span>` : '—'}</td>
           <td>${u.trade_count}</td>
           <td style="color:${u.total_payouts>0?'var(--green)':'var(--gray2)'};">$${u.total_payouts.toFixed(0)}</td>
         </tr>
