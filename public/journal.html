@@ -143,6 +143,15 @@ async function loadEvalFromDB() {
       EVAL_STATE.maxDrawdown = userEval.max_drawdown || 0;
       EVAL_STATE.tradingDays = userEval.trading_days || 0;
       EVAL_STATE.balance = EVAL_STATE.accountSize + EVAL_STATE.netPnl;
+      EVAL_STATE.startDate = userEval.started_at || userEval.start_date || userEval.created_at || '—';
+      if (EVAL_STATE.startDate !== '—') EVAL_STATE.startDate = new Date(EVAL_STATE.startDate).toLocaleDateString();
+      // The database supplies balance snapshots; do not invent an equity history.
+      EVAL_STATE.equity = [EVAL_STATE.accountSize, EVAL_STATE.balance];
+      EVAL_STATE.dailyPnl = [0];
+      EVAL_STATE.winCount = 0;
+      EVAL_STATE.lossCount = 0;
+      EVAL_STATE.dailyLoss = 0;
+      EVAL_STATE.largestTradePct = 0;
       EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * (EVAL_STATE.phase === 1 ? 0.10 : 0.05);
       EVAL_STATE.rules.profitTarget.current = EVAL_STATE.netPnl;
       EVAL_STATE.rules.maxDrawdown.limit = EVAL_STATE.accountSize * 0.05;
@@ -167,12 +176,7 @@ function showEvalViolation(type) {
   showToastMsg('⚠ ' + (messages[type] || 'Evaluation rule violation'), 'var(--red)');
 }
 
-async function updateEvalInDB(updates) {
-  if (!userEval?.id) return;
-  try {
-    await db.from('evaluations').update(updates).eq('id', userEval.id);
-  } catch(e) { console.log('Eval update error:', e.message); }
-}
+// Intentionally no client-side evaluation write helper.
 
 function updateTopbar() {
   const nameEl = document.getElementById('topbar-username');
@@ -2739,36 +2743,31 @@ function showTab(tab) {
 // ── STRIPE + PLANS ──
 // ── EVALUATION ──
 const EVAL_STATE = {
-  active: true,
+  active: false,
   phase: 1,
   accountSize: 50000,
-  startDate: 'Apr 24, 2026',
-  balance: 51362.50,
-  netPnl: 1362.50,
-  maxDrawdown: 420.00,
+  startDate: '—',
+  balance: 50000,
+  netPnl: 0,
+  maxDrawdown: 0,
   dailyLoss: 0,
-  tradingDays: 3,
-  winCount: 17,
-  lossCount: 8,
-  largestTradePct: 31,
+  tradingDays: 0,
+  winCount: 0,
+  lossCount: 0,
+  largestTradePct: 0,
   rules: {
-    profitTarget: { required: 5000, current: 1362.50 },
-    maxDrawdown:  { limit: 2500,  current: 420 },
+    profitTarget: { required: 5000, current: 0 },
+    maxDrawdown:  { limit: 2500,  current: 0 },
     dailyLoss:    { limit: 1000,  current: 0 },
-    minDays:      { required: 5,  current: 3 },
-    consistency:  { maxPct: 40,   currentPct: 31 },
+    minDays:      { required: 5,  current: 0 },
+    consistency:  { maxPct: 40,   currentPct: 0 },
   },
-  equity: [50000,50120,50380,50210,50650,50900,51100,50880,51140,51362.50],
-  dailyPnl: [120,260,-170,440,250,200,-220,260,222.50],
+  equity: [50000,50000],
+  dailyPnl: [0],
 };
 
-const EVAL_TRADES = [
-  {date:'Apr 24',symbol:'ES',side:'Long', entry:7041.25,exit:7068.50,contracts:2,pnl:+1362.50,r:+2.1,rule:'✓'},
-  {date:'Apr 24',symbol:'NQ',side:'Short',entry:19510,  exit:19468.5,contracts:1,pnl:+830.00, r:+1.8,rule:'✓'},
-  {date:'Apr 24',symbol:'MES',side:'Long',entry:7035,   exit:7028,   contracts:5,pnl:-175.00, r:-0.6,rule:'✓'},
-  {date:'Apr 23',symbol:'ES', side:'Short',entry:7084, exit:7062.5, contracts:2,pnl:+2150.00,r:+2.9,rule:'✓'},
-  {date:'Apr 23',symbol:'NQ', side:'Long', entry:19420, exit:19385, contracts:1,pnl:-700.00, r:-1.2,rule:'✓'},
-];
+// No mock transactions are presented as verified evaluation trade history.
+const EVAL_TRADES = [];
 
 function initEvaluation() {
   const e = EVAL_STATE;
@@ -2788,7 +2787,7 @@ function initEvaluation() {
   document.getElementById('eval-pnl').textContent = '+$' + e.netPnl.toLocaleString('en-US',{minimumFractionDigits:2});
   document.getElementById('eval-drawdown').textContent = '-$' + e.maxDrawdown.toLocaleString('en-US',{minimumFractionDigits:2});
   document.getElementById('eval-days').textContent = e.tradingDays + ' / 5';
-  document.getElementById('eval-winrate').textContent = Math.round((e.winCount/(e.winCount+e.lossCount))*100) + '%';
+  document.getElementById('eval-winrate').textContent = (e.winCount+e.lossCount ? Math.round((e.winCount/(e.winCount+e.lossCount))*100) + '%' : '—');
   document.getElementById('eval-start-date').textContent = e.startDate;
 
   // Progress bars
@@ -2838,7 +2837,7 @@ function initEvaluation() {
         <th>Date</th><th>Symbol</th><th>Side</th><th>Entry</th><th>Exit</th><th>Qty</th><th>P&L</th><th>R</th><th>Rule</th>
       </tr></thead>
       <tbody>
-        ${EVAL_TRADES.map(t => `
+        ${EVAL_TRADES.length ? EVAL_TRADES.map(t => `
           <tr>
             <td><span class="trade-time">${t.date}</span></td>
             <td><span class="sym-badge">${t.symbol}</span></td>
@@ -2850,7 +2849,7 @@ function initEvaluation() {
             <td><span class="r-val ${t.r>=0?'pnl-pos':'pnl-neg'}">${t.r>=0?'+':''}${t.r}R</span></td>
             <td style="font-size:14px;color:var(--green);">${t.rule}</td>
           </tr>
-        `).join('')}
+        `).join('') : '<tr><td colspan="9" style="padding:18px;color:var(--gray2);">No verified evaluation trade history available yet.</td></tr>'}
       </tbody>
     </table>`;
 
@@ -2901,7 +2900,7 @@ function drawEvalCharts() {
   const ddata = EVAL_STATE.dailyPnl;
   const dW = dc.width; const dH = dc.height;
   const dPad = {l:10,r:10,t:10,b:20};
-  const dMax = Math.max(...ddata.map(Math.abs)) * 1.2;
+  const dMax = Math.max(1, ...ddata.map(Math.abs)) * 1.2;
   const midY = dPad.t + (dH-dPad.t-dPad.b)/2;
   const barW = ((dW-dPad.l-dPad.r)/ddata.length)*0.6;
   const spacing = (dW-dPad.l-dPad.r)/ddata.length;
@@ -3047,63 +3046,11 @@ if (_params.get('upgraded') === 'true') {
 
 // ── SYNC TRADES → EVAL ──
 function syncEvalWithTrades() {
-  if (!EVAL_STATE.active || !TRADES.length) return;
-  // Calculate from actual journal trades
-  const totalPnl = TRADES.reduce((sum, t) => sum + (t.pnl || 0), 0);
-  const wins = TRADES.filter(t => t.pnl > 0).length;
-  const losses = TRADES.filter(t => t.pnl < 0).length;
-  // Largest single trade as % of total profit
-  const positiveTrades = TRADES.filter(t => t.pnl > 0);
-  const largestWin = positiveTrades.length ? Math.max(...positiveTrades.map(t => t.pnl)) : 0;
-  const largestPct = totalPnl > 0 ? (largestWin / totalPnl) * 100 : 0;
-  // Running max drawdown
-  let peak = EVAL_STATE.accountSize, maxDD = 0, running = EVAL_STATE.accountSize;
-  [...TRADES].reverse().forEach(t => {
-    running += t.pnl;
-    if (running > peak) peak = running;
-    const dd = peak - running;
-    if (dd > maxDD) maxDD = dd;
-  });
-  // Unique trading days
-  const days = new Set(TRADES.map(t => t.date?.split(',')[0] || t.date?.slice(0,10))).size;
-
-  EVAL_STATE.netPnl = totalPnl;
-  EVAL_STATE.balance = EVAL_STATE.accountSize + totalPnl;
-  EVAL_STATE.maxDrawdown = maxDD;
-  EVAL_STATE.tradingDays = Math.min(days, 99);
-  EVAL_STATE.winCount = wins;
-  EVAL_STATE.lossCount = losses;
-  EVAL_STATE.largestTradePct = Math.round(largestPct);
-  EVAL_STATE.rules.profitTarget.current = totalPnl;
-  EVAL_STATE.rules.maxDrawdown.current = maxDD;
-  EVAL_STATE.rules.consistency.currentPct = Math.round(largestPct);
-
-  // Check violations
-  if (maxDD >= EVAL_STATE.rules.maxDrawdown.limit) {
-    EVAL_STATE.active = false;
-    showEvalViolation('max_drawdown');
-  }
-  // Check phase progression
-  if (EVAL_STATE.phase === 1 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
-    EVAL_STATE.phase = 2;
-    EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * 0.05;
-    showToastMsg('🎉 Evaluation Complete! Your funded account is now active.', 'var(--green)');
-    sendEmail('eval_passed_p1', { to: currentUser?.email });
-    updateEvalInDB({ phase: 2 });
-  }
-  if (EVAL_STATE.phase === 2 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
-    EVAL_STATE.active = false;
-    showToastMsg('🏆 YOU PASSED! Both phases complete. You are funded. Check your email.', 'var(--gold)');
-    sendEmail('eval_funded', { to: currentUser?.email });
-    updateEvalInDB({ status: 'passed', phase: 3 });
-  }
-  // Sync to DB
-  updateEvalInDB({
-    net_pnl: totalPnl,
-    max_drawdown: maxDD,
-    trading_days: days,
-    phase: EVAL_STATE.phase
-  });
+  // Journal entries are user-editable, so they cannot authorize funded
+  // evaluation progress, drawdown changes, account passing, or monetary rewards.
+  // Those calculations must be performed by an authenticated server and
+  // reported by a protected database record after verified executions.
+  return;
 }
 
 // ── SAVE TRADE TO SUPABASE ──
