@@ -1,63 +1,62 @@
-// api/create-checkout.js — Vercel serverless function
-// Creates a Stripe Checkout session and returns the URL
-// ENV VARS needed in Vercel dashboard:
-//   STRIPE_SECRET_KEY  (sk_live_...)
-//   SUPABASE_URL
-//   SUPABASE_SERVICE_KEY
-//   NEXT_PUBLIC_URL  (https://tradephex.com)
+// Create an evaluation checkout for the authenticated account only.
+// Evaluation entitlements must be granted by a verified Stripe webhook, never a URL.
+import { getAuthenticatedUser } from './_auth.js';
 
-const PLANS = {
-  '25k':  { name: 'Tradephex Eval $25K',  price: 14900,  account: 25000,  profit_target: 0.10, max_dd: 0.05, daily_limit: 0.02 },
-  '50k':  { name: 'Tradephex Eval $50K',  price: 24900,  account: 50000,  profit_target: 0.10, max_dd: 0.05, daily_limit: 0.02 },
-  '100k': { name: 'Tradephex Eval $100K', price: 39900,  account: 100000, profit_target: 0.08, max_dd: 0.05, daily_limit: 0.02 },
-  '150k': { name: 'Tradephex Eval $150K', price: 59900,  account: 150000, profit_target: 0.08, max_dd: 0.05, daily_limit: 0.02 },
-};
+const PLANS = Object.freeze({
+  '25k': { name:'Tradephex Eval $25K', price:14900, account:25000, profit_target:0.10, max_dd:0.05, daily_limit:0.02 },
+  '50k': { name:'Tradephex Eval $50K', price:24900, account:50000, profit_target:0.10, max_dd:0.05, daily_limit:0.02 },
+  '100k': { name:'Tradephex Eval $100K', price:39900, account:100000, profit_target:0.08, max_dd:0.05, daily_limit:0.02 },
+  '150k': { name:'Tradephex Eval $150K', price:59900, account:150000, profit_target:0.08, max_dd:0.05, daily_limit:0.02 },
+});
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-
-  const { plan, user_id, email } = req.body;
-  const planData = PLANS[plan];
-  if (!planData) return res.status(400).json({ error: 'Invalid plan' });
-
-  const Stripe = (await import('stripe')).default;
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-04-10' });
-
-  const baseUrl = process.env.NEXT_PUBLIC_URL || 'https://tradephex.com';
+  if (req.method !== 'POST') return res.status(405).json({ error:'Method not allowed' });
+  if (!process.env.STRIPE_SECRET_KEY) return res.status(503).json({ error:'Checkout is not configured' });
 
   try {
+    const user = await getAuthenticatedUser(req);
+    if (!user || !user.email) return res.status(401).json({ error:'Please sign in again' });
+
+    const plan = typeof req.body?.plan === 'string' ? req.body.plan : '';
+    const p = Object.prototype.hasOwnProperty.call(PLANS,plan) ? PLANS[plan] : null;
+    if (!p) return res.status(400).json({ error:'Invalid plan' });
+
+    const { default: Stripe } = await import('stripe');
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const origin = process.env.NEXT_PUBLIC_URL || 'https://tradephex.com';
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'payment',
-      line_items: [{
-        price_data: {
-          currency: 'usd',
-          unit_amount: planData.price,
-          product_data: {
-            name: planData.name,
-            description: `Phase 1: ${planData.profit_target*100}% profit target · Max DD: ${planData.max_dd*100}% · Daily limit: ${planData.daily_limit*100}%`,
-            images: ['https://tradephex.com/og-image.png'],
+      payment_method_types:['card'],
+      mode:'payment',
+      client_reference_id:user.id,
+      customer_email:user.email,
+      line_items:[{
+        price_data:{
+          currency:'usd',
+          unit_amount:p.price,
+          product_data:{
+            name:p.name,
+            description:`Evaluation: ${p.profit_target*100}% profit target, ${p.max_dd*100}% max drawdown, ${p.daily_limit*100}% daily loss`,
           },
         },
-        quantity: 1,
+        quantity:1,
       }],
-      customer_email: email || undefined,
-      metadata: {
-        user_id: user_id || '',
+      metadata:{
+        type:'evaluation',
+        user_id:user.id,
         plan,
-        account_size: planData.account.toString(),
-        profit_target: planData.profit_target.toString(),
-        max_dd: planData.max_dd.toString(),
-        daily_limit: planData.daily_limit.toString(),
+        account_size:String(p.account),
+        profit_target:String(p.profit_target),
+        max_dd:String(p.max_dd),
+        daily_limit:String(p.daily_limit),
       },
-      success_url: `${baseUrl}/welcome?plan=${plan}`,
-      cancel_url: `${baseUrl}/?canceled=true`,
-      allow_promotion_codes: true,
+      success_url:origin + '/journal?checkout=return',
+      cancel_url:origin + '/journal?tab=upgrade',
+      allow_promotion_codes:true,
     });
 
-    res.status(200).json({ url: session.url });
+    return res.status(200).json({ url:session.url });
   } catch (err) {
-    console.error('Stripe error:', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('Evaluation checkout error:', err);
+    return res.status(500).json({ error:'Checkout is temporarily unavailable' });
   }
 }

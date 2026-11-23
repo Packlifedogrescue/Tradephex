@@ -39,8 +39,10 @@ async function initAuth() {
 
   // Check URL params (Stripe success, onboarding)
   const params = new URLSearchParams(window.location.search);
-  if (params.get('upgraded') === 'true') showUpgradeSuccess();
-  if (params.get('eval_purchased') === 'true') handleEvalPurchaseSuccess(params.get('account_size'));
+  // Checkout redirects are informational only. Entitlements come from verified webhooks.
+  if (params.get('checkout') === 'return' || params.get('eval_purchased') === 'true') {
+    setTimeout(() => showToastMsg('Payment status is being confirmed. Your evaluation will appear after verification.', 'var(--gold)'), 500);
+  }
   if (params.get('tab')) setTimeout(() => showTab(params.get('tab')), 100);
 
   // Listen for auth changes
@@ -154,40 +156,7 @@ async function loadEvalFromDB() {
   } catch(e) { console.log('Eval load:', e.message); }
 }
 
-async function handleEvalPurchaseSuccess(accountSize) {
-  if (!accountSize || !currentUser) return;
-  const size = parseInt(accountSize) || 50000;
-  const phaseTarget = size * 0.10;
-  const ddLimit = size * 0.05;
-  try {
-    const { data, error } = await db.from('evaluations').insert({
-      user_id: currentUser.id,
-      account_size: size,
-      phase: 1,
-      status: 'active',
-      net_pnl: 0,
-      max_drawdown: 0,
-      trading_days: 0,
-      start_date: new Date().toISOString(),
-    }).select().single();
-    if (data) {
-      userEval = data;
-      EVAL_STATE.active = true;
-      EVAL_STATE.accountSize = size;
-      EVAL_STATE.phase = 1;
-      EVAL_STATE.netPnl = 0;
-      showToastMsg('✓ Evaluation activated! Your ' + size.toLocaleString() + ' account is ready.', 'var(--green)');
-      // Send welcome email via Resend
-      sendEmail('eval_activated', {
-        to: currentUser.email,
-        accountSize: size,
-        profitTarget: phaseTarget,
-        drawdownLimit: ddLimit
-      });
-      setTimeout(() => showTab('evaluation'), 1500);
-    }
-  } catch(e) { console.log('Eval purchase error:', e.message); }
-}
+// Evaluation creation is server-only, after Stripe webhook verifies payment.
 
 function showEvalViolation(type) {
   const messages = {
@@ -2957,7 +2926,7 @@ const PLAN_FEATURES = {
 };
 
 function userHasFeature(feature) {
-  const plan = currentUser?.user_metadata?.plan || 'starter';
+  const plan = userPlan || 'starter';
   return (PLAN_FEATURES[plan] || PLAN_FEATURES.starter).includes(feature);
 }
 
@@ -3009,38 +2978,26 @@ async function handleSubscribe(priceId, plan) {
 
 async function purchaseEval(accountSize, fee) {
   if (!currentUser) { window.location.href = '/login'; return; }
-  // Map account sizes to Stripe price IDs (create these in Stripe dashboard)
-  const evalPriceIds = {
-    25000:  'price_eval_25k',
-    50000:  'price_eval_50k',
-    100000: 'price_eval_100k',
-    150000: 'price_eval_150k',
-  };
-  const priceId = evalPriceIds[accountSize];
-  if (!priceId) { showToastMsg('Checkout not ready yet. Contact support.', 'var(--gold)'); return; }
+  const planBySize = {25000:'25k',50000:'50k',100000:'100k',150000:'150k'};
+  const plan = planBySize[accountSize];
+  if (!plan) { showToastMsg('Unsupported evaluation size', 'var(--red)'); return; }
   try {
-    if (!window.Stripe) {
-      await new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://js.stripe.com/v3/';
-        s.onload = resolve; s.onerror = reject;
-        document.head.appendChild(s);
-      });
-    }
-    const stripe = Stripe(STRIPE_PK);
-    const { error } = await stripe.redirectToCheckout({
-      lineItems: [{ price: priceId, quantity: 1 }],
-      mode: 'payment',
-      customerEmail: currentUser.email,
-      clientReferenceId: currentUser.id + '_eval_' + accountSize,
-      successUrl: window.location.origin + '/journal?eval_purchased=true&account_size=' + accountSize,
-      cancelUrl: window.location.origin + '/journal?tab=upgrade',
+    const { data: { session }, error } = await db.auth.getSession();
+    if (error || !session?.access_token) throw new Error('Please log in again');
+    const response = await fetch('/api/create-checkout', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':'Bearer '+session.access_token
+      },
+      body:JSON.stringify({plan})
     });
-    if (error) throw error;
+    const data = await response.json();
+    if (!response.ok || !data.url) throw new Error(data.error || 'Checkout unavailable');
+    window.location.assign(data.url);
   } catch(e) {
-    // Fallback — create eval record directly for now (no real payment)
-    showToastMsg('Creating evaluation... (Stripe will be live after Mercury connects)', 'var(--gold)');
-    setTimeout(() => handleEvalPurchaseSuccess(accountSize.toString()), 1500);
+    console.error('Evaluation checkout failed:', e);
+    showToastMsg('Checkout unavailable. No evaluation has been activated.', 'var(--red)');
   }
 }
 
