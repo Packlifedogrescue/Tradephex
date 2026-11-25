@@ -66,7 +66,7 @@ export default async function handler(req,res) {
       headers:{...sbHeaders(),'Prefer':'return=minimal'},
       body:JSON.stringify({
         user_id, account_size:p.account, phase:1, status:'active',
-        net_pnl:0,max_drawdown:0,trading_days:0,
+        net_pnl:0,max_drawdown:p.dd,drawdown_observed:0,trading_days:0,
         profit_target:p.profit,max_dd_limit:p.dd,daily_loss_limit:p.daily,
         stripe_session_id:session.id,started_at:new Date().toISOString(),
       }),
