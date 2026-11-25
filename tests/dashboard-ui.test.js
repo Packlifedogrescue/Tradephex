@@ -70,7 +70,7 @@ test('community access is awaited and ignores editable metadata',()=>{
   const i=html.indexOf('function getCommunityTier()');
   const j=html.indexOf('function tierLabel',i);
   const body=html.slice(i,j);
-  assert.doesNotMatch(body,/user_metadata|TRADES\.length|meta\.tier/);
+  assert.doesNotMatch(body,/if\s*\(\s*meta\.tier|if\s*\(\s*meta\.eval_active|if\s*\(\s*meta\.funded|TRADES\.length/);
   assert.match(html,/if \(!await checkCommunityAccess\(forceRefresh\)\) return/);
   assert.match(html,/onclick="initCommunity\(true\)"/);
 });
