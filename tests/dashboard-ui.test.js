@@ -81,3 +81,14 @@ test('stored text in the journal and leaderboard is HTML-escaped',()=>{
   assert.match(html,/escapeHtmlText\(tag\)/);
   assert.match(html,/escapeHtmlText\(row\.display_name/);
 });
+
+test('calendar loads live events and never displays old sample forecasts',()=>{
+  assert.match(html,/fetch\('\/api\/econ-calendar'/);
+  assert.match(html,/Current economic calendar is unavailable/);
+  assert.doesNotMatch(html,/const econData\s*=\s*\[/);
+  assert.doesNotMatch(html,/Wednesday, April 23, 2026/);
+});
+test('profile updates check Supabase response errors',()=>{
+  assert.match(html,/if \(error\) throw error/);
+  assert.match(html,/new Date\(now\.getTime\(\) - now\.getTimezoneOffset\(\)\*60000\)/);
+});
