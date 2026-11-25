@@ -2089,7 +2089,12 @@ function setLayout(type){
   setTimeout(()=>{setupCanvases();redraw();if(currentLayout!==1)drawExtraCells();},150);
 }
 function setCellSym(idx,s){cellStates[idx].sym=s;cellStates[idx].bars=genBarsFor(s,cellStates[idx].tf);setTimeout(()=>{setupCanvases();redraw();},50);}
-function setCellTF(idx,t,btn){cellStates[idx].tf=t;cellStates[idx].bars=genBarsFor(cellStates[idx].sym,t);const hdr=document.getElementById('cellHdr'+idx);hdr?.querySelectorAll('.tf').forEach(b=>b.classList.remove('on'));btn?.classList.add('on');setTimeout(()=>{setupCanvases();redraw();},50);}
+function setCellTF(idx,t,btn){
+  if(t==='D'||t==='W'){
+    showToast('Daily/weekly multi-charts require real historical futures data','var(--orange)');
+    return;
+  }
+  cellStates[idx].tf=t;cellStates[idx].bars=genBarsFor(cellStates[idx].sym,t);const hdr=document.getElementById('cellHdr'+idx);hdr?.querySelectorAll('.tf').forEach(b=>b.classList.remove('on'));btn?.classList.add('on');setTimeout(()=>{setupCanvases();redraw();},50);}
 
 // ════════════════════════════════════════════════
 // DRAWINGS
@@ -2700,7 +2705,9 @@ function recordClose(exitPrice,qty,pnl,closedSide){
   const dd=evalStats.peakBal-evalStats.bal;if(dd>evalStats.maxDD)evalStats.maxDD=dd;
   syncTradeToJournal({sym,side:closedSide,entry:domPos.avg,exit:exitPrice,qty,pnl:netPnl,commission,r:Math.round((netPnl/(ACCOUNT_SIZE*0.005))*10)/10,duration:posEntry.time?Math.round((Date.now()-posEntry.time)/1000)+'s':null,quality:3,emotion:'calm',tags:[]});
   updateConsecStats(netPnl);
-  if(!evalViolated&&!dailyViolated)setTimeout(()=>showTradeScoreModal({sym,side:closedSide,qty,pnl:netPnl,grossPnl,commission,mae:posEntry.mae,mfe:posEntry.mfe,ts:posEntry.time}),400);
+  if(!evalViolated&&!dailyViolated)setTimeout(()=>{
+    if(!evalViolated&&!dailyViolated)showTradeScoreModal({sym,side:closedSide,qty,pnl:netPnl,grossPnl,commission,mae:posEntry.mae,mfe:posEntry.mfe,ts:posEntry.time});
+  },400);
   updateEvalStats();
 }
 function placeOrder(type,side){
@@ -2728,10 +2735,7 @@ function placeOrder(type,side){
   }
   if(!Number.isSafeInteger(qty)||qty<1){showToast('Enter a whole positive contract quantity','var(--red)');return;}
   const maxQ=maxAllowedQty();
-  if(qty>maxQ){
-    showToast(`Max position size for $${ACCOUNT_SIZE.toLocaleString()} account is ${maxQ} contracts`,'var(--red)');
-    return;
-  }
+  // All entry paths enforce the total position cap; reductions can exceed the cap.
   const mp=bars[bars.length-1]?.c||0;
   if(type==='market'){execFill(side,mp,qty,'MKT');return;}
   const lp=parseFloat(document.getElementById('dLP').value);
@@ -3703,7 +3707,7 @@ async function syncTradeToJournal(t){
       r_multiple:t.r||null,
       duration_minutes:durationMin,
       status:'closed',
-      setup_notes:'Eval Chart — '+new Date().toLocaleString(),
+      setup_notes:'SIMULATED DEMO TRADE — not official evaluation credit — '+new Date().toLocaleString(),
       execution_quality:t.quality||3,
       emotional_state:t.emotion||'calm',
       tags:t.tags||[],
