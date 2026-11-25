@@ -2747,6 +2747,7 @@ function showTab(tab) {
   document.getElementById('topbar-title').textContent = titles[tab] || '';
 
   if (tab === 'analytics') setTimeout(drawAnalyticsCharts, 50);
+  if (tab === 'calendar') setTimeout(buildCalendar, 50);
   if (tab === 'profile') loadProfile();
   if (tab === 'evaluation') setTimeout(() => { syncEvalWithTrades(); initEvaluation(); }, 50);
   if (tab === 'leaderboard') setTimeout(loadLeaderboard, 50);
@@ -3608,249 +3609,102 @@ function drawAnalyticsCharts() {
 }
 
 // ── ECONOMIC CALENDAR ──
-const econData = [
-  { date:'Wednesday, April 23, 2026', events:[
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'215K',fore:'220K',actual:'218K'},
-    {time:'8:30 AM',name:'Philly Fed Manufacturing Index',impact:'med',prev:'12.5',fore:'10.2',actual:''},
-    {time:'10:00 AM',name:'Existing Home Sales',impact:'med',prev:'4.26M',fore:'4.18M',actual:''},
-    {time:'11:00 AM',name:'KC Fed Manufacturing',impact:'low',prev:'-5',fore:'-4',actual:''},
-  ]},
-  { date:'Thursday, April 24, 2026', events:[
-    {time:'8:30 AM',name:'GDP Growth Rate QoQ (Advance)',impact:'high',prev:'2.3%',fore:'2.1%',actual:''},
-    {time:'8:30 AM',name:'Core PCE Prices QoQ',impact:'high',prev:'2.7%',fore:'2.6%',actual:''},
-    {time:'10:00 AM',name:'New Home Sales',impact:'med',prev:'676K',fore:'658K',actual:''},
-  ]},
-  { date:'Friday, April 25, 2026', events:[
-    {time:'8:30 AM',name:'PCE Price Index MoM',impact:'high',prev:'0.3%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core PCE Price Index MoM',impact:'high',prev:'0.4%',fore:'0.3%',actual:''},
-    {time:'10:00 AM',name:'Michigan Consumer Sentiment (Final)',impact:'med',prev:'57.0',fore:'53.5',actual:''},
-    {time:'10:00 AM',name:'Michigan Inflation Expectations 5Y',impact:'med',prev:'5.0%',fore:'4.9%',actual:''},
-  ]},
-  { date:'Tuesday, April 29, 2026', events:[
-    {time:'9:00 AM',name:'S&P/Case-Shiller Home Price Index',impact:'med',prev:'4.7%',fore:'4.5%',actual:''},
-    {time:'10:00 AM',name:'Consumer Confidence',impact:'high',prev:'92.9',fore:'88.0',actual:''},
-    {time:'10:00 AM',name:'JOLTS Job Openings',impact:'high',prev:'7.57M',fore:'7.40M',actual:''},
-  ]},
-  { date:'Wednesday, April 30, 2026', events:[
-    {time:'8:15 AM',name:'ADP Nonfarm Employment Change',impact:'high',prev:'155K',fore:'120K',actual:''},
-    {time:'8:30 AM',name:'Employment Cost Index QoQ',impact:'high',prev:'0.9%',fore:'0.8%',actual:''},
-    {time:'9:45 AM',name:'Chicago PMI',impact:'med',prev:'47.6',fore:'46.0',actual:''},
-    {time:'2:00 PM',name:'FOMC Interest Rate Decision',impact:'high',prev:'4.50%',fore:'4.50%',actual:''},
-    {time:'2:30 PM',name:'FOMC Press Conference',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Thursday, May 1, 2026', events:[
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'218K',fore:'222K',actual:''},
-    {time:'10:00 AM',name:'ISM Manufacturing PMI',impact:'high',prev:'49.0',fore:'48.5',actual:''},
-    {time:'10:00 AM',name:'Construction Spending MoM',impact:'low',prev:'0.3%',fore:'0.1%',actual:''},
-  ]},
-  { date:'Friday, May 2, 2026', events:[
-    {time:'8:30 AM',name:'Nonfarm Payrolls',impact:'high',prev:'228K',fore:'130K',actual:''},
-    {time:'8:30 AM',name:'Unemployment Rate',impact:'high',prev:'4.2%',fore:'4.2%',actual:''},
-    {time:'8:30 AM',name:'Average Hourly Earnings MoM',impact:'high',prev:'0.3%',fore:'0.3%',actual:''},
-    {time:'10:00 AM',name:'Michigan Consumer Sentiment (Prelim)',impact:'med',prev:'53.5',fore:'52.0',actual:''},
-  ]},
-  { date:'Wednesday, May 7, 2026', events:[
-    {time:'10:00 AM',name:'ISM Services PMI',impact:'high',prev:'50.8',fore:'50.5',actual:''},
-    {time:'2:00 PM',name:'Fed Beige Book',impact:'med',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Thursday, May 8, 2026', events:[
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'222K',fore:'218K',actual:''},
-    {time:'10:00 AM',name:'Wholesale Inventories MoM',impact:'low',prev:'0.3%',fore:'0.2%',actual:''},
-  ]},
-  { date:'Wednesday, May 14, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.3%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.3%',fore:'0.3%',actual:''},
-    {time:'8:30 AM',name:'CPI YoY',impact:'high',prev:'2.4%',fore:'2.5%',actual:''},
-  ]},
-  { date:'Thursday, May 15, 2026', events:[
-    {time:'8:30 AM',name:'PPI MoM',impact:'high',prev:'-0.4%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core PPI MoM',impact:'high',prev:'-0.1%',fore:'0.3%',actual:''},
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'228K',fore:'225K',actual:''},
-    {time:'8:30 AM',name:'Retail Sales MoM',impact:'high',prev:'1.7%',fore:'0.1%',actual:''},
-    {time:'9:15 AM',name:'Industrial Production MoM',impact:'med',prev:'-0.3%',fore:'0.0%',actual:''},
-  ]},
-  { date:'Friday, May 16, 2026', events:[
-    {time:'8:30 AM',name:'Housing Starts',impact:'med',prev:'1.324M',fore:'1.36M',actual:''},
-    {time:'8:30 AM',name:'Building Permits',impact:'med',prev:'1.482M',fore:'1.45M',actual:''},
-    {time:'10:00 AM',name:'Michigan Consumer Sentiment (Prelim)',impact:'med',prev:'52.2',fore:'53.0',actual:''},
-  ]},
-  { date:'Wednesday, May 21, 2026', events:[
-    {time:'2:00 PM',name:'FOMC Meeting Minutes',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Friday, May 23, 2026', events:[
-    {time:'9:45 AM',name:'S&P Global Manufacturing PMI (Flash)',impact:'med',prev:'50.7',fore:'50.5',actual:''},
-    {time:'9:45 AM',name:'S&P Global Services PMI (Flash)',impact:'med',prev:'51.4',fore:'51.0',actual:''},
-    {time:'10:00 AM',name:'New Home Sales',impact:'med',prev:'724K',fore:'700K',actual:''},
-  ]},
-  { date:'Thursday, May 29, 2026', events:[
-    {time:'8:30 AM',name:'GDP Growth Rate QoQ (Second)',impact:'high',prev:'2.1%',fore:'2.0%',actual:''},
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'225K',fore:'222K',actual:''},
-    {time:'10:00 AM',name:'Pending Home Sales MoM',impact:'med',prev:'-3.2%',fore:'1.0%',actual:''},
-  ]},
-  { date:'Friday, May 30, 2026', events:[
-    {time:'8:30 AM',name:'PCE Price Index MoM',impact:'high',prev:'0.0%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core PCE Price Index MoM',impact:'high',prev:'0.0%',fore:'0.3%',actual:''},
-    {time:'8:30 AM',name:'Personal Income MoM',impact:'med',prev:'0.5%',fore:'0.4%',actual:''},
-    {time:'9:45 AM',name:'Chicago PMI',impact:'med',prev:'47.6',fore:'47.0',actual:''},
-    {time:'10:00 AM',name:'Michigan Consumer Sentiment (Final)',impact:'med',prev:'53.0',fore:'53.2',actual:''},
-  ]},
-  { date:'Tuesday, June 3, 2026', events:[
-    {time:'10:00 AM',name:'ISM Manufacturing PMI',impact:'high',prev:'48.7',fore:'49.0',actual:''},
-    {time:'10:00 AM',name:'JOLTS Job Openings',impact:'high',prev:'7.19M',fore:'7.10M',actual:''},
-  ]},
-  { date:'Wednesday, June 4, 2026', events:[
-    {time:'8:15 AM',name:'ADP Nonfarm Employment Change',impact:'high',prev:'62K',fore:'100K',actual:''},
-    {time:'10:00 AM',name:'ISM Services PMI',impact:'high',prev:'50.8',fore:'51.0',actual:''},
-  ]},
-  { date:'Friday, June 6, 2026', events:[
-    {time:'8:30 AM',name:'Nonfarm Payrolls',impact:'high',prev:'177K',fore:'130K',actual:''},
-    {time:'8:30 AM',name:'Unemployment Rate',impact:'high',prev:'4.2%',fore:'4.3%',actual:''},
-    {time:'8:30 AM',name:'Average Hourly Earnings MoM',impact:'high',prev:'0.2%',fore:'0.3%',actual:''},
-  ]},
-  { date:'Wednesday, June 11, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.2%',fore:'0.3%',actual:''},
-    {time:'2:00 PM',name:'FOMC Interest Rate Decision',impact:'high',prev:'4.50%',fore:'4.25%',actual:''},
-    {time:'2:30 PM',name:'FOMC Press Conference',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Thursday, June 12, 2026', events:[
-    {time:'8:30 AM',name:'PPI MoM',impact:'high',prev:'0.0%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'229K',fore:'225K',actual:''},
-  ]},
-  { date:'Friday, June 13, 2026', events:[
-    {time:'10:00 AM',name:'Michigan Consumer Sentiment (Prelim)',impact:'med',prev:'52.2',fore:'54.0',actual:''},
-  ]},
-  { date:'Friday, June 27, 2026', events:[
-    {time:'8:30 AM',name:'PCE Price Index MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core PCE Price Index MoM',impact:'high',prev:'0.3%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Personal Income MoM',impact:'med',prev:'0.4%',fore:'0.3%',actual:''},
-    {time:'8:30 AM',name:'GDP Growth Rate QoQ (Third)',impact:'high',prev:'2.0%',fore:'1.8%',actual:''},
-  ]},
-  { date:'Wednesday, July 9, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-  ]},
-  { date:'Friday, July 11, 2026', events:[
-    {time:'8:30 AM',name:'PPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'10:00 AM',name:'Michigan Consumer Sentiment (Prelim)',impact:'med',prev:'55.0',fore:'55.5',actual:''},
-  ]},
-  { date:'Tuesday, July 15, 2026', events:[
-    {time:'8:30 AM',name:'Retail Sales MoM',impact:'high',prev:'0.1%',fore:'0.3%',actual:''},
-    {time:'9:15 AM',name:'Industrial Production MoM',impact:'med',prev:'0.0%',fore:'0.2%',actual:''},
-  ]},
-  { date:'Wednesday, July 16, 2026', events:[
-    {time:'8:30 AM',name:'Housing Starts',impact:'med',prev:'1.36M',fore:'1.37M',actual:''},
-    {time:'2:00 PM',name:'Fed Beige Book',impact:'med',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Wednesday, July 29, 2026', events:[
-    {time:'2:00 PM',name:'FOMC Interest Rate Decision',impact:'high',prev:'4.25%',fore:'4.25%',actual:''},
-    {time:'2:30 PM',name:'FOMC Press Conference',impact:'high',prev:'—',fore:'—',actual:''},
-    {time:'2:00 PM',name:'Fed Statement',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Thursday, July 30, 2026', events:[
-    {time:'8:30 AM',name:'GDP Growth Rate QoQ (Advance)',impact:'high',prev:'1.8%',fore:'1.9%',actual:''},
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'225K',fore:'225K',actual:''},
-  ]},
-  { date:'Friday, July 31, 2026', events:[
-    {time:'8:30 AM',name:'PCE Price Index MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core PCE Price Index MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'9:45 AM',name:'Chicago PMI',impact:'med',prev:'47.0',fore:'47.5',actual:''},
-  ]},
-  { date:'Friday, August 1, 2026', events:[
-    {time:'8:30 AM',name:'Nonfarm Payrolls',impact:'high',prev:'130K',fore:'140K',actual:''},
-    {time:'8:30 AM',name:'Unemployment Rate',impact:'high',prev:'4.3%',fore:'4.3%',actual:''},
-    {time:'10:00 AM',name:'ISM Manufacturing PMI',impact:'high',prev:'49.0',fore:'49.5',actual:''},
-  ]},
-  { date:'Wednesday, September 10, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-  ]},
-  { date:'Wednesday, September 16, 2026', events:[
-    {time:'2:00 PM',name:'FOMC Interest Rate Decision',impact:'high',prev:'4.25%',fore:'4.00%',actual:''},
-    {time:'2:30 PM',name:'FOMC Press Conference',impact:'high',prev:'—',fore:'—',actual:''},
-    {time:'2:00 PM',name:'FOMC Economic Projections',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Friday, October 2, 2026', events:[
-    {time:'8:30 AM',name:'Nonfarm Payrolls',impact:'high',prev:'140K',fore:'135K',actual:''},
-    {time:'8:30 AM',name:'Unemployment Rate',impact:'high',prev:'4.3%',fore:'4.4%',actual:''},
-  ]},
-  { date:'Thursday, October 8, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'225K',fore:'225K',actual:''},
-  ]},
-  { date:'Wednesday, October 28, 2026', events:[
-    {time:'2:00 PM',name:'FOMC Interest Rate Decision',impact:'high',prev:'4.00%',fore:'4.00%',actual:''},
-    {time:'2:30 PM',name:'FOMC Press Conference',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Thursday, October 29, 2026', events:[
-    {time:'8:30 AM',name:'GDP Growth Rate QoQ (Advance)',impact:'high',prev:'1.9%',fore:'2.0%',actual:''},
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'225K',fore:'223K',actual:''},
-  ]},
-  { date:'Friday, November 6, 2026', events:[
-    {time:'8:30 AM',name:'Nonfarm Payrolls',impact:'high',prev:'135K',fore:'145K',actual:''},
-    {time:'8:30 AM',name:'Unemployment Rate',impact:'high',prev:'4.4%',fore:'4.4%',actual:''},
-  ]},
-  { date:'Wednesday, November 12, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-  ]},
-  { date:'Wednesday, December 9, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-  ]},
-  { date:'Wednesday, December 16, 2026', events:[
-    {time:'2:00 PM',name:'FOMC Interest Rate Decision',impact:'high',prev:'4.00%',fore:'3.75%',actual:''},
-    {time:'2:30 PM',name:'FOMC Press Conference',impact:'high',prev:'—',fore:'—',actual:''},
-    {time:'2:00 PM',name:'FOMC Economic Projections (Dot Plot)',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Friday, December 18, 2026', events:[
-    {time:'8:30 AM',name:'PCE Price Index MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core PCE Price Index MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'GDP Growth Rate QoQ (Third)',impact:'high',prev:'2.0%',fore:'2.0%',actual:''},
-  ]},
-];
-
-function buildCalendar() {
+// No sample/future event forecasts are shown as actual data.
+let economicCalendarUpdatedAt = 0;
+let economicCalendarLoading = false;
+async function buildCalendar(force = false) {
   const cal = document.getElementById('econCalendar');
-  const legend = `
-    <div style="background:#0E0E0E;border:1px solid rgba(201,168,76,0.12);padding:16px 20px;margin-bottom:20px;display:flex;gap:32px;align-items:center;flex-wrap:wrap;">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:#888;">Impact Guide</div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="background:rgba(255,23,68,0.1);color:#FF1744;border:1px solid rgba(255,23,68,0.2);padding:2px 10px;font-family:'DM Mono',monospace;font-size:10px;">HIGH</span>
-        <span style="font-size:12px;color:#BBBBBB;">Market-moving. Can spike 10-30 pts instantly. CPI, NFP, FOMC. Know before you trade.</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="background:rgba(201,168,76,0.1);color:#C9A84C;border:1px solid rgba(201,168,76,0.2);padding:2px 10px;font-family:'DM Mono',monospace;font-size:10px;">MED</span>
-        <span style="font-size:12px;color:#BBBBBB;">Notable but less volatile. Housing, PMI, consumer data. Worth watching.</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="background:rgba(255,255,255,0.04);color:#888;border:1px solid rgba(255,255,255,0.1);padding:2px 10px;font-family:'DM Mono',monospace;font-size:10px;">LOW</span>
-        <span style="font-size:12px;color:#BBBBBB;">Minor release. Minimal market impact. Safe to trade around.</span>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:80px 1fr 80px 80px 80px 80px;gap:16px;padding:10px 16px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.15em;color:#BBBBBB;text-transform:uppercase;border-bottom:1px solid rgba(201,168,76,0.2);background:rgba(201,168,76,0.05);margin-bottom:4px;font-weight:500;">
-      <span>Time</span><span>Event</span><span>Impact</span><span>Previous</span><span>Forecast</span><span>Actual</span>
-    </div>`;
-
-  cal.innerHTML = legend + econData.map(day => `
-    <div class="econ-day">
-      <div class="econ-date">${day.date}</div>
-      ${day.events.map(e => `
-        <div class="econ-event">
-          <span class="econ-time">${e.time}</span>
-          <span class="econ-name">${e.name}</span>
-          <span class="econ-impact impact-${e.impact}">${e.impact.toUpperCase()}</span>
-          <span class="econ-val">${e.prev||'—'}</span>
-          <span class="econ-val">${e.fore||'—'}</span>
-          <span class="econ-val ${e.actual&&e.fore&&e.actual>e.fore?'positive':e.actual&&e.fore&&e.actual<e.fore?'negative':''}">${e.actual||'<span style="color:#555">Pending</span>'}</span>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
+  if (!cal || economicCalendarLoading) return;
+  if (!force && economicCalendarUpdatedAt && Date.now() - economicCalendarUpdatedAt < 15*60*1000) return;
+  economicCalendarLoading = true;
+  cal.textContent = '';
+  const heading = document.createElement('div');
+  heading.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;';
+  const title = document.createElement('div');
+  title.innerHTML = '<div style="color:var(--gold);font-size:11px;letter-spacing:.18em;margin-bottom:6px;">ECONOMIC CALENDAR</div><div style="font-size:14px;color:var(--gray);">Current events from your configured calendar provider. Times are shown as supplied by the source.</div>';
+  const refresh = document.createElement('button');
+  refresh.textContent = '↻ REFRESH';
+  refresh.style.cssText = 'padding:9px 18px;border:1px solid var(--border2);background:var(--surface);color:var(--gold);cursor:pointer;';
+  refresh.addEventListener('click', () => buildCalendar(true));
+  heading.append(title, refresh);
+  cal.appendChild(heading);
+  const status = document.createElement('div');
+  status.style.cssText = 'padding:28px;border:1px solid var(--border);background:var(--surface);color:var(--gray);font-size:13px;';
+  status.textContent = 'Loading current economic events…';
+  cal.appendChild(status);
+  try {
+    const response = await fetch('/api/econ-calendar', {cache:'no-store'});
+    const payload = await response.json();
+    if (!response.ok || payload.error || payload.status === 'error') {
+      throw new Error(payload.error || payload.message || 'Calendar data source unavailable');
+    }
+    const raw = Array.isArray(payload) ? payload :
+      (payload.data || payload.events || payload.values || payload.result || []);
+    const events = Array.isArray(raw) ? raw : Object.entries(raw).flatMap(([date, rows]) =>
+      Array.isArray(rows) ? rows.map(row => ({...row, date:row.date || date})) : []);
+    if (!events.length) {
+      status.textContent = 'No events returned for the current week. Check the provider or refresh later.';
+      economicCalendarUpdatedAt = Date.now();
+      return;
+    }
+    status.remove();
+    const grouped = new Map();
+    for (const item of events.slice(0,150)) {
+      if (!item || typeof item !== 'object') continue;
+      const date = String(item.date || item.datetime?.slice(0,10) || 'Date not supplied');
+      if (!grouped.has(date)) grouped.set(date,[]);
+      grouped.get(date).push({
+        time: String(item.time || item.datetime?.slice(11,16) || '—'),
+        name: String(item.event || item.name || item.title || 'Economic event'),
+        impact: String(item.impact || item.importance || '—'),
+        previous: String(item.previous ?? item.prev ?? '—'),
+        forecast: String(item.forecast ?? item.estimate ?? '—'),
+        actual: String(item.actual ?? '—')
+      });
+    }
+    const headers = ['Time','Event','Impact','Previous','Forecast','Actual'];
+    for (const [date, rows] of grouped) {
+      const section = document.createElement('div');
+      section.className = 'econ-day';
+      const label = document.createElement('div');
+      label.className = 'econ-date';
+      label.textContent = date;
+      section.appendChild(label);
+      const headRow = document.createElement('div');
+      headRow.className = 'econ-event';
+      for(const header of headers){
+        const cell = document.createElement('span');
+        cell.className = 'econ-time';
+        cell.textContent = header;
+        headRow.appendChild(cell);
+      }
+      section.appendChild(headRow);
+      for(const e of rows){
+        const row = document.createElement('div');
+        row.className = 'econ-event';
+        const impact = e.impact.toLowerCase();
+        const level = impact.includes('high') || impact === '3' ? 'high' :
+          impact.includes('med') || impact === '2' ? 'med' : 'low';
+        for(const [idx,value] of [e.time,e.name,e.impact,e.previous,e.forecast,e.actual].entries()){
+          const cell = document.createElement('span');
+          cell.className = idx === 0 ? 'econ-time' : idx === 1 ? 'econ-name' :
+            idx === 2 ? 'econ-impact impact-' + level : 'econ-val';
+          cell.textContent = value;
+          row.appendChild(cell);
+        }
+        section.appendChild(row);
+      }
+      cal.appendChild(section);
+    }
+    economicCalendarUpdatedAt = Date.now();
+  } catch (e) {
+    console.warn('Economic calendar failed:', e.message);
+    status.textContent = 'Current economic calendar is unavailable. No sample events are shown. Configure and verify the Twelve Data integration in Vercel.';
+  } finally {
+    economicCalendarLoading = false;
+  }
 }
 buildCalendar();
-
 // ── REPLAY ──
 let replayTrade = null;
 let replayBars = [];
