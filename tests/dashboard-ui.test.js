@@ -82,9 +82,11 @@ test('stored text in the journal and leaderboard is HTML-escaped',()=>{
   assert.match(html,/escapeHtmlText\(row\.display_name/);
 });
 
-test('calendar loads live events and never displays old sample forecasts',()=>{
-  assert.match(html,/fetch\('\/api\/econ-calendar'/);
-  assert.match(html,/Current economic calendar is unavailable/);
+test('economic calendar uses authenticated provider client and no mock events',()=>{
+  assert.match(html,/src="\/econ-calendar-ui\.js"/);
+  assert.match(html,/TradephexEconCalendar\.load\(/);
+  assert.match(html,/data\?\.session\?\.access_token/);
+  assert.doesNotMatch(html,/ECON_EVENTS/);
   assert.doesNotMatch(html,/const econData\s*=\s*\[/);
   assert.doesNotMatch(html,/Wednesday, April 23, 2026/);
 });
