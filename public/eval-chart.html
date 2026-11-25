@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Tradephex — Eval Chart</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/trading-day.js"></script>
 <script>
 // ── AUTH GUARD ──
 // Runs immediately to redirect unauthenticated users before the chart loads
@@ -2569,14 +2570,17 @@ function execFill(side,price,qty,type='MKT'){
   playSound('fill');
   setAutoBrackets();updateLivePnl();updateEvalStats();renderDOM();redraw();
 }
-function recordClose(exitPrice,qty,pnl,closedSide){
-  // Reset daily P&L if it's a new trading day (CME futures: 18:00 ET)
-  const todayStr=new Date().toDateString();
-  if(evalStats.lastTradeDay!==todayStr){
-    evalStats.dailyPnl=0;
-    dailyViolated=false; // reset daily lockout on new day
-    evalStats.lastTradeDay=todayStr;
+function resetDemoDailyPnlAtSessionBoundary() {
+  // This only controls the browser demo. Reward eligibility must be server-side.
+  const session = TradephexTradingDay.sessionKey(new Date());
+  if (evalStats.lastTradeDay !== session) {
+    evalStats.dailyPnl = 0;
+    dailyViolated = false;
+    evalStats.lastTradeDay = session;
   }
+}
+function recordClose(exitPrice,qty,pnl,closedSide){
+  resetDemoDailyPnlAtSessionBoundary();
   // Subtract commission (round-turn fee per contract)
   const commission=qty*COMMISSION_PER_RT;
   const grossPnl=pnl;
@@ -2586,7 +2590,7 @@ function recordClose(exitPrice,qty,pnl,closedSide){
   evalStats.netPnl+=netPnl;evalStats.bal=ACCOUNT_SIZE+evalStats.netPnl;evalStats.dailyPnl+=netPnl;
   evalStats.totalCommission=(evalStats.totalCommission||0)+commission;
   evalStats.trades++;if(netPnl>0)evalStats.wins++;else evalStats.losses++;
-  evalStats.days.add(new Date().toDateString());
+  evalStats.days.add(TradephexTradingDay.sessionKey(new Date()));
   if(evalStats.bal>evalStats.peakBal)evalStats.peakBal=evalStats.bal;
   const dd=evalStats.peakBal-evalStats.bal;if(dd>evalStats.maxDD)evalStats.maxDD=dd;
   syncTradeToJournal({sym,side:closedSide,entry:domPos.avg,exit:exitPrice,qty,pnl:netPnl,commission,r:Math.round((netPnl/(ACCOUNT_SIZE*0.005))*10)/10,duration:posEntry.time?Math.round((Date.now()-posEntry.time)/1000)+'s':null,quality:3,emotion:'calm',tags:[]});
@@ -2595,6 +2599,7 @@ function recordClose(exitPrice,qty,pnl,closedSide){
   updateEvalStats();
 }
 function placeOrder(type,side){
+  resetDemoDailyPnlAtSessionBoundary();
   let qty=parseInt(document.getElementById('dQty').value)||1;
   // Auto position sizing — calc qty from risk % and stop distance
   if(autoSizeEnabled){
@@ -3642,6 +3647,7 @@ document.addEventListener('keydown',e=>{
 // Runs every tick — catches drawdown/daily loss on OPEN positions
 // ════════════════════════════════════════════════
 function checkRiskLimitsRealTime(){
+  resetDemoDailyPnlAtSessionBoundary();
   if(!bars.length||domPos.qty===0){
     // Hide warning bar when flat
     const el=document.getElementById('ddWarning');
@@ -3687,7 +3693,7 @@ function checkRiskLimitsRealTime(){
     evalStats.totalCommission=(evalStats.totalCommission||0)+liveCommission;
     evalStats.trades++;
     if(closePnl>0)evalStats.wins++;else evalStats.losses++;
-    evalStats.days.add(new Date().toDateString());
+    evalStats.days.add(TradephexTradingDay.sessionKey(new Date()));
     const finalDD=evalStats.peakBal-evalStats.bal;
     if(finalDD>evalStats.maxDD)evalStats.maxDD=finalDD;
     domPos={qty:0,avg:0,side:null};posEntry={time:null,mfe:0,mae:0};
@@ -3712,14 +3718,11 @@ function checkRiskLimitsRealTime(){
       document.getElementById('tbPos').style.display='none';
       updateEvalStats();renderDOM();
     }
-    const now6=new Date(simTime);
-    const next6pm=new Date(now6);
-    next6pm.setHours(18,0,0,0);
-    if(now6>=next6pm)next6pm.setDate(next6pm.getDate()+1);
-    const minsUntil6pm=Math.max(1,Math.floor((next6pm-now6)/60000));
-    lockMins=minsUntil6pm;
-    const reason='Daily loss limit hit. Locked until 6:00 PM — accounts reset at market open.';
-    lockEnd=Date.now()+minsUntil6pm*60000;
+    const nextOpen = TradephexTradingDay.nextOpenMs(new Date());
+    const minsUntil6pm = Math.max(1, Math.ceil((nextOpen - Date.now())/60000));
+    lockMins = minsUntil6pm;
+    const reason = 'Daily loss limit hit. Locked until 6:00 PM Eastern — demo session reset.';
+    lockEnd = nextOpen;
     document.getElementById('lkReason').textContent=reason;
     document.getElementById('lockSt').style.display='inline-flex';
     try{document.getElementById('lInactive').style.display='none';document.getElementById('lActive').style.display='block';document.getElementById('lReasonD').textContent=reason;}catch(e){}

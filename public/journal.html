@@ -84,21 +84,22 @@ async function loadUserProfile() {
 
 async function loadTradesFromDB() {
   try {
-    const { data } = await db.from('trades').select('*')
+    const { data, error } = await db.from('trades').select('*')
       .eq('user_id', currentUser.id)
       .order('created_at', { ascending: false })
       .limit(200);
+    if (error) { console.warn('Trade loading failed:', error.message); return; }
     if (data && data.length > 0) {
       // Map DB columns to TRADES format
       const mapped = data.map(t => ({
         id: t.id,
         symbol: t.symbol,
         side: t.side,
-        entry: t.entry_price,
-        exit: t.exit_price,
-        contracts: t.contracts,
-        pnl: t.pnl,
-        r: t.r_multiple || 0,
+        entry: Number(t.entry_price),
+        exit: Number(t.exit_price),
+        contracts: Number(t.contracts),
+        pnl: Number(t.pnl || 0),
+        r: Number(t.r_multiple || 0),
         date: new Date(t.entry_time || t.created_at).toLocaleString(),
         duration: t.duration_minutes ? t.duration_minutes + 'm' : '—',
         notes: t.setup_notes || '',
@@ -143,6 +144,15 @@ async function loadEvalFromDB() {
       EVAL_STATE.maxDrawdown = userEval.max_drawdown || 0;
       EVAL_STATE.tradingDays = userEval.trading_days || 0;
       EVAL_STATE.balance = EVAL_STATE.accountSize + EVAL_STATE.netPnl;
+      EVAL_STATE.startDate = userEval.started_at || userEval.start_date || userEval.created_at || '—';
+      if (EVAL_STATE.startDate !== '—') EVAL_STATE.startDate = new Date(EVAL_STATE.startDate).toLocaleDateString();
+      // The database supplies balance snapshots; do not invent an equity history.
+      EVAL_STATE.equity = [EVAL_STATE.accountSize, EVAL_STATE.balance];
+      EVAL_STATE.dailyPnl = [0];
+      EVAL_STATE.winCount = 0;
+      EVAL_STATE.lossCount = 0;
+      EVAL_STATE.dailyLoss = 0;
+      EVAL_STATE.largestTradePct = 0;
       EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * (EVAL_STATE.phase === 1 ? 0.10 : 0.05);
       EVAL_STATE.rules.profitTarget.current = EVAL_STATE.netPnl;
       EVAL_STATE.rules.maxDrawdown.limit = EVAL_STATE.accountSize * 0.05;
@@ -167,12 +177,7 @@ function showEvalViolation(type) {
   showToastMsg('⚠ ' + (messages[type] || 'Evaluation rule violation'), 'var(--red)');
 }
 
-async function updateEvalInDB(updates) {
-  if (!userEval?.id) return;
-  try {
-    await db.from('evaluations').update(updates).eq('id', userEval.id);
-  } catch(e) { console.log('Eval update error:', e.message); }
-}
+// Intentionally no client-side evaluation write helper.
 
 function updateTopbar() {
   const nameEl = document.getElementById('topbar-username');
@@ -365,7 +370,8 @@ async function loadLeaderboard() {
   if (!wrap) return;
   wrap.innerHTML = '<div style="text-align:center;padding:40px;color:#888;font-family:DM Mono,monospace;font-size:12px;">Loading leaderboard...</div>';
   try {
-    const { data } = await db.from('leaderboard').select('*').order('profit_factor', { ascending: false }).limit(20);
+    const { data, error } = await db.from('leaderboard').select('*').order('profit_factor', { ascending: false }).limit(20);
+    if (error) { console.warn('Leaderboard request failed:', error.message); wrap.textContent = 'Leaderboard temporarily unavailable. Please try again later.'; return; }
     if (!data || !data.length) {
       wrap.innerHTML = '<div style="text-align:center;padding:40px;color:#555;font-family:DM Mono,monospace;font-size:12px;">No leaderboard data yet. Be the first to complete an evaluation.</div>';
       return;
@@ -383,10 +389,10 @@ async function loadLeaderboard() {
           ${data.map((row, i) => `
             <tr style="border-bottom:1px solid rgba(255,255,255,0.03);${row.user_id===currentUser?.id?'background:rgba(201,168,76,0.05);':''}">
               <td style="padding:10px 12px;color:${i<3?'var(--gold)':'#555'};font-weight:${i<3?'700':'400'};font-family:'Barlow Condensed',sans-serif;font-size:16px;">${i<3?['🥇','🥈','🥉'][i]:i+1}</td>
-              <td style="padding:10px 12px;color:#fff;">${row.display_name || 'Anonymous'}</td>
-              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--green);">${(row.profit_factor||0).toFixed(2)}</td>
-              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:#888;">${(row.win_rate||0).toFixed(0)}%</td>
-              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--gold);">$${(row.account_size||0).toLocaleString()}</td>
+              <td style="padding:10px 12px;color:#fff;">${escapeHtmlText(row.display_name || 'Anonymous')}</td>
+              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--green);">${(Number(row.profit_factor)||0).toFixed(2)}</td>
+              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:#888;">${(Number(row.win_rate)||0).toFixed(0)}%</td>
+              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--gold);">$${(Number(row.account_size)||0).toLocaleString()}</td>
             </tr>`).join('')}
         </tbody>
       </table>`;
@@ -1611,6 +1617,8 @@ canvas{display:block;}
       </div>
     </div>
 
+    <!-- ── BUY CHALLENGE / MEMBERSHIP VIEW ── -->
+    <div class="view fadeIn" id="view-upgrade">
       <!-- ── SECTION 1: PLATFORM PLANS ── -->
       <div style="margin-bottom:56px;">
         <div style="text-align:center;margin-bottom:36px;">
@@ -1797,7 +1805,7 @@ canvas{display:block;}
             <a href="/charting" style="display:block;text-decoration:none;text-align:center;background:transparent;color:var(--gold);border:1px solid var(--gold-soft,#9F8638);font-family:'JetBrains Mono',Menlo,monospace;font-weight:500;font-size:11px;letter-spacing:.24em;text-transform:uppercase;padding:14px 24px;cursor:pointer;transition:all .3s;" onmouseover="this.style.background='var(--gold)';this.style.color='#000';" onmouseout="this.style.background='transparent';this.style.color='var(--gold)';">View Charting Plans</a>
           </div>
         </div>
-        <div style="font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;color:var(--gray2);text-align:center;letter-spacing:.04em;">Already a member? <span onclick="checkCommunityAccess(true)" style="color:var(--gold);cursor:pointer;text-decoration:underline;text-underline-offset:4px;">Refresh access</span></div>
+        <div style="font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;color:var(--gray2);text-align:center;letter-spacing:.04em;">Already a member? <span onclick="initCommunity(true)" style="color:var(--gold);cursor:pointer;text-decoration:underline;text-underline-offset:4px;">Refresh access</span></div>
       </div>
 
       <!-- Main community area -->
@@ -2475,14 +2483,14 @@ function refreshBestWorstWidget() {
     const sameTrade = best === worst;
     el.innerHTML = `
       <div style="font-size:11px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:10px;">BEST / WORST TODAY</div>
-      <div style="cursor:pointer;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);" onclick="showTradeDetail(${best.id})">
+      <div style="cursor:pointer;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);" onclick="showTradeDetail('${encodeURIComponent(String(best.id))}')">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:11px;color:var(--green);font-family:DM Mono,monospace;">▲ BEST · ${best.symbol}</span>
           <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--green);">+$${best.pnl.toFixed(0)}</span>
         </div>
       </div>
       ${!sameTrade ? `
-      <div style="cursor:pointer;padding:6px 0;" onclick="showTradeDetail(${worst.id})">
+      <div style="cursor:pointer;padding:6px 0;" onclick="showTradeDetail('${encodeURIComponent(String(worst.id))}')">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:11px;color:var(--red);font-family:DM Mono,monospace;">▼ WORST · ${worst.symbol}</span>
           <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:${worst.pnl < 0 ? 'var(--red)' : 'var(--green)'};">${worst.pnl >= 0 ? '+' : '-'}$${Math.abs(worst.pnl).toFixed(0)}</span>
@@ -2496,44 +2504,53 @@ function refreshBestWorstWidget() {
 // ════════════════════════════════════════════════
 // TRADE DETAIL MODAL — click a trade row to see deep info
 // ════════════════════════════════════════════════
+function escapeHtmlText(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function showTradeDetail(tradeId) {
-  const t = TRADES.find(x => x.id === tradeId);
+  const t = TRADES.find(x => String(x.id) === decodeURIComponent(String(tradeId)));
   if (!t) return;
   const modal = document.createElement('div');
   modal.id = 'tradeDetailModal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);';
   const sideCol = t.side === 'Long' ? 'var(--green)' : 'var(--red)';
   const pnlCol = t.pnl >= 0 ? 'var(--green)' : 'var(--red)';
-  const tagsHtml = (t.tags || []).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:4px 10px;border-radius:2px;font-family:DM Mono,monospace;font-size:11px;margin-right:6px;">${tag}</span>`).join('');
+  const tagsHtml = (t.tags || []).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:4px 10px;border-radius:2px;font-family:DM Mono,monospace;font-size:11px;margin-right:6px;">${escapeHtmlText(tag)}</span>`).join('');
   modal.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border2);border-radius:4px;width:600px;max-width:95vw;max-height:90vh;overflow:auto;">
       <div style="padding:16px 22px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:.06em;">${t.symbol} <span style="color:${sideCol};">${t.side.toUpperCase()}</span> · ${t.contracts}</div>
-          <div style="font-size:12px;color:var(--gray2);font-family:DM Mono,monospace;margin-top:3px;">${t.date}</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:.06em;">${escapeHtmlText(t.symbol)} <span style="color:${sideCol};">${escapeHtmlText(t.side.toUpperCase())}</span> · ${escapeHtmlText(t.contracts)}</div>
+          <div style="font-size:12px;color:var(--gray2);font-family:DM Mono,monospace;margin-top:3px;">${escapeHtmlText(t.date)}</div>
         </div>
         <button onclick="document.getElementById('tradeDetailModal').remove()" style="background:none;border:none;color:var(--gray);font-size:18px;cursor:pointer;">✕</button>
       </div>
       <div style="padding:22px;">
         <div style="text-align:center;margin-bottom:24px;">
           <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;color:${pnlCol};line-height:1;">${t.pnl >= 0 ? '+' : '-'}$${Math.abs(t.pnl).toFixed(2)}</div>
-          <div style="font-size:13px;color:var(--gray);margin-top:6px;">${t.r >= 0 ? '+' : ''}${t.r}R · ${t.duration} · Quality ${'★'.repeat(t.quality)}${'☆'.repeat(5-t.quality)}</div>
+          <div style="font-size:13px;color:var(--gray);margin-top:6px;">${t.r >= 0 ? '+' : ''}${t.r}R · ${escapeHtmlText(t.duration)} · Quality ${'★'.repeat(t.quality)}${'☆'.repeat(5-t.quality)}</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin-bottom:18px;">
           <div style="background:var(--surface2);padding:14px;">
             <div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:5px;">ENTRY</div>
-            <div style="font-family:DM Mono,monospace;font-size:18px;color:var(--white);">${t.entry}</div>
+            <div style="font-family:DM Mono,monospace;font-size:18px;color:var(--white);">${escapeHtmlText(t.entry)}</div>
           </div>
           <div style="background:var(--surface2);padding:14px;">
             <div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:5px;">EXIT</div>
-            <div style="font-family:DM Mono,monospace;font-size:18px;color:var(--white);">${t.exit}</div>
+            <div style="font-family:DM Mono,monospace;font-size:18px;color:var(--white);">${escapeHtmlText(t.exit)}</div>
           </div>
         </div>
         ${tagsHtml ? `<div style="margin-bottom:18px;"><div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">TAGS</div>${tagsHtml}</div>` : ''}
-        ${t.notes ? `<div style="background:var(--surface2);padding:14px;border-left:3px solid var(--gold);"><div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">NOTES</div><div style="font-size:13px;color:var(--white);line-height:1.7;">${t.notes}</div></div>` : ''}
+        ${t.notes ? `<div style="background:var(--surface2);padding:14px;border-left:3px solid var(--gold);"><div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">NOTES</div><div style="font-size:13px;color:var(--white);line-height:1.7;">${escapeHtmlText(t.notes)}</div></div>` : ''}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-          <span style="font-size:12px;color:var(--gray2);">Emotion: <span style="color:var(--gold);">${t.emotion}</span></span>
-          <button onclick="openReplay(${t.id});document.getElementById('tradeDetailModal').remove();" style="background:var(--gold);color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;padding:8px 18px;cursor:pointer;">▶ REPLAY</button>
+          <span style="font-size:12px;color:var(--gray2);">Emotion: <span style="color:var(--gold);">${escapeHtmlText(t.emotion)}</span></span>
+          <button onclick="openReplay('${encodeURIComponent(String(t.id))}');document.getElementById('tradeDetailModal').remove();" style="background:var(--gold);color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;padding:8px 18px;cursor:pointer;">▶ REPLAY</button>
         </div>
       </div>
     </div>
@@ -2558,23 +2575,23 @@ function renderTable(trades, containerId) {
   const mobileCards = `
     <div class="mobile-trades">
       ${trades.map(t => `
-        <div class="mobileTradeCard" onclick="showTradeDetail(${t.id})">
+        <div class="mobileTradeCard" onclick="showTradeDetail('${encodeURIComponent(String(t.id))}')">
           <div class="mtcRow">
             <div style="display:flex;align-items:center;gap:8px;">
-              <span class="mtcSym">${t.symbol}</span>
-              <span class="mtcSide ${t.side==='Long'?'long':'short'}">${t.side.toUpperCase()}</span>
+              <span class="mtcSym">${escapeHtmlText(t.symbol)}</span>
+              <span class="mtcSide ${t.side==='Long'?'long':'short'}">${escapeHtmlText(t.side.toUpperCase())}</span>
             </div>
             <span class="mtcPnl ${t.pnl>=0?'pnl-pos':'pnl-neg'}" style="color:${t.pnl>=0?'var(--green)':'var(--red)'};">${t.pnl>=0?'+':'-'}$${Math.abs(t.pnl).toFixed(0)}</span>
           </div>
           <div class="mtcMeta">
-            <span>${t.contracts}c · ${t.entry} → ${t.exit}</span>
+            <span>${escapeHtmlText(t.contracts)}c · ${escapeHtmlText(t.entry)} → ${escapeHtmlText(t.exit)}</span>
             <span style="color:${t.r>=0?'var(--green)':'var(--red)'};">${t.r>=0?'+':''}${t.r}R</span>
           </div>
           <div class="mtcMeta" style="margin-top:4px;">
-            <span class="mtcDate">${t.date}</span>
-            <span>${t.duration}</span>
+            <span class="mtcDate">${escapeHtmlText(t.date)}</span>
+            <span>${escapeHtmlText(t.duration)}</span>
           </div>
-          ${(t.tags||[]).length ? `<div class="mtcTags">${(t.tags||[]).slice(0,4).map(tag=>`<span class="mtcTag">${tag}</span>`).join('')}</div>` : ''}
+          ${(t.tags||[]).length ? `<div class="mtcTags">${(t.tags||[]).slice(0,4).map(tag=>`<span class="mtcTag">${escapeHtmlText(tag)}</span>`).join('')}</div>` : ''}
         </div>
       `).join('')}
     </div>
@@ -2589,17 +2606,17 @@ function renderTable(trades, containerId) {
         </tr></thead>
         <tbody>
           ${trades.map(t => `
-            <tr onclick="showTradeDetail(${t.id})" style="cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background=''">
-              <td><span class="trade-time">${t.date}</span></td>
-              <td><span class="sym-badge">${t.symbol}</span></td>
-              <td><span class="side-badge ${t.side==='Long'?'side-long':'side-short'}">${t.side.toUpperCase()}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${t.entry}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${t.exit}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${t.contracts}</span></td>
+            <tr onclick="showTradeDetail('${encodeURIComponent(String(t.id))}')" style="cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background=''">
+              <td><span class="trade-time">${escapeHtmlText(t.date)}</span></td>
+              <td><span class="sym-badge">${escapeHtmlText(t.symbol)}</span></td>
+              <td><span class="side-badge ${t.side==='Long'?'side-long':'side-short'}">${escapeHtmlText(t.side.toUpperCase())}</span></td>
+              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${escapeHtmlText(t.entry)}</span></td>
+              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${escapeHtmlText(t.exit)}</span></td>
+              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${escapeHtmlText(t.contracts)}</span></td>
               <td><span class="pnl-val ${t.pnl>=0?'pnl-pos':'pnl-neg'}">${t.pnl>=0?'+':''}$${Math.abs(t.pnl).toFixed(2)}</span></td>
               <td><span class="r-val ${t.r>=0?'pnl-pos':'pnl-neg'}">${t.r>=0?'+':''}${t.r}R</span></td>
-              <td><span class="trade-time">${t.duration}</span></td>
-              <td>${(t.tags || []).slice(0,2).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:2px 7px;border-radius:2px;font-family:DM Mono,monospace;font-size:10px;margin-right:3px;">${tag}</span>`).join('')}${(t.tags || []).length > 2 ? `<span style="color:var(--gray2);font-size:10px;">+${t.tags.length - 2}</span>` : ''}</td>
+              <td><span class="trade-time">${escapeHtmlText(t.duration)}</span></td>
+              <td>${(t.tags || []).slice(0,2).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:2px 7px;border-radius:2px;font-family:DM Mono,monospace;font-size:10px;margin-right:3px;">${escapeHtmlText(tag)}</span>`).join('')}${(t.tags || []).length > 2 ? `<span style="color:var(--gray2);font-size:10px;">+${t.tags.length - 2}</span>` : ''}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -2614,20 +2631,20 @@ function renderTable(trades, containerId) {
         <tbody>
           ${trades.map(t => `
             <tr>
-              <td><span class="trade-time">${t.date}</span></td>
-              <td><span class="sym-badge">${t.symbol}</span></td>
-              <td><span class="side-badge ${t.side==='Long'?'side-long':'side-short'}">${t.side.toUpperCase()}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${t.entry}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${t.exit}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${t.contracts}</span></td>
+              <td><span class="trade-time">${escapeHtmlText(t.date)}</span></td>
+              <td><span class="sym-badge">${escapeHtmlText(t.symbol)}</span></td>
+              <td><span class="side-badge ${t.side==='Long'?'side-long':'side-short'}">${escapeHtmlText(t.side.toUpperCase())}</span></td>
+              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${escapeHtmlText(t.entry)}</span></td>
+              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${escapeHtmlText(t.exit)}</span></td>
+              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${escapeHtmlText(t.contracts)}</span></td>
               <td><span class="pnl-val ${t.pnl>=0?'pnl-pos':'pnl-neg'}">${t.pnl>=0?'+':''}$${Math.abs(t.pnl).toFixed(2)}</span></td>
               <td><span class="r-val ${t.r>=0?'pnl-pos':'pnl-neg'}">${t.r>=0?'+':''}${t.r}R</span></td>
-              <td><span class="trade-time">${t.duration}</span></td>
+              <td><span class="trade-time">${escapeHtmlText(t.duration)}</span></td>
               <td><span style="color:var(--gold);font-size:13px;">${'★'.repeat(t.quality)}${'☆'.repeat(5-t.quality)}</span></td>
-              <td>${(t.tags || []).slice(0,2).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:2px 7px;border-radius:2px;font-family:DM Mono,monospace;font-size:10px;margin-right:3px;">${tag}</span>`).join('')}${(t.tags || []).length > 2 ? `<span style="color:var(--gray2);font-size:10px;">+${t.tags.length - 2}</span>` : ''}</td>
+              <td>${(t.tags || []).slice(0,2).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:2px 7px;border-radius:2px;font-family:DM Mono,monospace;font-size:10px;margin-right:3px;">${escapeHtmlText(tag)}</span>`).join('')}${(t.tags || []).length > 2 ? `<span style="color:var(--gray2);font-size:10px;">+${t.tags.length - 2}</span>` : ''}</td>
               <td class="replay-btn-cell" style="display:flex;gap:6px;">
-                <button onclick="showTradeDetail(${t.id})" style="background:transparent;color:var(--gold);border:1px solid var(--border2);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;padding:6px 10px;cursor:pointer;white-space:nowrap;">DETAIL</button>
-                <button onclick="openReplay(${t.id})" style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;padding:6px 12px;cursor:pointer;white-space:nowrap;">▶ REPLAY</button>
+                <button onclick="showTradeDetail('${encodeURIComponent(String(t.id))}')" style="background:transparent;color:var(--gold);border:1px solid var(--border2);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;padding:6px 10px;cursor:pointer;white-space:nowrap;">DETAIL</button>
+                <button onclick="openReplay('${encodeURIComponent(String(t.id))}')" style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;padding:6px 12px;cursor:pointer;white-space:nowrap;">▶ REPLAY</button>
               </td>
             </tr>
           `).join('')}
@@ -2730,6 +2747,7 @@ function showTab(tab) {
   document.getElementById('topbar-title').textContent = titles[tab] || '';
 
   if (tab === 'analytics') setTimeout(drawAnalyticsCharts, 50);
+  if (tab === 'calendar') setTimeout(buildCalendar, 50);
   if (tab === 'profile') loadProfile();
   if (tab === 'evaluation') setTimeout(() => { syncEvalWithTrades(); initEvaluation(); }, 50);
   if (tab === 'leaderboard') setTimeout(loadLeaderboard, 50);
@@ -2739,36 +2757,31 @@ function showTab(tab) {
 // ── STRIPE + PLANS ──
 // ── EVALUATION ──
 const EVAL_STATE = {
-  active: true,
+  active: false,
   phase: 1,
   accountSize: 50000,
-  startDate: 'Apr 24, 2026',
-  balance: 51362.50,
-  netPnl: 1362.50,
-  maxDrawdown: 420.00,
+  startDate: '—',
+  balance: 50000,
+  netPnl: 0,
+  maxDrawdown: 0,
   dailyLoss: 0,
-  tradingDays: 3,
-  winCount: 17,
-  lossCount: 8,
-  largestTradePct: 31,
+  tradingDays: 0,
+  winCount: 0,
+  lossCount: 0,
+  largestTradePct: 0,
   rules: {
-    profitTarget: { required: 5000, current: 1362.50 },
-    maxDrawdown:  { limit: 2500,  current: 420 },
+    profitTarget: { required: 5000, current: 0 },
+    maxDrawdown:  { limit: 2500,  current: 0 },
     dailyLoss:    { limit: 1000,  current: 0 },
-    minDays:      { required: 5,  current: 3 },
-    consistency:  { maxPct: 40,   currentPct: 31 },
+    minDays:      { required: 5,  current: 0 },
+    consistency:  { maxPct: 40,   currentPct: 0 },
   },
-  equity: [50000,50120,50380,50210,50650,50900,51100,50880,51140,51362.50],
-  dailyPnl: [120,260,-170,440,250,200,-220,260,222.50],
+  equity: [50000,50000],
+  dailyPnl: [0],
 };
 
-const EVAL_TRADES = [
-  {date:'Apr 24',symbol:'ES',side:'Long', entry:7041.25,exit:7068.50,contracts:2,pnl:+1362.50,r:+2.1,rule:'✓'},
-  {date:'Apr 24',symbol:'NQ',side:'Short',entry:19510,  exit:19468.5,contracts:1,pnl:+830.00, r:+1.8,rule:'✓'},
-  {date:'Apr 24',symbol:'MES',side:'Long',entry:7035,   exit:7028,   contracts:5,pnl:-175.00, r:-0.6,rule:'✓'},
-  {date:'Apr 23',symbol:'ES', side:'Short',entry:7084, exit:7062.5, contracts:2,pnl:+2150.00,r:+2.9,rule:'✓'},
-  {date:'Apr 23',symbol:'NQ', side:'Long', entry:19420, exit:19385, contracts:1,pnl:-700.00, r:-1.2,rule:'✓'},
-];
+// No mock transactions are presented as verified evaluation trade history.
+const EVAL_TRADES = [];
 
 function initEvaluation() {
   const e = EVAL_STATE;
@@ -2788,7 +2801,7 @@ function initEvaluation() {
   document.getElementById('eval-pnl').textContent = '+$' + e.netPnl.toLocaleString('en-US',{minimumFractionDigits:2});
   document.getElementById('eval-drawdown').textContent = '-$' + e.maxDrawdown.toLocaleString('en-US',{minimumFractionDigits:2});
   document.getElementById('eval-days').textContent = e.tradingDays + ' / 5';
-  document.getElementById('eval-winrate').textContent = Math.round((e.winCount/(e.winCount+e.lossCount))*100) + '%';
+  document.getElementById('eval-winrate').textContent = (e.winCount+e.lossCount ? Math.round((e.winCount/(e.winCount+e.lossCount))*100) + '%' : '—');
   document.getElementById('eval-start-date').textContent = e.startDate;
 
   // Progress bars
@@ -2838,7 +2851,7 @@ function initEvaluation() {
         <th>Date</th><th>Symbol</th><th>Side</th><th>Entry</th><th>Exit</th><th>Qty</th><th>P&L</th><th>R</th><th>Rule</th>
       </tr></thead>
       <tbody>
-        ${EVAL_TRADES.map(t => `
+        ${EVAL_TRADES.length ? EVAL_TRADES.map(t => `
           <tr>
             <td><span class="trade-time">${t.date}</span></td>
             <td><span class="sym-badge">${t.symbol}</span></td>
@@ -2850,7 +2863,7 @@ function initEvaluation() {
             <td><span class="r-val ${t.r>=0?'pnl-pos':'pnl-neg'}">${t.r>=0?'+':''}${t.r}R</span></td>
             <td style="font-size:14px;color:var(--green);">${t.rule}</td>
           </tr>
-        `).join('')}
+        `).join('') : '<tr><td colspan="9" style="padding:18px;color:var(--gray2);">No verified evaluation trade history available yet.</td></tr>'}
       </tbody>
     </table>`;
 
@@ -2901,7 +2914,7 @@ function drawEvalCharts() {
   const ddata = EVAL_STATE.dailyPnl;
   const dW = dc.width; const dH = dc.height;
   const dPad = {l:10,r:10,t:10,b:20};
-  const dMax = Math.max(...ddata.map(Math.abs)) * 1.2;
+  const dMax = Math.max(1, ...ddata.map(Math.abs)) * 1.2;
   const midY = dPad.t + (dH-dPad.t-dPad.b)/2;
   const barW = ((dW-dPad.l-dPad.r)/ddata.length)*0.6;
   const spacing = (dW-dPad.l-dPad.r)/ddata.length;
@@ -3047,88 +3060,36 @@ if (_params.get('upgraded') === 'true') {
 
 // ── SYNC TRADES → EVAL ──
 function syncEvalWithTrades() {
-  if (!EVAL_STATE.active || !TRADES.length) return;
-  // Calculate from actual journal trades
-  const totalPnl = TRADES.reduce((sum, t) => sum + (t.pnl || 0), 0);
-  const wins = TRADES.filter(t => t.pnl > 0).length;
-  const losses = TRADES.filter(t => t.pnl < 0).length;
-  // Largest single trade as % of total profit
-  const positiveTrades = TRADES.filter(t => t.pnl > 0);
-  const largestWin = positiveTrades.length ? Math.max(...positiveTrades.map(t => t.pnl)) : 0;
-  const largestPct = totalPnl > 0 ? (largestWin / totalPnl) * 100 : 0;
-  // Running max drawdown
-  let peak = EVAL_STATE.accountSize, maxDD = 0, running = EVAL_STATE.accountSize;
-  [...TRADES].reverse().forEach(t => {
-    running += t.pnl;
-    if (running > peak) peak = running;
-    const dd = peak - running;
-    if (dd > maxDD) maxDD = dd;
-  });
-  // Unique trading days
-  const days = new Set(TRADES.map(t => t.date?.split(',')[0] || t.date?.slice(0,10))).size;
-
-  EVAL_STATE.netPnl = totalPnl;
-  EVAL_STATE.balance = EVAL_STATE.accountSize + totalPnl;
-  EVAL_STATE.maxDrawdown = maxDD;
-  EVAL_STATE.tradingDays = Math.min(days, 99);
-  EVAL_STATE.winCount = wins;
-  EVAL_STATE.lossCount = losses;
-  EVAL_STATE.largestTradePct = Math.round(largestPct);
-  EVAL_STATE.rules.profitTarget.current = totalPnl;
-  EVAL_STATE.rules.maxDrawdown.current = maxDD;
-  EVAL_STATE.rules.consistency.currentPct = Math.round(largestPct);
-
-  // Check violations
-  if (maxDD >= EVAL_STATE.rules.maxDrawdown.limit) {
-    EVAL_STATE.active = false;
-    showEvalViolation('max_drawdown');
-  }
-  // Check phase progression
-  if (EVAL_STATE.phase === 1 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
-    EVAL_STATE.phase = 2;
-    EVAL_STATE.rules.profitTarget.required = EVAL_STATE.accountSize * 0.05;
-    showToastMsg('🎉 Evaluation Complete! Your funded account is now active.', 'var(--green)');
-    sendEmail('eval_passed_p1', { to: currentUser?.email });
-    updateEvalInDB({ phase: 2 });
-  }
-  if (EVAL_STATE.phase === 2 && totalPnl >= EVAL_STATE.rules.profitTarget.required && days >= 5) {
-    EVAL_STATE.active = false;
-    showToastMsg('🏆 YOU PASSED! Both phases complete. You are funded. Check your email.', 'var(--gold)');
-    sendEmail('eval_funded', { to: currentUser?.email });
-    updateEvalInDB({ status: 'passed', phase: 3 });
-  }
-  // Sync to DB
-  updateEvalInDB({
-    net_pnl: totalPnl,
-    max_drawdown: maxDD,
-    trading_days: days,
-    phase: EVAL_STATE.phase
-  });
+  // Journal entries are user-editable, so they cannot authorize funded
+  // evaluation progress, drawdown changes, account passing, or monetary rewards.
+  // Those calculations must be performed by an authenticated server and
+  // reported by a protected database record after verified executions.
+  return;
 }
 
 // ── SAVE TRADE TO SUPABASE ──
 async function saveTradeToDb(trade) {
-  if (!currentUser) return;
-  try {
-    const { error } = await db.from('trades').insert({
-      user_id: currentUser.id,
-      symbol: trade.symbol,
-      side: trade.side,
-      entry_price: trade.entry,
-      exit_price: trade.exit,
-      contracts: trade.contracts,
-      pnl: trade.pnl,
-      r_multiple: trade.r,
-      status: 'closed',
-      setup_notes: trade.notes || '',
-      execution_quality: trade.quality || 3,
-      emotional_state: trade.emotion || 'calm',
-      tags: trade.tags || [],
-      entry_time: new Date().toISOString(),
-      exit_time: new Date().toISOString()
-    });
-    if (error) console.warn('Save trade error:', error.message);
-  } catch(e) { console.log('Save trade error:', e.message); }
+  if (!currentUser?.id) throw new Error('You must be signed in to save trades');
+  const {data, error} = await db.from('trades').insert({
+    user_id: currentUser.id,
+    symbol: trade.symbol,
+    side: trade.side,
+    entry_price: trade.entry,
+    exit_price: trade.exit,
+    contracts: trade.contracts,
+    pnl: trade.pnl,
+    r_multiple: trade.r,
+    status: 'closed',
+    setup_notes: trade.notes || '',
+    execution_quality: trade.quality || 3,
+    emotional_state: trade.emotion || 'calm',
+    tags: trade.tags || [],
+    entry_time: trade.entryTime,
+    exit_time: trade.entryTime
+  }).select('id').single();
+  if (error) throw new Error('Database save failed: ' + error.message);
+  if (!data?.id) throw new Error('Database did not confirm the saved trade');
+  return data.id;
 }
 
 // ── ECON CALENDAR ALERTS ──
@@ -3177,7 +3138,8 @@ async function saveProfile() {
   const fullName = `${firstName} ${lastName}`.trim();
   const msg = document.getElementById('profile-save-msg');
   try {
-    await db.auth.updateUser({ data: { full_name: fullName } });
+    const { error } = await db.auth.updateUser({ data: { full_name: fullName } });
+    if (error) throw error;
     document.getElementById('profile-name-display').textContent = fullName;
     const initials = (firstName.slice(0,1) + lastName.slice(0,1)).toUpperCase();
     document.getElementById('profile-avatar-lg').textContent = initials;
@@ -3201,7 +3163,8 @@ async function changePassword() {
   if (!newPw || newPw.length < 8) { msg.textContent = 'Password must be at least 8 characters'; msg.style.color='var(--red)'; msg.style.display='inline'; return; }
   if (newPw !== confirmPw) { msg.textContent = 'Passwords do not match'; msg.style.color='var(--red)'; msg.style.display='inline'; return; }
   try {
-    await db.auth.updateUser({ password: newPw });
+    const { error } = await db.auth.updateUser({ password: newPw });
+    if (error) throw error;
     msg.textContent = 'Password updated ✓';
     msg.style.color = 'var(--green)';
     msg.style.display = 'inline';
@@ -3261,7 +3224,8 @@ async function handleLogout() {
 // ── MODAL ──
 function openModal() {
   document.getElementById('modalOverlay').classList.add('open');
-  document.getElementById('fDateTime').value = new Date().toISOString().slice(0,16);
+  const now = new Date();
+  document.getElementById('fDateTime').value = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,16);
   // Reset form
   ['fEntry','fExit','fContracts','fStop','fTarget','fTags','fNotes'].forEach(id => {
     const el = document.getElementById(id);
@@ -3289,42 +3253,71 @@ function setEmotion(e, el) {
   el.parentNode.querySelectorAll('.rating-btn').forEach(b => { if(b!==el) b.classList.remove('active'); });
 }
 
-function saveTrade() {
+let savingManualTrade = false;
+async function saveTrade() {
+  if (savingManualTrade) return;
   const sym = document.getElementById('fSymbol').value;
   const side = document.getElementById('fSide').value;
-  const entry = parseFloat(document.getElementById('fEntry').value)||0;
-  const exit = parseFloat(document.getElementById('fExit').value)||0;
-  const contracts = parseInt(document.getElementById('fContracts').value)||1;
+  const entry = Number(document.getElementById('fEntry').value);
+  const exit = Number(document.getElementById('fExit').value);
+  const contracts = Number(document.getElementById('fContracts').value);
+  const timeValue = document.getElementById('fDateTime')?.value;
+  const entryTime = timeValue ? new Date(timeValue) : new Date();
+  if (!Number.isFinite(entry) || entry <= 0 || !Number.isFinite(exit) || exit <= 0 ||
+      !Number.isSafeInteger(contracts) || contracts < 1 || contracts > 1000 ||
+      !Number.isFinite(entryTime.getTime()) || !['Long','Short'].includes(side)) {
+    showToastMsg('Enter valid entry/exit prices, date, direction and a contract quantity from 1 to 1000.', 'var(--red)');
+    return;
+  }
+
   const notes = document.getElementById('fNotes').value || 'No notes';
   const tagsInput = document.getElementById('fTags')?.value || '';
   const tags = tagsInput.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
-  const tickValues = {ES:50,NQ:20,YM:5,RTY:50,MES:5,MNQ:2,MYM:0.5,M2K:5,GC:100,SI:5000,HG:25000,MGC:10,SIL:500};
-  const tv = tickValues[sym] || 50;
+  const pointValues = {ES:50,NQ:20,YM:5,RTY:50,MES:5,MNQ:2,MYM:0.5,M2K:5,GC:100,SI:5000,HG:25000,MGC:10,SIL:500};
+  if (!Object.hasOwn(pointValues, sym)) {
+    showToastMsg('Select a supported instrument.', 'var(--red)');
+    return;
+  }
   const diff = side === 'Long' ? exit - entry : entry - exit;
-  const pnl = diff * tv * contracts;
+  const pnl = Math.round(diff * pointValues[sym] * contracts * 100) / 100;
+  if (!Number.isFinite(pnl)) {
+    showToastMsg('Trade P&L is invalid. Check the prices and quantity.', 'var(--red)');
+    return;
+  }
 
   const newTrade = {
-    id: Math.max(0, ...TRADES.map(t => t.id)) + 1,
     symbol: sym, side, entry, exit, contracts,
-    pnl: Math.round(pnl * 100) / 100,
-    r: Math.round((diff / Math.abs(entry * 0.003)) * 10) / 10,
-    date: new Date().toLocaleDateString('en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+    pnl,
+    r: Math.round((diff / (entry * 0.003)) * 10) / 10,
+    entryTime: entryTime.toISOString(),
+    date: entryTime.toLocaleString('en-US'),
     duration: '—', notes,
     quality: selectedRating || 3,
     emotion: selectedEmotion || 'calm',
     tags
   };
-  TRADES.unshift(newTrade);
-  currentTrades = [...TRADES];
-  saveTradeToDb(newTrade); // persist to Supabase
-  renderTable(currentTrades, 'tradeTableWrap');
-  renderTable(currentTrades, 'journalTableWrap');
-  closeModal();
-  drawDashboardCharts();
-  refreshDashboardStats();
-  refreshGoalWidget();
-  refreshBestWorstWidget();
-  showToastMsg(`Trade logged: ${sym} ${side} ${pnl >= 0 ? '+' : '-'}$${Math.abs(pnl).toFixed(2)}`, pnl >= 0 ? 'var(--green)' : 'var(--red)');
+  savingManualTrade = true;
+  try {
+    // Only display the trade as saved after Supabase acknowledges the INSERT.
+    newTrade.id = await saveTradeToDb(newTrade);
+    TRADES.unshift(newTrade);
+    currentTrades = [...TRADES];
+    renderTable(currentTrades, 'tradeTableWrap');
+    renderTable(currentTrades, 'journalTableWrap');
+    closeModal();
+    drawDashboardCharts();
+    refreshDashboardStats();
+    refreshGoalWidget();
+    refreshBestWorstWidget();
+    showToastMsg('Trade saved: ' + sym + ' ' + side + ' ' +
+      (pnl >= 0 ? '+' : '-') + '$' + Math.abs(pnl).toFixed(2),
+      pnl >= 0 ? 'var(--green)' : 'var(--red)');
+  } catch (error) {
+    console.error('Manual trade save failed:', error);
+    showToastMsg('Trade was NOT saved. Please check your connection and try again.', 'var(--red)');
+  } finally {
+    savingManualTrade = false;
+  }
 }
 
 // ── P&L CHART ──
@@ -3350,7 +3343,7 @@ function drawPnlChart() {
   const pad = {l:8,r:8,t:8,b:24};
   const cW = W - pad.l - pad.r; const cH = H - pad.t - pad.b;
   const toY = v => pad.t + cH - ((v - min) / range) * cH;
-  const toX = i => pad.l + (i / (points.length-1)) * cW;
+  const toX = i => pad.l + (i / Math.max(1, points.length-1)) * cW;
 
   // Grid
   ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=0.5;
@@ -3616,249 +3609,102 @@ function drawAnalyticsCharts() {
 }
 
 // ── ECONOMIC CALENDAR ──
-const econData = [
-  { date:'Wednesday, April 23, 2026', events:[
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'215K',fore:'220K',actual:'218K'},
-    {time:'8:30 AM',name:'Philly Fed Manufacturing Index',impact:'med',prev:'12.5',fore:'10.2',actual:''},
-    {time:'10:00 AM',name:'Existing Home Sales',impact:'med',prev:'4.26M',fore:'4.18M',actual:''},
-    {time:'11:00 AM',name:'KC Fed Manufacturing',impact:'low',prev:'-5',fore:'-4',actual:''},
-  ]},
-  { date:'Thursday, April 24, 2026', events:[
-    {time:'8:30 AM',name:'GDP Growth Rate QoQ (Advance)',impact:'high',prev:'2.3%',fore:'2.1%',actual:''},
-    {time:'8:30 AM',name:'Core PCE Prices QoQ',impact:'high',prev:'2.7%',fore:'2.6%',actual:''},
-    {time:'10:00 AM',name:'New Home Sales',impact:'med',prev:'676K',fore:'658K',actual:''},
-  ]},
-  { date:'Friday, April 25, 2026', events:[
-    {time:'8:30 AM',name:'PCE Price Index MoM',impact:'high',prev:'0.3%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core PCE Price Index MoM',impact:'high',prev:'0.4%',fore:'0.3%',actual:''},
-    {time:'10:00 AM',name:'Michigan Consumer Sentiment (Final)',impact:'med',prev:'57.0',fore:'53.5',actual:''},
-    {time:'10:00 AM',name:'Michigan Inflation Expectations 5Y',impact:'med',prev:'5.0%',fore:'4.9%',actual:''},
-  ]},
-  { date:'Tuesday, April 29, 2026', events:[
-    {time:'9:00 AM',name:'S&P/Case-Shiller Home Price Index',impact:'med',prev:'4.7%',fore:'4.5%',actual:''},
-    {time:'10:00 AM',name:'Consumer Confidence',impact:'high',prev:'92.9',fore:'88.0',actual:''},
-    {time:'10:00 AM',name:'JOLTS Job Openings',impact:'high',prev:'7.57M',fore:'7.40M',actual:''},
-  ]},
-  { date:'Wednesday, April 30, 2026', events:[
-    {time:'8:15 AM',name:'ADP Nonfarm Employment Change',impact:'high',prev:'155K',fore:'120K',actual:''},
-    {time:'8:30 AM',name:'Employment Cost Index QoQ',impact:'high',prev:'0.9%',fore:'0.8%',actual:''},
-    {time:'9:45 AM',name:'Chicago PMI',impact:'med',prev:'47.6',fore:'46.0',actual:''},
-    {time:'2:00 PM',name:'FOMC Interest Rate Decision',impact:'high',prev:'4.50%',fore:'4.50%',actual:''},
-    {time:'2:30 PM',name:'FOMC Press Conference',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Thursday, May 1, 2026', events:[
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'218K',fore:'222K',actual:''},
-    {time:'10:00 AM',name:'ISM Manufacturing PMI',impact:'high',prev:'49.0',fore:'48.5',actual:''},
-    {time:'10:00 AM',name:'Construction Spending MoM',impact:'low',prev:'0.3%',fore:'0.1%',actual:''},
-  ]},
-  { date:'Friday, May 2, 2026', events:[
-    {time:'8:30 AM',name:'Nonfarm Payrolls',impact:'high',prev:'228K',fore:'130K',actual:''},
-    {time:'8:30 AM',name:'Unemployment Rate',impact:'high',prev:'4.2%',fore:'4.2%',actual:''},
-    {time:'8:30 AM',name:'Average Hourly Earnings MoM',impact:'high',prev:'0.3%',fore:'0.3%',actual:''},
-    {time:'10:00 AM',name:'Michigan Consumer Sentiment (Prelim)',impact:'med',prev:'53.5',fore:'52.0',actual:''},
-  ]},
-  { date:'Wednesday, May 7, 2026', events:[
-    {time:'10:00 AM',name:'ISM Services PMI',impact:'high',prev:'50.8',fore:'50.5',actual:''},
-    {time:'2:00 PM',name:'Fed Beige Book',impact:'med',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Thursday, May 8, 2026', events:[
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'222K',fore:'218K',actual:''},
-    {time:'10:00 AM',name:'Wholesale Inventories MoM',impact:'low',prev:'0.3%',fore:'0.2%',actual:''},
-  ]},
-  { date:'Wednesday, May 14, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.3%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.3%',fore:'0.3%',actual:''},
-    {time:'8:30 AM',name:'CPI YoY',impact:'high',prev:'2.4%',fore:'2.5%',actual:''},
-  ]},
-  { date:'Thursday, May 15, 2026', events:[
-    {time:'8:30 AM',name:'PPI MoM',impact:'high',prev:'-0.4%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core PPI MoM',impact:'high',prev:'-0.1%',fore:'0.3%',actual:''},
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'228K',fore:'225K',actual:''},
-    {time:'8:30 AM',name:'Retail Sales MoM',impact:'high',prev:'1.7%',fore:'0.1%',actual:''},
-    {time:'9:15 AM',name:'Industrial Production MoM',impact:'med',prev:'-0.3%',fore:'0.0%',actual:''},
-  ]},
-  { date:'Friday, May 16, 2026', events:[
-    {time:'8:30 AM',name:'Housing Starts',impact:'med',prev:'1.324M',fore:'1.36M',actual:''},
-    {time:'8:30 AM',name:'Building Permits',impact:'med',prev:'1.482M',fore:'1.45M',actual:''},
-    {time:'10:00 AM',name:'Michigan Consumer Sentiment (Prelim)',impact:'med',prev:'52.2',fore:'53.0',actual:''},
-  ]},
-  { date:'Wednesday, May 21, 2026', events:[
-    {time:'2:00 PM',name:'FOMC Meeting Minutes',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Friday, May 23, 2026', events:[
-    {time:'9:45 AM',name:'S&P Global Manufacturing PMI (Flash)',impact:'med',prev:'50.7',fore:'50.5',actual:''},
-    {time:'9:45 AM',name:'S&P Global Services PMI (Flash)',impact:'med',prev:'51.4',fore:'51.0',actual:''},
-    {time:'10:00 AM',name:'New Home Sales',impact:'med',prev:'724K',fore:'700K',actual:''},
-  ]},
-  { date:'Thursday, May 29, 2026', events:[
-    {time:'8:30 AM',name:'GDP Growth Rate QoQ (Second)',impact:'high',prev:'2.1%',fore:'2.0%',actual:''},
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'225K',fore:'222K',actual:''},
-    {time:'10:00 AM',name:'Pending Home Sales MoM',impact:'med',prev:'-3.2%',fore:'1.0%',actual:''},
-  ]},
-  { date:'Friday, May 30, 2026', events:[
-    {time:'8:30 AM',name:'PCE Price Index MoM',impact:'high',prev:'0.0%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core PCE Price Index MoM',impact:'high',prev:'0.0%',fore:'0.3%',actual:''},
-    {time:'8:30 AM',name:'Personal Income MoM',impact:'med',prev:'0.5%',fore:'0.4%',actual:''},
-    {time:'9:45 AM',name:'Chicago PMI',impact:'med',prev:'47.6',fore:'47.0',actual:''},
-    {time:'10:00 AM',name:'Michigan Consumer Sentiment (Final)',impact:'med',prev:'53.0',fore:'53.2',actual:''},
-  ]},
-  { date:'Tuesday, June 3, 2026', events:[
-    {time:'10:00 AM',name:'ISM Manufacturing PMI',impact:'high',prev:'48.7',fore:'49.0',actual:''},
-    {time:'10:00 AM',name:'JOLTS Job Openings',impact:'high',prev:'7.19M',fore:'7.10M',actual:''},
-  ]},
-  { date:'Wednesday, June 4, 2026', events:[
-    {time:'8:15 AM',name:'ADP Nonfarm Employment Change',impact:'high',prev:'62K',fore:'100K',actual:''},
-    {time:'10:00 AM',name:'ISM Services PMI',impact:'high',prev:'50.8',fore:'51.0',actual:''},
-  ]},
-  { date:'Friday, June 6, 2026', events:[
-    {time:'8:30 AM',name:'Nonfarm Payrolls',impact:'high',prev:'177K',fore:'130K',actual:''},
-    {time:'8:30 AM',name:'Unemployment Rate',impact:'high',prev:'4.2%',fore:'4.3%',actual:''},
-    {time:'8:30 AM',name:'Average Hourly Earnings MoM',impact:'high',prev:'0.2%',fore:'0.3%',actual:''},
-  ]},
-  { date:'Wednesday, June 11, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.2%',fore:'0.3%',actual:''},
-    {time:'2:00 PM',name:'FOMC Interest Rate Decision',impact:'high',prev:'4.50%',fore:'4.25%',actual:''},
-    {time:'2:30 PM',name:'FOMC Press Conference',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Thursday, June 12, 2026', events:[
-    {time:'8:30 AM',name:'PPI MoM',impact:'high',prev:'0.0%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'229K',fore:'225K',actual:''},
-  ]},
-  { date:'Friday, June 13, 2026', events:[
-    {time:'10:00 AM',name:'Michigan Consumer Sentiment (Prelim)',impact:'med',prev:'52.2',fore:'54.0',actual:''},
-  ]},
-  { date:'Friday, June 27, 2026', events:[
-    {time:'8:30 AM',name:'PCE Price Index MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core PCE Price Index MoM',impact:'high',prev:'0.3%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Personal Income MoM',impact:'med',prev:'0.4%',fore:'0.3%',actual:''},
-    {time:'8:30 AM',name:'GDP Growth Rate QoQ (Third)',impact:'high',prev:'2.0%',fore:'1.8%',actual:''},
-  ]},
-  { date:'Wednesday, July 9, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-  ]},
-  { date:'Friday, July 11, 2026', events:[
-    {time:'8:30 AM',name:'PPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'10:00 AM',name:'Michigan Consumer Sentiment (Prelim)',impact:'med',prev:'55.0',fore:'55.5',actual:''},
-  ]},
-  { date:'Tuesday, July 15, 2026', events:[
-    {time:'8:30 AM',name:'Retail Sales MoM',impact:'high',prev:'0.1%',fore:'0.3%',actual:''},
-    {time:'9:15 AM',name:'Industrial Production MoM',impact:'med',prev:'0.0%',fore:'0.2%',actual:''},
-  ]},
-  { date:'Wednesday, July 16, 2026', events:[
-    {time:'8:30 AM',name:'Housing Starts',impact:'med',prev:'1.36M',fore:'1.37M',actual:''},
-    {time:'2:00 PM',name:'Fed Beige Book',impact:'med',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Wednesday, July 29, 2026', events:[
-    {time:'2:00 PM',name:'FOMC Interest Rate Decision',impact:'high',prev:'4.25%',fore:'4.25%',actual:''},
-    {time:'2:30 PM',name:'FOMC Press Conference',impact:'high',prev:'—',fore:'—',actual:''},
-    {time:'2:00 PM',name:'Fed Statement',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Thursday, July 30, 2026', events:[
-    {time:'8:30 AM',name:'GDP Growth Rate QoQ (Advance)',impact:'high',prev:'1.8%',fore:'1.9%',actual:''},
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'225K',fore:'225K',actual:''},
-  ]},
-  { date:'Friday, July 31, 2026', events:[
-    {time:'8:30 AM',name:'PCE Price Index MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core PCE Price Index MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'9:45 AM',name:'Chicago PMI',impact:'med',prev:'47.0',fore:'47.5',actual:''},
-  ]},
-  { date:'Friday, August 1, 2026', events:[
-    {time:'8:30 AM',name:'Nonfarm Payrolls',impact:'high',prev:'130K',fore:'140K',actual:''},
-    {time:'8:30 AM',name:'Unemployment Rate',impact:'high',prev:'4.3%',fore:'4.3%',actual:''},
-    {time:'10:00 AM',name:'ISM Manufacturing PMI',impact:'high',prev:'49.0',fore:'49.5',actual:''},
-  ]},
-  { date:'Wednesday, September 10, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-  ]},
-  { date:'Wednesday, September 16, 2026', events:[
-    {time:'2:00 PM',name:'FOMC Interest Rate Decision',impact:'high',prev:'4.25%',fore:'4.00%',actual:''},
-    {time:'2:30 PM',name:'FOMC Press Conference',impact:'high',prev:'—',fore:'—',actual:''},
-    {time:'2:00 PM',name:'FOMC Economic Projections',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Friday, October 2, 2026', events:[
-    {time:'8:30 AM',name:'Nonfarm Payrolls',impact:'high',prev:'140K',fore:'135K',actual:''},
-    {time:'8:30 AM',name:'Unemployment Rate',impact:'high',prev:'4.3%',fore:'4.4%',actual:''},
-  ]},
-  { date:'Thursday, October 8, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'225K',fore:'225K',actual:''},
-  ]},
-  { date:'Wednesday, October 28, 2026', events:[
-    {time:'2:00 PM',name:'FOMC Interest Rate Decision',impact:'high',prev:'4.00%',fore:'4.00%',actual:''},
-    {time:'2:30 PM',name:'FOMC Press Conference',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Thursday, October 29, 2026', events:[
-    {time:'8:30 AM',name:'GDP Growth Rate QoQ (Advance)',impact:'high',prev:'1.9%',fore:'2.0%',actual:''},
-    {time:'8:30 AM',name:'Initial Jobless Claims',impact:'high',prev:'225K',fore:'223K',actual:''},
-  ]},
-  { date:'Friday, November 6, 2026', events:[
-    {time:'8:30 AM',name:'Nonfarm Payrolls',impact:'high',prev:'135K',fore:'145K',actual:''},
-    {time:'8:30 AM',name:'Unemployment Rate',impact:'high',prev:'4.4%',fore:'4.4%',actual:''},
-  ]},
-  { date:'Wednesday, November 12, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-  ]},
-  { date:'Wednesday, December 9, 2026', events:[
-    {time:'8:30 AM',name:'CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core CPI MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-  ]},
-  { date:'Wednesday, December 16, 2026', events:[
-    {time:'2:00 PM',name:'FOMC Interest Rate Decision',impact:'high',prev:'4.00%',fore:'3.75%',actual:''},
-    {time:'2:30 PM',name:'FOMC Press Conference',impact:'high',prev:'—',fore:'—',actual:''},
-    {time:'2:00 PM',name:'FOMC Economic Projections (Dot Plot)',impact:'high',prev:'—',fore:'—',actual:''},
-  ]},
-  { date:'Friday, December 18, 2026', events:[
-    {time:'8:30 AM',name:'PCE Price Index MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'Core PCE Price Index MoM',impact:'high',prev:'0.2%',fore:'0.2%',actual:''},
-    {time:'8:30 AM',name:'GDP Growth Rate QoQ (Third)',impact:'high',prev:'2.0%',fore:'2.0%',actual:''},
-  ]},
-];
-
-function buildCalendar() {
+// No sample/future event forecasts are shown as actual data.
+let economicCalendarUpdatedAt = 0;
+let economicCalendarLoading = false;
+async function buildCalendar(force = false) {
   const cal = document.getElementById('econCalendar');
-  const legend = `
-    <div style="background:#0E0E0E;border:1px solid rgba(201,168,76,0.12);padding:16px 20px;margin-bottom:20px;display:flex;gap:32px;align-items:center;flex-wrap:wrap;">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:#888;">Impact Guide</div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="background:rgba(255,23,68,0.1);color:#FF1744;border:1px solid rgba(255,23,68,0.2);padding:2px 10px;font-family:'DM Mono',monospace;font-size:10px;">HIGH</span>
-        <span style="font-size:12px;color:#BBBBBB;">Market-moving. Can spike 10-30 pts instantly. CPI, NFP, FOMC. Know before you trade.</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="background:rgba(201,168,76,0.1);color:#C9A84C;border:1px solid rgba(201,168,76,0.2);padding:2px 10px;font-family:'DM Mono',monospace;font-size:10px;">MED</span>
-        <span style="font-size:12px;color:#BBBBBB;">Notable but less volatile. Housing, PMI, consumer data. Worth watching.</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <span style="background:rgba(255,255,255,0.04);color:#888;border:1px solid rgba(255,255,255,0.1);padding:2px 10px;font-family:'DM Mono',monospace;font-size:10px;">LOW</span>
-        <span style="font-size:12px;color:#BBBBBB;">Minor release. Minimal market impact. Safe to trade around.</span>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:80px 1fr 80px 80px 80px 80px;gap:16px;padding:10px 16px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.15em;color:#BBBBBB;text-transform:uppercase;border-bottom:1px solid rgba(201,168,76,0.2);background:rgba(201,168,76,0.05);margin-bottom:4px;font-weight:500;">
-      <span>Time</span><span>Event</span><span>Impact</span><span>Previous</span><span>Forecast</span><span>Actual</span>
-    </div>`;
-
-  cal.innerHTML = legend + econData.map(day => `
-    <div class="econ-day">
-      <div class="econ-date">${day.date}</div>
-      ${day.events.map(e => `
-        <div class="econ-event">
-          <span class="econ-time">${e.time}</span>
-          <span class="econ-name">${e.name}</span>
-          <span class="econ-impact impact-${e.impact}">${e.impact.toUpperCase()}</span>
-          <span class="econ-val">${e.prev||'—'}</span>
-          <span class="econ-val">${e.fore||'—'}</span>
-          <span class="econ-val ${e.actual&&e.fore&&e.actual>e.fore?'positive':e.actual&&e.fore&&e.actual<e.fore?'negative':''}">${e.actual||'<span style="color:#555">Pending</span>'}</span>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
+  if (!cal || economicCalendarLoading) return;
+  if (!force && economicCalendarUpdatedAt && Date.now() - economicCalendarUpdatedAt < 15*60*1000) return;
+  economicCalendarLoading = true;
+  cal.textContent = '';
+  const heading = document.createElement('div');
+  heading.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px;';
+  const title = document.createElement('div');
+  title.innerHTML = '<div style="color:var(--gold);font-size:11px;letter-spacing:.18em;margin-bottom:6px;">ECONOMIC CALENDAR</div><div style="font-size:14px;color:var(--gray);">Current events from your configured calendar provider. Times are shown as supplied by the source.</div>';
+  const refresh = document.createElement('button');
+  refresh.textContent = '↻ REFRESH';
+  refresh.style.cssText = 'padding:9px 18px;border:1px solid var(--border2);background:var(--surface);color:var(--gold);cursor:pointer;';
+  refresh.addEventListener('click', () => buildCalendar(true));
+  heading.append(title, refresh);
+  cal.appendChild(heading);
+  const status = document.createElement('div');
+  status.style.cssText = 'padding:28px;border:1px solid var(--border);background:var(--surface);color:var(--gray);font-size:13px;';
+  status.textContent = 'Loading current economic events…';
+  cal.appendChild(status);
+  try {
+    const response = await fetch('/api/econ-calendar', {cache:'no-store'});
+    const payload = await response.json();
+    if (!response.ok || payload.error || payload.status === 'error') {
+      throw new Error(payload.error || payload.message || 'Calendar data source unavailable');
+    }
+    const raw = Array.isArray(payload) ? payload :
+      (payload.data || payload.events || payload.values || payload.result || []);
+    const events = Array.isArray(raw) ? raw : Object.entries(raw).flatMap(([date, rows]) =>
+      Array.isArray(rows) ? rows.map(row => ({...row, date:row.date || date})) : []);
+    if (!events.length) {
+      status.textContent = 'No events returned for the current week. Check the provider or refresh later.';
+      economicCalendarUpdatedAt = Date.now();
+      return;
+    }
+    status.remove();
+    const grouped = new Map();
+    for (const item of events.slice(0,150)) {
+      if (!item || typeof item !== 'object') continue;
+      const date = String(item.date || item.datetime?.slice(0,10) || 'Date not supplied');
+      if (!grouped.has(date)) grouped.set(date,[]);
+      grouped.get(date).push({
+        time: String(item.time || item.datetime?.slice(11,16) || '—'),
+        name: String(item.event || item.name || item.title || 'Economic event'),
+        impact: String(item.impact || item.importance || '—'),
+        previous: String(item.previous ?? item.prev ?? '—'),
+        forecast: String(item.forecast ?? item.estimate ?? '—'),
+        actual: String(item.actual ?? '—')
+      });
+    }
+    const headers = ['Time','Event','Impact','Previous','Forecast','Actual'];
+    for (const [date, rows] of grouped) {
+      const section = document.createElement('div');
+      section.className = 'econ-day';
+      const label = document.createElement('div');
+      label.className = 'econ-date';
+      label.textContent = date;
+      section.appendChild(label);
+      const headRow = document.createElement('div');
+      headRow.className = 'econ-event';
+      for(const header of headers){
+        const cell = document.createElement('span');
+        cell.className = 'econ-time';
+        cell.textContent = header;
+        headRow.appendChild(cell);
+      }
+      section.appendChild(headRow);
+      for(const e of rows){
+        const row = document.createElement('div');
+        row.className = 'econ-event';
+        const impact = e.impact.toLowerCase();
+        const level = impact.includes('high') || impact === '3' ? 'high' :
+          impact.includes('med') || impact === '2' ? 'med' : 'low';
+        for(const [idx,value] of [e.time,e.name,e.impact,e.previous,e.forecast,e.actual].entries()){
+          const cell = document.createElement('span');
+          cell.className = idx === 0 ? 'econ-time' : idx === 1 ? 'econ-name' :
+            idx === 2 ? 'econ-impact impact-' + level : 'econ-val';
+          cell.textContent = value;
+          row.appendChild(cell);
+        }
+        section.appendChild(row);
+      }
+      cal.appendChild(section);
+    }
+    economicCalendarUpdatedAt = Date.now();
+  } catch (e) {
+    console.warn('Economic calendar failed:', e.message);
+    status.textContent = 'Current economic calendar is unavailable. No sample events are shown. Configure and verify the Twelve Data integration in Vercel.';
+  } finally {
+    economicCalendarLoading = false;
+  }
 }
 buildCalendar();
-
 // ── REPLAY ──
 let replayTrade = null;
 let replayBars = [];
@@ -3902,7 +3748,7 @@ function setReplayTF(tf, btn) {
 }
 
 function openReplay(tradeId) {
-  replayTrade = TRADES.find(t => t.id === tradeId);
+  replayTrade = TRADES.find(t => String(t.id) === decodeURIComponent(String(tradeId)));
   if (!replayTrade) return;
   replayTF = '1m';
 
@@ -4308,25 +4154,15 @@ const TIER_ADMIN_EMAILS = [
 ];
 
 function getCommunityTier() {
-  // Tiers: 'none' | 'eval' | 'funded' | 'pro' | 'elite' | 'admin'
-  // Logic:
-  //   - Admin emails → admin tier (highest, all access)
-  //   - Has active eval purchase OR funded account → eval/funded
-  //   - Has Pro/Elite chart subscription → pro/elite
+  // UI hint only. Server-side Supabase policies must enforce every permission.
   if (!currentUser) return 'none';
   const email = (currentUser.email || '').toLowerCase();
-  // Admin override — admins get full access regardless of subscription state
   if (TIER_ADMIN_EMAILS.includes(email)) return 'admin';
-  const meta = currentUser.user_metadata || {};
-  // Check explicit access flags
-  if (meta.tier === 'elite') return 'elite';
-  if (meta.tier === 'pro') return 'pro';
-  if (meta.funded === true) return 'funded';
-  if (meta.eval_active === true) return 'eval';
-  // FALLBACK: if user has any trades or evaluations record, count as 'eval'
-  if (typeof TRADES !== 'undefined' && TRADES.length > 0) return 'eval';
-  if (typeof EVAL_STATE !== 'undefined' && EVAL_STATE.acct) return 'eval';
-  // Default: no access
+  // Never use user_metadata or the existence of journal trades as an entitlement:
+  // users can edit both. Paid access must ultimately be server-verified.
+  if (userPlan === 'elite') return 'elite';
+  if (userPlan === 'professional') return 'pro';
+  if (userEval?.status === 'active') return 'eval';
   return 'none';
 }
 
@@ -4343,6 +4179,8 @@ async function checkCommunityAccess(forceRefresh) {
     try {
       const { data } = await db.auth.getUser();
       if (data && data.user) currentUser = data.user;
+      await loadUserProfile();
+      await loadEvalFromDB();
     } catch(e) {}
   }
   const tier = getCommunityTier();
@@ -4358,8 +4196,8 @@ async function checkCommunityAccess(forceRefresh) {
   return true;
 }
 
-function initCommunity() {
-  if (!checkCommunityAccess()) return;
+async function initCommunity(forceRefresh = false) {
+  if (!await checkCommunityAccess(forceRefresh)) return;
 
   const tier = getCommunityTier();
   const badge = document.getElementById('commMemberBadge');
