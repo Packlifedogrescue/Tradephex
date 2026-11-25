@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/trading-day.js"></script>
 <script src="/chart-risk.js"></script>
+<script src="/chart-state.js"></script>
 <script>
 // ── AUTH GUARD ──
 // Runs immediately to redirect unauthenticated users before the chart loads
@@ -957,6 +958,75 @@ let rafPending=false,ctx=null,rsiCtx=null,macdCtx=null,volCtx=null;
 let indCache={},cacheBarsLen=0;
 let masterBars1m=[];
 let bracket={sl:null,tp:null,autoBracket:false};
+let lastDemoSnapshotAt=0;
+function saveDemoTradingState(force=false){
+  if(!chartUser?.id||!masterBars1m.length)return;
+  if(!force&&Date.now()-lastDemoSnapshotAt<5000)return;
+  const state={
+    accountSize:ACCOUNT_SIZE,symbol:sym,
+    bars:masterBars1m.slice(-1800),
+    position:{...domPos},
+    orders:limitOrders.filter(o=>o.status==='working').slice(-150),
+    tradeHistory:tradeHistory.slice(-250),
+    stats:{...evalStats,days:Array.from(evalStats.days)},
+    evalViolated,dailyViolated,lockEnd,
+    bracket:{...bracket},posEntry:{...posEntry}
+  };
+  if(TradephexChartState.save(chartUser.id,ACCOUNT_SIZE,state)){
+    lastDemoSnapshotAt=Date.now();
+  }
+}
+function restoreDemoTradingState(){
+  const state=chartUser?.id?TradephexChartState.load(chartUser.id,ACCOUNT_SIZE):null;
+  if(!state||!SYM[state.symbol])return false;
+  sym=state.symbol;
+  masterBars1m=state.bars;
+  domPos={...state.position};
+  limitOrders=state.orders.filter(o=>o?.status==='working'&&
+    Number.isSafeInteger(o.qty)&&o.qty>0&&o.qty<=maxAllowedQty()&&
+    Number.isFinite(o.price)&&o.price>0&&
+    o.price>0&&Math.abs(o.price/SYM[sym].t-Math.round(o.price/SYM[sym].t))<1e-6);
+  tradeHistory=state.tradeHistory;
+  const stats=state.stats;
+  evalStats={...evalStats,...stats,days:new Set(stats.days.filter(x=>typeof x==='string'))};
+  evalViolated=Boolean(state.evalViolated);
+  dailyViolated=Boolean(state.dailyViolated);
+  lockEnd=typeof state.lockEnd==='number'&&state.lockEnd>Date.now()?state.lockEnd:null;
+  bracket={
+    sl:Number.isFinite(state.bracket?.sl)?state.bracket.sl:null,
+    tp:Number.isFinite(state.bracket?.tp)?state.bracket.tp:null,
+    autoBracket:Boolean(state.bracket?.autoBracket)
+  };
+  posEntry={
+    time:Number.isFinite(state.posEntry?.time)?state.posEntry.time:null,
+    mfe:Number.isFinite(state.posEntry?.mfe)?state.posEntry.mfe:0,
+    mae:Number.isFinite(state.posEntry?.mae)?state.posEntry.mae:0
+  };
+  const selector=document.getElementById('symSel');if(selector)selector.value=sym;
+  resetDemoDailyPnlAtSessionBoundary();
+  return true;
+}
+function resumeDemoLockOverlay(){
+  if(!lockEnd||lockEnd<=Date.now())return;
+  const overlay=document.getElementById('lkOvl');
+  if(overlay)overlay.classList.add('show');
+  const reason=document.getElementById('lkReason');
+  if(reason)reason.textContent='Restored demo trading lockout';
+  const status=document.getElementById('lockSt');
+  if(status)status.style.display='inline-flex';
+  if(lockIval)clearInterval(lockIval);
+  const update=()=>{
+    if(!lockEnd||lockEnd<=Date.now()){
+      autoUnlock();dailyViolated=false;saveDemoTradingState(true);return;
+    }
+    const rem=lockEnd-Date.now();
+    const ts=`${String(Math.floor(rem/60000)).padStart(2,'0')}:${String(Math.floor(rem%60000/1000)).padStart(2,'0')}`;
+    for(const id of ['lkBigT','lockCd','lTimerD','lockCd']){
+      const el=document.getElementById(id);if(el)el.textContent=ts;
+    }
+  };
+  lockIval=setInterval(update,1000);update();
+}
 let replayMode=false,replayIdx=0,replayBars=[],replayIval=null,replayPlaying=false;
 let audioEnabled=false,audioCtx=null;
 let currentLayout=1;
@@ -2594,6 +2664,7 @@ function execFill(side,price,qty,type='MKT'){
   playSound('fill');
   domPos.symbol=domPos.qty===0?null:sym;
   setAutoBrackets();updateLivePnl();updateEvalStats();renderDOM();redraw();
+  saveDemoTradingState(true);
   return true;
 }
 function resetDemoDailyPnlAtSessionBoundary() {
@@ -2683,6 +2754,7 @@ function placeOrder(type,side){
   document.getElementById('dLP').value='';
   renderOrdersList();
   redraw();
+  saveDemoTradingState(true);
 }
 function checkLimits(){
   if(!bars.length||!limitOrders.length)return;
@@ -3691,6 +3763,7 @@ function closePositionForDemoRiskBreach(exitPrice){
   limitOrders=[];renderOrdersList();
   const posEl=document.getElementById('tbPos');if(posEl)posEl.style.display='none';
   updateEvalStats();renderDOM();redraw();
+  saveDemoTradingState(true);
 }
 
 function checkRiskLimitsRealTime(){
@@ -3991,6 +4064,7 @@ function tick(){
   tickWatchlist();
   if(domPos.qty!==0)updateLivePnl();
   if(offset<=0)redraw();
+  saveDemoTradingState();
 }
 
 // ════════════════════════════════════════════════
@@ -5230,12 +5304,20 @@ function numpadOrder(n){
   if(n===0)domFlat();
 }
 
-window.addEventListener('load',()=>{
+window.addEventListener('load',async()=>{
+  // The simulation is per signed-in user, not shared across browser accounts.
+  try{
+    const {data:{session}}=await _authClient.auth.getSession();
+    if(!session)return;
+    chartUser=session.user;
+  }catch(e){console.warn('Chart login check failed');return;}
   simTime=Date.now();
-  buildMaster(sym);
+  const restored=restoreDemoTradingState();
+  if(!restored)buildMaster(sym);
   bars=genBars(sym,tf);
   loadDrawings();// 3: Restore drawings from localStorage
   renderWatchlist();// 5: Initial watchlist render
+  if(restored){resumeDemoLockOverlay();showToast('Browser-only demo state restored','var(--gold)');}
   setTool2('cursor');
   renderLists();
   // Start with SL/TP and Eval open, others collapsed
@@ -5254,6 +5336,7 @@ window.addEventListener('load',()=>{
   }));
 });
 window.addEventListener('resize',()=>{setupCanvases();redraw();});
+window.addEventListener('pagehide',()=>saveDemoTradingState(true));
 </script>
 </body>
 </html>
