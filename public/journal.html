@@ -1804,7 +1804,7 @@ canvas{display:block;}
             <a href="/charting" style="display:block;text-decoration:none;text-align:center;background:transparent;color:var(--gold);border:1px solid var(--gold-soft,#9F8638);font-family:'JetBrains Mono',Menlo,monospace;font-weight:500;font-size:11px;letter-spacing:.24em;text-transform:uppercase;padding:14px 24px;cursor:pointer;transition:all .3s;" onmouseover="this.style.background='var(--gold)';this.style.color='#000';" onmouseout="this.style.background='transparent';this.style.color='var(--gold)';">View Charting Plans</a>
           </div>
         </div>
-        <div style="font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;color:var(--gray2);text-align:center;letter-spacing:.04em;">Already a member? <span onclick="checkCommunityAccess(true)" style="color:var(--gold);cursor:pointer;text-decoration:underline;text-underline-offset:4px;">Refresh access</span></div>
+        <div style="font-family:'JetBrains Mono',Menlo,monospace;font-size:11px;color:var(--gray2);text-align:center;letter-spacing:.04em;">Already a member? <span onclick="initCommunity(true)" style="color:var(--gold);cursor:pointer;text-decoration:underline;text-underline-offset:4px;">Refresh access</span></div>
       </div>
 
       <!-- Main community area -->
@@ -4296,25 +4296,15 @@ const TIER_ADMIN_EMAILS = [
 ];
 
 function getCommunityTier() {
-  // Tiers: 'none' | 'eval' | 'funded' | 'pro' | 'elite' | 'admin'
-  // Logic:
-  //   - Admin emails → admin tier (highest, all access)
-  //   - Has active eval purchase OR funded account → eval/funded
-  //   - Has Pro/Elite chart subscription → pro/elite
+  // UI hint only. Server-side Supabase policies must enforce every permission.
   if (!currentUser) return 'none';
   const email = (currentUser.email || '').toLowerCase();
-  // Admin override — admins get full access regardless of subscription state
   if (TIER_ADMIN_EMAILS.includes(email)) return 'admin';
-  const meta = currentUser.user_metadata || {};
-  // Check explicit access flags
-  if (meta.tier === 'elite') return 'elite';
-  if (meta.tier === 'pro') return 'pro';
-  if (meta.funded === true) return 'funded';
-  if (meta.eval_active === true) return 'eval';
-  // FALLBACK: if user has any trades or evaluations record, count as 'eval'
-  if (typeof TRADES !== 'undefined' && TRADES.length > 0) return 'eval';
-  if (typeof EVAL_STATE !== 'undefined' && EVAL_STATE.acct) return 'eval';
-  // Default: no access
+  // Never use user_metadata or the existence of journal trades as an entitlement:
+  // users can edit both. Paid access must ultimately be server-verified.
+  if (userPlan === 'elite') return 'elite';
+  if (userPlan === 'professional') return 'pro';
+  if (userEval?.status === 'active') return 'eval';
   return 'none';
 }
 
@@ -4331,6 +4321,8 @@ async function checkCommunityAccess(forceRefresh) {
     try {
       const { data } = await db.auth.getUser();
       if (data && data.user) currentUser = data.user;
+      await loadUserProfile();
+      await loadEvalFromDB();
     } catch(e) {}
   }
   const tier = getCommunityTier();
@@ -4346,8 +4338,8 @@ async function checkCommunityAccess(forceRefresh) {
   return true;
 }
 
-function initCommunity() {
-  if (!checkCommunityAccess()) return;
+async function initCommunity(forceRefresh = false) {
+  if (!await checkCommunityAccess(forceRefresh)) return;
 
   const tier = getCommunityTier();
   const badge = document.getElementById('commMemberBadge');
