@@ -369,7 +369,8 @@ async function loadLeaderboard() {
   if (!wrap) return;
   wrap.innerHTML = '<div style="text-align:center;padding:40px;color:#888;font-family:DM Mono,monospace;font-size:12px;">Loading leaderboard...</div>';
   try {
-    const { data } = await db.from('leaderboard').select('*').order('profit_factor', { ascending: false }).limit(20);
+    const { data, error } = await db.from('leaderboard').select('*').order('profit_factor', { ascending: false }).limit(20);
+    if (error) { console.warn('Leaderboard request failed:', error.message); wrap.textContent = 'Leaderboard temporarily unavailable. Please try again later.'; return; }
     if (!data || !data.length) {
       wrap.innerHTML = '<div style="text-align:center;padding:40px;color:#555;font-family:DM Mono,monospace;font-size:12px;">No leaderboard data yet. Be the first to complete an evaluation.</div>';
       return;
@@ -1615,6 +1616,8 @@ canvas{display:block;}
       </div>
     </div>
 
+    <!-- ── BUY CHALLENGE / MEMBERSHIP VIEW ── -->
+    <div class="view fadeIn" id="view-upgrade">
       <!-- ── SECTION 1: PLATFORM PLANS ── -->
       <div style="margin-bottom:56px;">
         <div style="text-align:center;margin-bottom:36px;">
@@ -2479,14 +2482,14 @@ function refreshBestWorstWidget() {
     const sameTrade = best === worst;
     el.innerHTML = `
       <div style="font-size:11px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:10px;">BEST / WORST TODAY</div>
-      <div style="cursor:pointer;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);" onclick="showTradeDetail(${best.id})">
+      <div style="cursor:pointer;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);" onclick="showTradeDetail('${encodeURIComponent(String(best.id))}')">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:11px;color:var(--green);font-family:DM Mono,monospace;">▲ BEST · ${best.symbol}</span>
           <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:var(--green);">+$${best.pnl.toFixed(0)}</span>
         </div>
       </div>
       ${!sameTrade ? `
-      <div style="cursor:pointer;padding:6px 0;" onclick="showTradeDetail(${worst.id})">
+      <div style="cursor:pointer;padding:6px 0;" onclick="showTradeDetail('${encodeURIComponent(String(worst.id))}')">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:11px;color:var(--red);font-family:DM Mono,monospace;">▼ WORST · ${worst.symbol}</span>
           <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;color:${worst.pnl < 0 ? 'var(--red)' : 'var(--green)'};">${worst.pnl >= 0 ? '+' : '-'}$${Math.abs(worst.pnl).toFixed(0)}</span>
@@ -2501,7 +2504,7 @@ function refreshBestWorstWidget() {
 // TRADE DETAIL MODAL — click a trade row to see deep info
 // ════════════════════════════════════════════════
 function showTradeDetail(tradeId) {
-  const t = TRADES.find(x => x.id === tradeId);
+  const t = TRADES.find(x => String(x.id) === decodeURIComponent(String(tradeId)));
   if (!t) return;
   const modal = document.createElement('div');
   modal.id = 'tradeDetailModal';
@@ -2537,7 +2540,7 @@ function showTradeDetail(tradeId) {
         ${t.notes ? `<div style="background:var(--surface2);padding:14px;border-left:3px solid var(--gold);"><div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">NOTES</div><div style="font-size:13px;color:var(--white);line-height:1.7;">${t.notes}</div></div>` : ''}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
           <span style="font-size:12px;color:var(--gray2);">Emotion: <span style="color:var(--gold);">${t.emotion}</span></span>
-          <button onclick="openReplay(${t.id});document.getElementById('tradeDetailModal').remove();" style="background:var(--gold);color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;padding:8px 18px;cursor:pointer;">▶ REPLAY</button>
+          <button onclick="openReplay('${encodeURIComponent(String(t.id))}');document.getElementById('tradeDetailModal').remove();" style="background:var(--gold);color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;padding:8px 18px;cursor:pointer;">▶ REPLAY</button>
         </div>
       </div>
     </div>
@@ -2562,7 +2565,7 @@ function renderTable(trades, containerId) {
   const mobileCards = `
     <div class="mobile-trades">
       ${trades.map(t => `
-        <div class="mobileTradeCard" onclick="showTradeDetail(${t.id})">
+        <div class="mobileTradeCard" onclick="showTradeDetail('${encodeURIComponent(String(t.id))}')">
           <div class="mtcRow">
             <div style="display:flex;align-items:center;gap:8px;">
               <span class="mtcSym">${t.symbol}</span>
@@ -2593,7 +2596,7 @@ function renderTable(trades, containerId) {
         </tr></thead>
         <tbody>
           ${trades.map(t => `
-            <tr onclick="showTradeDetail(${t.id})" style="cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background=''">
+            <tr onclick="showTradeDetail('${encodeURIComponent(String(t.id))}')" style="cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background=''">
               <td><span class="trade-time">${t.date}</span></td>
               <td><span class="sym-badge">${t.symbol}</span></td>
               <td><span class="side-badge ${t.side==='Long'?'side-long':'side-short'}">${t.side.toUpperCase()}</span></td>
@@ -2630,8 +2633,8 @@ function renderTable(trades, containerId) {
               <td><span style="color:var(--gold);font-size:13px;">${'★'.repeat(t.quality)}${'☆'.repeat(5-t.quality)}</span></td>
               <td>${(t.tags || []).slice(0,2).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:2px 7px;border-radius:2px;font-family:DM Mono,monospace;font-size:10px;margin-right:3px;">${tag}</span>`).join('')}${(t.tags || []).length > 2 ? `<span style="color:var(--gray2);font-size:10px;">+${t.tags.length - 2}</span>` : ''}</td>
               <td class="replay-btn-cell" style="display:flex;gap:6px;">
-                <button onclick="showTradeDetail(${t.id})" style="background:transparent;color:var(--gold);border:1px solid var(--border2);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;padding:6px 10px;cursor:pointer;white-space:nowrap;">DETAIL</button>
-                <button onclick="openReplay(${t.id})" style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;padding:6px 12px;cursor:pointer;white-space:nowrap;">▶ REPLAY</button>
+                <button onclick="showTradeDetail('${encodeURIComponent(String(t.id))}')" style="background:transparent;color:var(--gold);border:1px solid var(--border2);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;padding:6px 10px;cursor:pointer;white-space:nowrap;">DETAIL</button>
+                <button onclick="openReplay('${encodeURIComponent(String(t.id))}')" style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;padding:6px 12px;cursor:pointer;white-space:nowrap;">▶ REPLAY</button>
               </td>
             </tr>
           `).join('')}
@@ -3297,7 +3300,7 @@ function drawPnlChart() {
   const pad = {l:8,r:8,t:8,b:24};
   const cW = W - pad.l - pad.r; const cH = H - pad.t - pad.b;
   const toY = v => pad.t + cH - ((v - min) / range) * cH;
-  const toX = i => pad.l + (i / (points.length-1)) * cW;
+  const toX = i => pad.l + (i / Math.max(1, points.length-1)) * cW;
 
   // Grid
   ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=0.5;
@@ -3849,7 +3852,7 @@ function setReplayTF(tf, btn) {
 }
 
 function openReplay(tradeId) {
-  replayTrade = TRADES.find(t => t.id === tradeId);
+  replayTrade = TRADES.find(t => String(t.id) === decodeURIComponent(String(tradeId)));
   if (!replayTrade) return;
   replayTF = '1m';
 
