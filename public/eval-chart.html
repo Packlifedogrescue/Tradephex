@@ -1056,9 +1056,7 @@ function buildMaster(s){
   masterBars1m=[];
   for(let i=0;i<1500;i++){
     const ts=now-(1499-i)*60000;
-    const dt=new Date(ts);
-    const hour=dt.getHours();
-    const minute=dt.getMinutes();
+    const {hour,minute}=demoEasternClock(new Date(ts));
 
     // Session-aware volatility (capped to prevent runaway)
     const volMult=Math.min(1.8,VOL_BY_HOUR[hour]||1);
@@ -1163,7 +1161,7 @@ function genBarsFor(s,t){
   const m1=[];
   for(let i=0;i<600;i++){
     const ts=now-(599-i)*60000;
-    const dt=new Date(ts);const hour=dt.getHours(),minute=dt.getMinutes();
+    const {hour,minute}=demoEasternClock(new Date(ts));
     const volMult=Math.min(1.8,VOL_BY_HOUR[hour]||1),volMult2=VOLUME_BY_HOUR[hour]||1;
     if(trendDuration<=0){
       const r=Math.random();
@@ -2230,7 +2228,15 @@ document.addEventListener('click',e=>{if(!e.target.closest('.dd')&&!e.target.clo
 // ════════════════════════════════════════════════
 // CONTROLS
 // ════════════════════════════════════════════════
-function setTF(t,btn){tf=t;offset=0;zoom=1;clearCache();clearFpCache();document.querySelectorAll('.tfw .tf').forEach(b=>b.classList.remove('on'));btn.classList.add('on');bars=genBars(sym,tf);setupCanvases();redraw();}
+function setTF(t,btn){
+  if(t==='D'||t==='W'){
+    showToast('Daily and weekly futures charts require historical exchange data; demo is intraday only','var(--orange)');
+    return;
+  }
+  tf=t;offset=0;zoom=1;clearCache();clearFpCache();
+  document.querySelectorAll('.tfw .tf').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');bars=genBars(sym,tf);setupCanvases();redraw();
+}
 function onSym(){
   const selected=document.getElementById('symSel').value;
   if(selected===sym)return;
@@ -3814,6 +3820,13 @@ function showEvalFailedScreen(title,reason,color){
   document.body.appendChild(ov);
 }
 
+const DEMO_ET_CLOCK=new Intl.DateTimeFormat('en-US',{
+  timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+});
+function demoEasternClock(date){
+  const p=Object.fromEntries(DEMO_ET_CLOCK.formatToParts(date).map(x=>[x.type,x.value]));
+  return {hour:Number(p.hour),minute:Number(p.minute)};
+}
 const SESS_DEF=[
   {key:'overnight',s:0,e:4,vol:.3,label:'OVERNIGHT',color:'#555'},
   {key:'premarket',s:4,e:9.5,vol:.6,label:'PRE-MARKET',color:'var(--blue)'},
@@ -3824,16 +3837,16 @@ const SESS_DEF=[
   {key:'close',s:15.5,e:16,vol:1.8,label:'CLOSING RANGE',color:'var(--orange)'},
   {key:'afterhours',s:16,e:24,vol:.3,label:'AFTER HOURS',color:'var(--blue)'},
 ];
-function getSess(){const d=new Date(simTime),h=d.getHours()+d.getMinutes()/60;return SESS_DEF.find(s=>h>=s.s&&h<s.e)||SESS_DEF[0];}
+function getSess(){const e=demoEasternClock(new Date(simTime)),h=e.hour+e.minute/60;return SESS_DEF.find(s=>h>=s.s&&h<s.e)||SESS_DEF[0];}
 function tick(){
   if(!bars.length||replayMode)return;
+  simTime=Date.now(); // simulation runs in wall-clock real time
   const sess=getSess(),vol=sess.vol;
   const el=document.getElementById('sesLbl');if(el){el.textContent=sess.label;el.style.color=sess.color;}
   const info=SYM[sym],last=bars[bars.length-1];
 
   // Hour-based volatility (overrides session for finer granularity)
-  const dt=new Date(simTime);
-  const hour=dt.getHours(),minute=dt.getMinutes();
+  const {hour,minute}=demoEasternClock(new Date(simTime));
   const hourlyVol=(VOL_BY_HOUR[hour]||1);
   // Blend: hourly contributes 70%, session 30%. Cap at 2.0 to prevent runaway.
   const finalVol=Math.min(2.0,hourlyVol*0.7+vol*0.3);
@@ -3862,7 +3875,7 @@ function tick(){
     pendingSpike={totalTicks,duration,left:duration,dir};
     const pts=(totalTicks*info.t).toFixed(2);
     const news=['Fed comment','Jobless claims','CPI release','Block print','Treasury auction','Risk-off flow','Technical stop run','Algo cascade','Options expiry pin','Corporate guidance'];
-    showToast(`📰 ${dir>0?'▲':'▼'} ${news[Math.floor(Math.random()*news.length)]} · ${pts} pts`,dir>0?'rgba(0,230,118,.9)':'rgba(255,23,68,.9)');
+    showToast(`SIMULATED NEWS ${dir>0?'▲':'▼'} ${news[Math.floor(Math.random()*news.length)]} · ${pts} pts`,dir>0?'rgba(0,230,118,.9)':'rgba(255,23,68,.9)');
     playSound('news');
   }
 
@@ -3921,12 +3934,19 @@ function tick(){
     v:last.v+volTick,
   };
   simTick++;
+  // Keep the underlying 1-minute series in sync while the latest candle forms.
+  // Otherwise a redraw or timeframe switch discards intrabar price changes.
+  if(masterBars1m.length){
+    const lastIndex=masterBars1m.length-1,base=masterBars1m[lastIndex];
+    masterBars1m[lastIndex]={...base,c:nc,h:Math.max(base.h,nc),l:Math.min(base.l,nc),v:base.v+volTick};
+  }
 
-  // Roll bar every 75 ticks (~1min if tick is 800ms)
-  if(simTick>=75){
-    simTick=0;simTime+=60000;
-    const newDt=new Date(simTime);
-    const newHour=newDt.getHours(),newMin=newDt.getMinutes();
+  // One one-minute candle per actual wall-clock minute, never every 15 seconds.
+  const nowMinute=Math.floor(Date.now()/60000);
+  const prevMinute=Math.floor((masterBars1m[masterBars1m.length-1]?.ts||Date.now())/60000);
+  if(nowMinute>prevMinute){
+    simTick=0;
+    const {hour:newHour,minute:newMin}=demoEasternClock(new Date(simTime));
     // Opening gap simulation at 9:30 ET
     let gapPrice=nc;
     if(newHour===9&&newMin===30){
@@ -3939,7 +3959,7 @@ function tick(){
     const newBar={
       o:gapPrice,h:gapPrice,l:gapPrice,c:gapPrice,
       v:Math.floor(baseV*(0.6+Math.random()*0.8)),
-      ts:simTime,
+      ts:nowMinute*60000,
     };
     masterBars1m.push(newBar);
     if(masterBars1m.length>2000)masterBars1m.shift();
@@ -5037,8 +5057,8 @@ function setTimeExit(hhmm){
 }
 function checkTimeExit(){
   if(timeExitHour===null||!domPos.qty)return;
-  const d=new Date(simTime);
-  if(d.getHours()===timeExitHour&&d.getMinutes()===timeExitMin){
+  const {hour,minute}=demoEasternClock(new Date(simTime));
+  if(hour===timeExitHour&&minute===timeExitMin){
     showToast('⏰ Time exit triggered — flattening position','var(--orange)');
     timeExitHour=null;timeExitMin=null;
     domFlat();
@@ -5230,7 +5250,7 @@ window.addEventListener('load',()=>{
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     setupCanvases();redraw();initMouse();
     setInterval(tick,200);
-    setInterval(()=>{if(domOpen)renderDOM();},80);
+    setInterval(()=>{if(domOpen)renderDOM();},500); // demo ladder: 2fps rather than 12.5fps
   }));
 });
 window.addEventListener('resize',()=>{setupCanvases();redraw();});
