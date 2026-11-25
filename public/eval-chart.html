@@ -2615,7 +2615,7 @@ function recordClose(exitPrice,qty,pnl,closedSide){
   const dd=evalStats.peakBal-evalStats.bal;if(dd>evalStats.maxDD)evalStats.maxDD=dd;
   syncTradeToJournal({sym,side:closedSide,entry:domPos.avg,exit:exitPrice,qty,pnl:netPnl,commission,r:Math.round((netPnl/(ACCOUNT_SIZE*0.005))*10)/10,duration:posEntry.time?Math.round((Date.now()-posEntry.time)/1000)+'s':null,quality:3,emotion:'calm',tags:[]});
   updateConsecStats(netPnl);
-  setTimeout(()=>showTradeScoreModal({sym,side:closedSide,qty,pnl:netPnl,grossPnl,commission,mae:posEntry.mae,mfe:posEntry.mfe,ts:posEntry.time}),400);
+  if(!evalViolated&&!dailyViolated)setTimeout(()=>showTradeScoreModal({sym,side:closedSide,qty,pnl:netPnl,grossPnl,commission,mae:posEntry.mae,mfe:posEntry.mfe,ts:posEntry.time}),400);
   updateEvalStats();
 }
 function placeOrder(type,side){
@@ -2710,17 +2710,16 @@ function checkBrackets(){
   const last=bars[bars.length-1],s=SYM[sym],isLong=domPos.qty>0,qty=Math.abs(domPos.qty);
   // Stop loss — fills at SL price (or worst case if gapped through)
   if(bracket.sl!=null){
-    const slHit=isLong?last.l<=bracket.sl:last.h>=bracket.sl;
+    const slHit=isLong?last.c<=bracket.sl:last.c>=bracket.sl;
     if(slHit){
-      // Fill price: SL price unless gap-through (then fill at open)
-      const gapped=isLong?last.o<bracket.sl:last.o>bracket.sl;
-      const fillPrice=gapped?last.o:bracket.sl;
+      // Stop-market fills at current tick, not the old candle open.
+      const fillPrice=last.c;
       const pnl=isLong?(fillPrice-domPos.avg)*qty*s.tv/s.t:(domPos.avg-fillPrice)*qty*s.tv/s.t;
       recordClose(fillPrice,qty,pnl,isLong?'long':'short');
       domPos={qty:0,avg:0,side:null};posEntry={time:null,mfe:0,mae:0};
       clearBrackets();
       document.getElementById('tbPos').style.display='none';
-      showToast('🔴 Stop Loss Hit @ '+fillPrice.toFixed(2)+(gapped?' (gap)':''),'var(--red)');
+      showToast('🔴 Stop Loss Hit @ '+fillPrice.toFixed(2)+' (simulated stop-market)','var(--red)');
       playSound('sl');
       tradeMarkers.push({price:fillPrice,side:isLong?'sell':'buy',qty,type:'SL',ts:Date.now(),barTs:last.ts,isExit:true});
       updateEvalStats();renderDOM();redraw();
@@ -2729,7 +2728,7 @@ function checkBrackets(){
   }
   // Take profit — fills at TP price (limit order, no slippage)
   if(bracket.tp!=null){
-    const tpHit=isLong?last.h>=bracket.tp:last.l<=bracket.tp;
+    const tpHit=isLong?last.c>=bracket.tp:last.c<=bracket.tp;
     if(tpHit){
       const pnl=isLong?(bracket.tp-domPos.avg)*qty*s.tv/s.t:(domPos.avg-bracket.tp)*qty*s.tv/s.t;
       recordClose(bracket.tp,qty,pnl,isLong?'long':'short');
@@ -2951,8 +2950,8 @@ function updateEvalStats(){
   set('evTrades',e.trades+' ('+e.wins+'W/'+e.losses+'L)');
   set('evWR',e.trades>0?Math.round(e.wins/e.trades*100)+'%':'—');
   set('evComm','$'+(e.totalCommission||0).toFixed(2));
-  set('evPhase','Phase 1 — Day '+e.days.size);
-  if(e.maxDD>=ddLim&&!evalViolated){evalViolated=true;showToast('⚠ EVAL FAILED — Max drawdown exceeded!','var(--red)');}
+  set('evPhase','Demo Session — Day '+e.days.size);
+  if(e.maxDD>=ddLim&&!evalViolated){evalViolated=true;showToast('⚠ DEMO RISK LIMIT EXCEEDED','var(--red)');}
   if(e.dailyPnl<=-dlLim&&!dailyViolated){dailyViolated=true;}
   renderOrdersList();
   renderTradeIdeas();
@@ -3675,6 +3674,19 @@ document.addEventListener('keydown',e=>{
 // REAL-TIME RISK LIMIT ENFORCEMENT
 // Runs every tick — catches drawdown/daily loss on OPEN positions
 // ════════════════════════════════════════════════
+function closePositionForDemoRiskBreach(exitPrice){
+  if(!domPos.qty)return;
+  const s=SYM[sym],qty=Math.abs(domPos.qty),isLong=domPos.qty>0;
+  const gross=isLong?(exitPrice-domPos.avg)*qty*s.tv/s.t:(domPos.avg-exitPrice)*qty*s.tv/s.t;
+  recordClose(exitPrice,qty,gross,isLong?'long':'short');
+  domPos={qty:0,avg:0,side:null,symbol:null};
+  posEntry={time:null,mfe:0,mae:0};
+  clearBrackets();
+  limitOrders=[];renderOrdersList();
+  const posEl=document.getElementById('tbPos');if(posEl)posEl.style.display='none';
+  updateEvalStats();renderDOM();redraw();
+}
+
 function checkRiskLimitsRealTime(){
   resetDemoDailyPnlAtSessionBoundary();
   if(!bars.length||domPos.qty===0){
@@ -3708,63 +3720,44 @@ function checkRiskLimitsRealTime(){
 
   // Live balance including unrealized P&L (net of commission)
   const liveBalance=evalStats.bal+unrealizedPnl;
+  // Demo trailing drawdown uses the highest observed open-equity balance.
+  if(liveBalance>evalStats.peakBal)evalStats.peakBal=liveBalance;
   const liveDD=evalStats.peakBal-liveBalance;
   const liveDailyPnl=evalStats.dailyPnl+unrealizedPnl;
 
-  // MAX DRAWDOWN BREACH → flatten immediately, fail eval
+  // Both risk breaches use the normal trade-close/journal pathway.
   if(liveDD>=ddLimit&&!evalViolated){
     evalViolated=true;
     playSound('sl');
-    const closePnl=unrealizedPnl;
-    evalStats.netPnl+=closePnl;
-    evalStats.bal=evalStats.bal+closePnl;
-    evalStats.dailyPnl+=closePnl;
-    evalStats.totalCommission=(evalStats.totalCommission||0)+liveCommission;
-    evalStats.trades++;
-    if(closePnl>0)evalStats.wins++;else evalStats.losses++;
-    evalStats.days.add(TradephexTradingDay.sessionKey(new Date()));
-    const finalDD=evalStats.peakBal-evalStats.bal;
-    if(finalDD>evalStats.maxDD)evalStats.maxDD=finalDD;
-    domPos={qty:0,avg:0,side:null};posEntry={time:null,mfe:0,mae:0};
-    clearBrackets();
-    document.getElementById('tbPos').style.display='none';
-    updateEvalStats();renderDOM();
-    showEvalFailedScreen('MAX DRAWDOWN EXCEEDED','Your account dropped $'+liveDD.toFixed(0)+' from peak. Maximum allowed: $'+ddLimit.toFixed(0)+'. Position auto-closed.','var(--red)');
+    closePositionForDemoRiskBreach(last);
+    showEvalFailedScreen('DEMO MAX DRAWDOWN EXCEEDED',
+      'Simulated equity dropped $'+liveDD.toFixed(0)+' from peak. Demo limit: $'+ddLimit.toFixed(0)+'. Official evaluation status is unchanged.','var(--red)');
     return;
   }
 
-  // DAILY LOSS LIMIT — lock trading until 6PM
   if(liveDailyPnl<=-dailyLimit&&!dailyViolated){
     dailyViolated=true;
-    if(domPos.qty!==0){
-      const closePnl=unrealizedPnl;
-      evalStats.netPnl+=closePnl;evalStats.bal+=closePnl;evalStats.dailyPnl+=closePnl;
-      evalStats.totalCommission=(evalStats.totalCommission||0)+liveCommission;
-      evalStats.trades++;if(closePnl>0)evalStats.wins++;else evalStats.losses++;
-      const finalDD=evalStats.peakBal-evalStats.bal;if(finalDD>evalStats.maxDD)evalStats.maxDD=finalDD;
-      domPos={qty:0,avg:0,side:null};posEntry={time:null,mfe:0,mae:0};
-      clearBrackets();
-      document.getElementById('tbPos').style.display='none';
-      updateEvalStats();renderDOM();
-    }
-    const nextOpen = TradephexTradingDay.nextOpenMs(new Date());
-    const minsUntil6pm = Math.max(1, Math.ceil((nextOpen - Date.now())/60000));
-    lockMins = minsUntil6pm;
-    const reason = 'Daily loss limit hit. Locked until 6:00 PM Eastern — demo session reset.';
-    lockEnd = nextOpen;
+    closePositionForDemoRiskBreach(last);
+    lockEnd=TradephexTradingDay.nextOpenMs(new Date());
+    lockMins=Math.max(1,Math.ceil((lockEnd-Date.now())/60000));
+    const reason='Demo daily loss limit hit. Locked until 6 PM Eastern.';
     document.getElementById('lkReason').textContent=reason;
     document.getElementById('lockSt').style.display='inline-flex';
-    try{document.getElementById('lInactive').style.display='none';document.getElementById('lActive').style.display='block';document.getElementById('lReasonD').textContent=reason;}catch(e){}
+    try{document.getElementById('lInactive').style.display='none';
+      document.getElementById('lActive').style.display='block';
+      document.getElementById('lReasonD').textContent=reason;}catch(e){}
     document.getElementById('lkOvl').classList.add('show');
-    if(lockIval)clearInterval(lockIval); // prevent stacking
+    if(lockIval)clearInterval(lockIval);
     lockIval=setInterval(()=>{
-      const rem=lockEnd-Date.now();if(rem<=0){autoUnlock();dailyViolated=false;return;}
+      const rem=lockEnd-Date.now();
+      if(rem<=0){autoUnlock();dailyViolated=false;return;}
       const ts=`${String(Math.floor(rem/60000)).padStart(2,'0')}:${String(Math.floor((rem%60000)/1000)).padStart(2,'0')}`;
-      try{document.getElementById('lTimerD').textContent=ts;}catch(e){}
-      document.getElementById('lkBigT').textContent=ts;
-      try{document.getElementById('lockCd').textContent=ts;}catch(e){}
+      const el=document.getElementById('lkBigT');if(el)el.textContent=ts;
+      const small=document.getElementById('lockCd');if(small)small.textContent=ts;
+      const detail=document.getElementById('lTimerD');if(detail)detail.textContent=ts;
     },1000);
-    showToast('🛑 Daily loss limit hit — trading locked until 6:00 PM','var(--orange)');
+    showToast('Demo daily loss limit hit — trading locked until 6 PM ET','var(--orange)');
+    return;
   }
 
   // Warning at 80% of drawdown — only update DOM when state actually changes
@@ -3803,20 +3796,20 @@ function showEvalFailedScreen(title,reason,color){
     <div style="font-size:52px;margin-bottom:14px;">${color.includes('orange')?'⚠':'🛑'}</div>
     <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:36px;color:${color};letter-spacing:.06em;line-height:1.1;margin-bottom:12px;">${title}</div>
     <div style="font-size:12px;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:8px;">${reason}</div>
-    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:28px;">Your eval has been failed. Purchase a new evaluation to try again.</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-bottom:28px;">This demo has breached its risk limits. Official evaluation status is unaffected.</div>
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
       <button onclick="document.getElementById('evalFailOverlay').remove();" 
         style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.7);font-family:'DM Mono',monospace;font-size:11px;padding:11px 20px;cursor:pointer;border-radius:2px;transition:.15s;"
         onmouseover="this.style.background='rgba(255,255,255,.1)'" onmouseout="this.style.background='rgba(255,255,255,.06)'">
         View Stats
       </button>
-      <button onclick="window.location.href='https://tradephex.com/#pricing';"
+      <button onclick="window.location.href='/journal';"
         style="background:${color.includes('orange')?'rgba(255,152,0,.15)':'rgba(255,23,68,.12)'};border:1px solid ${color};color:${color};font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;padding:11px 28px;cursor:pointer;border-radius:2px;letter-spacing:.08em;transition:.15s;"
         onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
-        BUY NEW EVAL →
+        OPEN JOURNAL →
       </button>
     </div>
-    <div style="margin-top:18px;font-size:9px;color:rgba(255,255,255,.2);">Reset fees start at $49 · Full platform access included</div>
+    <div style="margin-top:18px;font-size:9px;color:rgba(255,255,255,.2);">No official evaluation credit is awarded by this browser simulation.</div>
   </div>`;
   document.body.appendChild(ov);
 }
