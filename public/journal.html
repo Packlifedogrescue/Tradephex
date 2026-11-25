@@ -3058,27 +3058,27 @@ function syncEvalWithTrades() {
 
 // ── SAVE TRADE TO SUPABASE ──
 async function saveTradeToDb(trade) {
-  if (!currentUser) return;
-  try {
-    const { error } = await db.from('trades').insert({
-      user_id: currentUser.id,
-      symbol: trade.symbol,
-      side: trade.side,
-      entry_price: trade.entry,
-      exit_price: trade.exit,
-      contracts: trade.contracts,
-      pnl: trade.pnl,
-      r_multiple: trade.r,
-      status: 'closed',
-      setup_notes: trade.notes || '',
-      execution_quality: trade.quality || 3,
-      emotional_state: trade.emotion || 'calm',
-      tags: trade.tags || [],
-      entry_time: new Date().toISOString(),
-      exit_time: new Date().toISOString()
-    });
-    if (error) console.warn('Save trade error:', error.message);
-  } catch(e) { console.log('Save trade error:', e.message); }
+  if (!currentUser?.id) throw new Error('You must be signed in to save trades');
+  const {data, error} = await db.from('trades').insert({
+    user_id: currentUser.id,
+    symbol: trade.symbol,
+    side: trade.side,
+    entry_price: trade.entry,
+    exit_price: trade.exit,
+    contracts: trade.contracts,
+    pnl: trade.pnl,
+    r_multiple: trade.r,
+    status: 'closed',
+    setup_notes: trade.notes || '',
+    execution_quality: trade.quality || 3,
+    emotional_state: trade.emotion || 'calm',
+    tags: trade.tags || [],
+    entry_time: trade.entryTime,
+    exit_time: trade.entryTime
+  }).select('id').single();
+  if (error) throw new Error('Database save failed: ' + error.message);
+  if (!data?.id) throw new Error('Database did not confirm the saved trade');
+  return data.id;
 }
 
 // ── ECON CALENDAR ALERTS ──
@@ -3239,42 +3239,71 @@ function setEmotion(e, el) {
   el.parentNode.querySelectorAll('.rating-btn').forEach(b => { if(b!==el) b.classList.remove('active'); });
 }
 
-function saveTrade() {
+let savingManualTrade = false;
+async function saveTrade() {
+  if (savingManualTrade) return;
   const sym = document.getElementById('fSymbol').value;
   const side = document.getElementById('fSide').value;
-  const entry = parseFloat(document.getElementById('fEntry').value)||0;
-  const exit = parseFloat(document.getElementById('fExit').value)||0;
-  const contracts = parseInt(document.getElementById('fContracts').value)||1;
+  const entry = Number(document.getElementById('fEntry').value);
+  const exit = Number(document.getElementById('fExit').value);
+  const contracts = Number(document.getElementById('fContracts').value);
+  const timeValue = document.getElementById('fDateTime')?.value;
+  const entryTime = timeValue ? new Date(timeValue) : new Date();
+  if (!Number.isFinite(entry) || entry <= 0 || !Number.isFinite(exit) || exit <= 0 ||
+      !Number.isSafeInteger(contracts) || contracts < 1 || contracts > 1000 ||
+      !Number.isFinite(entryTime.getTime()) || !['Long','Short'].includes(side)) {
+    showToastMsg('Enter valid entry/exit prices, date, direction and a contract quantity from 1 to 1000.', 'var(--red)');
+    return;
+  }
+
   const notes = document.getElementById('fNotes').value || 'No notes';
   const tagsInput = document.getElementById('fTags')?.value || '';
   const tags = tagsInput.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
-  const tickValues = {ES:50,NQ:20,YM:5,RTY:50,MES:5,MNQ:2,MYM:0.5,M2K:5,GC:100,SI:5000,HG:25000,MGC:10,SIL:500};
-  const tv = tickValues[sym] || 50;
+  const pointValues = {ES:50,NQ:20,YM:5,RTY:50,MES:5,MNQ:2,MYM:0.5,M2K:5,GC:100,SI:5000,HG:25000,MGC:10,SIL:500};
+  if (!Object.hasOwn(pointValues, sym)) {
+    showToastMsg('Select a supported instrument.', 'var(--red)');
+    return;
+  }
   const diff = side === 'Long' ? exit - entry : entry - exit;
-  const pnl = diff * tv * contracts;
+  const pnl = Math.round(diff * pointValues[sym] * contracts * 100) / 100;
+  if (!Number.isFinite(pnl)) {
+    showToastMsg('Trade P&L is invalid. Check the prices and quantity.', 'var(--red)');
+    return;
+  }
 
   const newTrade = {
-    id: Math.max(0, ...TRADES.map(t => t.id)) + 1,
     symbol: sym, side, entry, exit, contracts,
-    pnl: Math.round(pnl * 100) / 100,
-    r: Math.round((diff / Math.abs(entry * 0.003)) * 10) / 10,
-    date: new Date().toLocaleDateString('en-US', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}),
+    pnl,
+    r: Math.round((diff / (entry * 0.003)) * 10) / 10,
+    entryTime: entryTime.toISOString(),
+    date: entryTime.toLocaleString('en-US'),
     duration: '—', notes,
     quality: selectedRating || 3,
     emotion: selectedEmotion || 'calm',
     tags
   };
-  TRADES.unshift(newTrade);
-  currentTrades = [...TRADES];
-  saveTradeToDb(newTrade); // persist to Supabase
-  renderTable(currentTrades, 'tradeTableWrap');
-  renderTable(currentTrades, 'journalTableWrap');
-  closeModal();
-  drawDashboardCharts();
-  refreshDashboardStats();
-  refreshGoalWidget();
-  refreshBestWorstWidget();
-  showToastMsg(`Trade logged: ${sym} ${side} ${pnl >= 0 ? '+' : '-'}$${Math.abs(pnl).toFixed(2)}`, pnl >= 0 ? 'var(--green)' : 'var(--red)');
+  savingManualTrade = true;
+  try {
+    // Only display the trade as saved after Supabase acknowledges the INSERT.
+    newTrade.id = await saveTradeToDb(newTrade);
+    TRADES.unshift(newTrade);
+    currentTrades = [...TRADES];
+    renderTable(currentTrades, 'tradeTableWrap');
+    renderTable(currentTrades, 'journalTableWrap');
+    closeModal();
+    drawDashboardCharts();
+    refreshDashboardStats();
+    refreshGoalWidget();
+    refreshBestWorstWidget();
+    showToastMsg('Trade saved: ' + sym + ' ' + side + ' ' +
+      (pnl >= 0 ? '+' : '-') + '$' + Math.abs(pnl).toFixed(2),
+      pnl >= 0 ? 'var(--green)' : 'var(--red)');
+  } catch (error) {
+    console.error('Manual trade save failed:', error);
+    showToastMsg('Trade was NOT saved. Please check your connection and try again.', 'var(--red)');
+  } finally {
+    savingManualTrade = false;
+  }
 }
 
 // ── P&L CHART ──
