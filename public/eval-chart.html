@@ -831,7 +831,7 @@ window.addEventListener('load',()=>{setTimeout(()=>{const s=document.getElementB
   <div id="domTab" onclick="toggleDOM()"><span id="domArr" style="font-size:10px;color:var(--gold);">◀</span></div>
   <div id="domWrap">
     <div style="height:24px;background:var(--s2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 8px;justify-content:space-between;flex-shrink:0;">
-      <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.12em;color:var(--gold);">DOM</span>
+      <span title="Synthetic depth data. No live exchange orders." style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.12em;color:var(--gold);">DOM · SIM</span>
       <span id="domSpread" style="font-size:9px;color:var(--gray2);"></span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 58px 1fr;font-size:8px;color:var(--gray2);padding:2px 4px;border-bottom:1px solid var(--borderb);flex-shrink:0;letter-spacing:.06em;">
@@ -2391,7 +2391,11 @@ function pickLock(m,btn){lockMins=m;document.querySelectorAll('.lBtn').forEach(b
 function cancelLock(){lockMins=0;document.querySelectorAll('.lBtn').forEach(b=>b.classList.remove('sel'));document.getElementById('lRW').style.display='none';}
 function activateLock(){
   if(!lockMins)return;const reason=document.getElementById('lRS').value||'Manual lockout';
-  lockEnd=Date.now()+lockMins*60000;
+  // A manual lock must not leave an unmanaged open position or resting entry.
+  if(domPos.qty)domFlat();
+  limitOrders=[];renderOrdersList();
+  if(lockIval)clearInterval(lockIval);
+  lockEnd=Math.max(lockEnd||0,Date.now()+lockMins*60000);
   document.getElementById('lInactive').style.display='none';document.getElementById('lActive').style.display='block';
   document.getElementById('lReasonD').textContent=reason;document.getElementById('lockSt').style.display='inline-flex';
   document.getElementById('lkOvl').classList.add('show');document.getElementById('lkReason').textContent=reason;
@@ -2400,6 +2404,7 @@ function activateLock(){
     const s=`${String(Math.floor(rem/60000)).padStart(2,'0')}:${String(Math.floor((rem%60000)/1000)).padStart(2,'0')}`;
     document.getElementById('lTimerD').textContent=s;document.getElementById('lkBigT').textContent=s;document.getElementById('lockCd').textContent=s;
   },1000);
+  saveDemoTradingState(true);
 }
 function autoUnlock(){clearInterval(lockIval);lockIval=null;lockEnd=null;lockMins=0;document.getElementById('lInactive').style.display='block';document.getElementById('lActive').style.display='none';document.getElementById('lockSt').style.display='none';document.getElementById('lkOvl').classList.remove('show');document.querySelectorAll('.lBtn').forEach(b=>b.classList.remove('sel'));document.getElementById('lRW').style.display='none';showToast('Lock expired. You may now trade.','var(--gold)');}
 function forceUnlock(){showToast('Lockout cannot be manually bypassed','var(--red)');}
@@ -2896,9 +2901,17 @@ function setAutoBrackets(){
     const slT=slTk/s.tv,tpT=tpTk/s.tv;
     slP=isLong?domPos.avg-slT*s.t:domPos.avg+slT*s.t;
     tpP=isLong?domPos.avg+tpT*s.t:domPos.avg-tpT*s.t;
+  } else if(mode==='price'){
+    slP=slTk;tpP=tpTk;
   } else {
     slP=isLong?domPos.avg-slTk*s.t:domPos.avg+slTk*s.t;
     tpP=isLong?domPos.avg+tpTk*s.t:domPos.avg-tpTk*s.t;
+  }
+  if(!Number.isFinite(slP)||!Number.isFinite(tpP)||slP<=0||tpP<=0||
+     (isLong&&(slP>=domPos.avg||tpP<=domPos.avg))||
+     (!isLong&&(slP<=domPos.avg||tpP>=domPos.avg))){
+    showToast('Auto-bracket stop/target prices must be on the correct side of entry','var(--red)');
+    return;
   }
   bracket.sl=Math.round(slP/s.t)*s.t;
   bracket.tp=Math.round(tpP/s.t)*s.t;
@@ -3606,7 +3619,7 @@ function executeTradeIdea(side,stop,target){
   const qty=parseInt(document.getElementById('dQty').value)||1;
   const last=bars[bars.length-1].c;
   // Place market order
-  execFill(side==='long'?'buy':'sell',last,qty,'IDEA');
+  if(!execFill(side==='long'?'buy':'sell',last,qty,'IDEA'))return;
   // Set bracket
   const s=SYM[sym];
   bracket.sl=Math.round(stop/s.t)*s.t;
@@ -3624,11 +3637,14 @@ function calcRisk(){
   const rp=parseFloat(document.getElementById('rc_riskpct').value)||1;
   const entry=parseFloat(document.getElementById('rc_entry').value);
   const stop=parseFloat(document.getElementById('rc_stop').value);
-  const s=SYM[sym];if(!entry||!stop)return;
+  const s=SYM[sym];
+  if(!Number.isFinite(acct)||acct<=0||!Number.isFinite(rp)||rp<=0||
+     !Number.isFinite(entry)||entry<=0||!Number.isFinite(stop)||stop<=0||
+     entry===stop){showToast('Enter a valid account, entry and distinct stop price','var(--red)');return;}
   const maxRisk=acct*(rp/100),ticks=Math.abs(entry-stop)/s.t,rpc=ticks*s.tv,maxCt=Math.floor(maxRisk/rpc);
   document.getElementById('rc_results').style.display='block';
   document.getElementById('rc_maxrisk').textContent='$'+maxRisk.toFixed(0);
-  document.getElementById('rc_contracts').textContent=Math.max(1,maxCt)+' ct';
+  document.getElementById('rc_contracts').textContent=Math.max(0,maxCt)+' ct';
   document.getElementById('rc_ticks').textContent=ticks.toFixed(0)+' tks';
   document.getElementById('rc_tickval').textContent='$'+s.tv+'/tk';
   const sug=maxCt<1?'⚠ Stop too wide for '+rp+'% risk. Reduce stop or increase risk %.':'Trade '+maxCt+' contract'+(maxCt>1?'s':'')+' to risk $'+maxRisk.toFixed(0)+' ('+rp+'%)';
@@ -3644,7 +3660,12 @@ function playSound(type){if(!audioEnabled||!audioCtx)return;const o=audioCtx.cre
 // ════════════════════════════════════════════════
 // REPLAY
 // ════════════════════════════════════════════════
-function toggleReplay(){if(replayMode){exitReplay();return;}replayMode=true;replayBars=[...bars];replayIdx=Math.max(20,Math.floor(replayBars.length*.3));document.getElementById('replayBar').classList.add('show');document.getElementById('layout').style.height='calc(100vh - 118px)';document.getElementById('replayScrubber').max=replayBars.length;document.getElementById('replayScrubber').value=replayIdx;bars=replayBars.slice(0,replayIdx);setupCanvases();showToast('Replay mode — step through bars with ◀ ▶','var(--blue)');redraw();}
+function toggleReplay(){
+  if(replayMode){exitReplay();return;}
+  if(domPos.qty!==0||limitOrders.some(o=>o.status==='working')){
+    showToast('Flatten and cancel working orders before replay','var(--orange)');return;
+  }
+  replayMode=true;replayBars=[...bars];replayIdx=Math.max(20,Math.floor(replayBars.length*.3));document.getElementById('replayBar').classList.add('show');document.getElementById('layout').style.height='calc(100vh - 118px)';document.getElementById('replayScrubber').max=replayBars.length;document.getElementById('replayScrubber').value=replayIdx;bars=replayBars.slice(0,replayIdx);setupCanvases();showToast('Replay mode — step through bars with ◀ ▶','var(--blue)');redraw();}
 function exitReplay(){replayMode=false;replayPlaying=false;clearInterval(replayIval);bars=replayBars.length?replayBars:[...bars];document.getElementById('replayBar').classList.remove('show');document.getElementById('layout').style.height='calc(100vh - 82px)';document.getElementById('replayPlayBtn').textContent='▶ PLAY';offset=0;setupCanvases();redraw();showToast('Replay ended. Live mode restored.','var(--gold)');}
 function replayStep(d){replayIdx=Math.max(1,Math.min(replayBars.length,replayIdx+d));bars=replayBars.slice(0,replayIdx);document.getElementById('replayScrubber').value=replayIdx;const b=replayBars[replayIdx-1];document.getElementById('replayPos').textContent=b?new Date(b.ts).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false}):'';offset=0;redraw();}
 function replayScrub(v){replayIdx=parseInt(v);bars=replayBars.slice(0,replayIdx);offset=0;redraw();}
@@ -5088,7 +5109,7 @@ function scaleOut(fraction=0.5){
   if(!domPos.qty)return;
   const qty=Math.max(1,Math.round(Math.abs(domPos.qty)*fraction));
   const side=domPos.qty>0?'sell':'buy';
-  execFill(side,bars[bars.length-1].c,qty,'SCALE OUT');
+  if(!execFill(side,bars[bars.length-1].c,qty,'SCALE OUT'))return;
   showToast(`Scaled out ${qty} contract${qty>1?'s':''}. Remaining: ${Math.abs(domPos.qty)}`,'var(--gold)');
 }
 function scaleIn(qty){
@@ -5126,6 +5147,9 @@ function updateTrailStop(){
 let timeExitHour=null,timeExitMin=null;
 function setTimeExit(hhmm){
   if(!hhmm){timeExitHour=null;timeExitMin=null;showToast('Time exit cleared','var(--gray)');return;}
+  if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(hhmm)){
+    showToast('Enter a valid HH:MM Eastern exit time','var(--red)');return;
+  }
   const[h,m]=hhmm.split(':').map(Number);timeExitHour=h;timeExitMin=m;
   showToast(`Time exit set: ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')} ET`,'var(--gold)');
 }
