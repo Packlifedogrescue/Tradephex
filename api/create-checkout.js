@@ -11,6 +11,7 @@ const PLANS = Object.freeze({
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error:'Method not allowed' });
+  if (process.env.TRADEPHEX_EVAL_CHECKOUT_ENABLED !== 'true') return res.status(503).json({ error:'Evaluation checkout unavailable until staging verification is complete' });
   if (!process.env.STRIPE_SECRET_KEY) return res.status(503).json({ error:'Checkout is not configured' });
 
   try {

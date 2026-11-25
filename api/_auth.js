@@ -7,8 +7,7 @@ export async function getAuthenticatedUser(req) {
 
   const url = process.env.SUPABASE_URL;
   const apiKey = process.env.SUPABASE_ANON_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    process.env.SUPABASE_SERVICE_KEY;
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !apiKey) throw new Error('Supabase authentication is not configured');
 
   const response = await fetch(url.replace(/\/$/, '') + '/auth/v1/user', {
