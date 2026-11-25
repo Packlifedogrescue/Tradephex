@@ -1,3 +1,4 @@
+import * as vm from 'node:vm';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -50,4 +51,33 @@ test('manual trades validate positive prices, quantity and timestamp',()=>{
   assert.match(html,/exit <= 0/);
   assert.match(html,/contracts < 1/);
   assert.match(html,/Number\.isFinite\(entryTime\.getTime\(\)\)/);
+});
+
+test('inline classic JavaScript parses without syntax errors',()=>{
+  const {Script}=vm;
+  const tags=[...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
+  let inspected=0;
+  for(const [,attributes,code] of tags){
+    if (/\bsrc\s*=/.test(attributes) || /\btype\s*=\s*["']module["']/.test(attributes)) continue;
+    if (!code.trim()) continue;
+    assert.doesNotThrow(()=>new Script(code,{filename:'public/journal.html:inline-'+inspected}), 'Inline script '+inspected+' should parse');
+    inspected++;
+  }
+  assert.ok(inspected>0,'Expected inline classic JavaScript');
+});
+
+test('community access is awaited and ignores editable metadata',()=>{
+  const i=html.indexOf('function getCommunityTier()');
+  const j=html.indexOf('function tierLabel',i);
+  const body=html.slice(i,j);
+  assert.doesNotMatch(body,/user_metadata|TRADES\.length|meta\.tier/);
+  assert.match(html,/if \(!await checkCommunityAccess\(forceRefresh\)\) return/);
+  assert.match(html,/onclick="initCommunity\(true\)"/);
+});
+
+test('stored text in the journal and leaderboard is HTML-escaped',()=>{
+  assert.match(html,/function escapeHtmlText\(/);
+  assert.match(html,/escapeHtmlText\(t\.notes\)/);
+  assert.match(html,/escapeHtmlText\(tag\)/);
+  assert.match(html,/escapeHtmlText\(row\.display_name/);
 });
