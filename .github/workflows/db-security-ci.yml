@@ -51,3 +51,6 @@ jobs:
           psql -X -v ON_ERROR_STOP=1 -f supabase/proposed/VERIFY_READ_ONLY.sql
           psql -X -v ON_ERROR_STOP=1 -c "insert into auth.users(id,email,raw_user_meta_data) values ('00000000-0000-4000-8000-000000000001','ci@example.com','{\"full_name\":\"CI Trader\"}'::jsonb);"
           psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN IF (SELECT count(*) FROM public.profiles WHERE email='ci@example.com') <> 1 THEN RAISE EXCEPTION 'Signup profile trigger failed'; END IF; END \$\$;"
+
+      - name: Check signed-in user row isolation and protected fields
+        run: psql -X -v ON_ERROR_STOP=1 -f tests/sql/test_role_isolation.sql
