@@ -35,3 +35,19 @@ test('leaderboard reports request errors instead of hiding them as no data',()=>
  assert.match(html,/const \{ data, error \} = await db\.from\('leaderboard'\)/);
  assert.match(html,/Leaderboard temporarily unavailable/);
 });
+
+test('manual trade does not report success without a confirmed database save',()=>{
+  assert.match(html,/async function saveTrade\(\)/);
+  assert.match(html,/newTrade\.id = await saveTradeToDb\(newTrade\)/);
+  assert.match(html,/\.select\('id'\)\.single\(\)/);
+  assert.match(html,/if \(error\) throw new Error\('Database save failed:/);
+  assert.match(html,/Trade was NOT saved/);
+  assert.doesNotMatch(html,/Math\.max\(0, \.\.\.TRADES\.map\(t => t\.id\)\)/);
+});
+
+test('manual trades validate positive prices, quantity and timestamp',()=>{
+  assert.match(html,/entry <= 0/);
+  assert.match(html,/exit <= 0/);
+  assert.match(html,/contracts < 1/);
+  assert.match(html,/Number\.isFinite\(entryTime\.getTime\(\)\)/);
+});
