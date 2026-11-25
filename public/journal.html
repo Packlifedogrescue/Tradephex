@@ -84,21 +84,22 @@ async function loadUserProfile() {
 
 async function loadTradesFromDB() {
   try {
-    const { data } = await db.from('trades').select('*')
+    const { data, error } = await db.from('trades').select('*')
       .eq('user_id', currentUser.id)
       .order('created_at', { ascending: false })
       .limit(200);
+    if (error) { console.warn('Trade loading failed:', error.message); return; }
     if (data && data.length > 0) {
       // Map DB columns to TRADES format
       const mapped = data.map(t => ({
         id: t.id,
         symbol: t.symbol,
         side: t.side,
-        entry: t.entry_price,
-        exit: t.exit_price,
-        contracts: t.contracts,
-        pnl: t.pnl,
-        r: t.r_multiple || 0,
+        entry: Number(t.entry_price),
+        exit: Number(t.exit_price),
+        contracts: Number(t.contracts),
+        pnl: Number(t.pnl || 0),
+        r: Number(t.r_multiple || 0),
         date: new Date(t.entry_time || t.created_at).toLocaleString(),
         duration: t.duration_minutes ? t.duration_minutes + 'm' : '—',
         notes: t.setup_notes || '',
@@ -3136,7 +3137,8 @@ async function saveProfile() {
   const fullName = `${firstName} ${lastName}`.trim();
   const msg = document.getElementById('profile-save-msg');
   try {
-    await db.auth.updateUser({ data: { full_name: fullName } });
+    const { error } = await db.auth.updateUser({ data: { full_name: fullName } });
+    if (error) throw error;
     document.getElementById('profile-name-display').textContent = fullName;
     const initials = (firstName.slice(0,1) + lastName.slice(0,1)).toUpperCase();
     document.getElementById('profile-avatar-lg').textContent = initials;
@@ -3160,7 +3162,8 @@ async function changePassword() {
   if (!newPw || newPw.length < 8) { msg.textContent = 'Password must be at least 8 characters'; msg.style.color='var(--red)'; msg.style.display='inline'; return; }
   if (newPw !== confirmPw) { msg.textContent = 'Passwords do not match'; msg.style.color='var(--red)'; msg.style.display='inline'; return; }
   try {
-    await db.auth.updateUser({ password: newPw });
+    const { error } = await db.auth.updateUser({ password: newPw });
+    if (error) throw error;
     msg.textContent = 'Password updated ✓';
     msg.style.color = 'var(--green)';
     msg.style.display = 'inline';
@@ -3220,7 +3223,8 @@ async function handleLogout() {
 // ── MODAL ──
 function openModal() {
   document.getElementById('modalOverlay').classList.add('open');
-  document.getElementById('fDateTime').value = new Date().toISOString().slice(0,16);
+  const now = new Date();
+  document.getElementById('fDateTime').value = new Date(now.getTime() - now.getTimezoneOffset()*60000).toISOString().slice(0,16);
   // Reset form
   ['fEntry','fExit','fContracts','fStop','fTarget','fTags','fNotes'].forEach(id => {
     const el = document.getElementById(id);
