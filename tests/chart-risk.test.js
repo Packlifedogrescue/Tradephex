@@ -55,3 +55,19 @@ test('simulator cannot masquerade as official evaluation',()=>{
  assert.match(chart,/SIM · DEMO ONLY/);
  assert.match(chart,/Official evaluation status is unchanged/);
 });
+
+test('realized-loss breaches are checked even when no position remains',()=>{
+ assert.match(chart,/if\(domPos\.qty===0\)\{[\s\S]*?evalStats\.maxDD>=ACCOUNT_SIZE\*MAX_DD_PCT/);
+ assert.match(chart,/if\(evalStats\.dailyPnl<=-ACCOUNT_SIZE\*DAILY_LIMIT_PCT&&!dailyViolated\)/);
+ assert.match(chart,/function beginDailyDemoLockout\(\)/);
+ assert.match(chart,/function execFill[\s\S]*?checkRiskLimitsRealTime\(\)/);
+});
+test('replay and trade ideas cannot override open position safety',()=>{
+ assert.match(chart,/Flatten and cancel working orders before replay/);
+ assert.match(chart,/if\(!execFill\(side==='long'\?'buy':'sell',last,qty,'IDEA'\)\)return/);
+});
+test('simulator documents synthetic fills and does not fake daily histories',()=>{
+ assert.match(chart,/DOM · SIM/);
+ assert.match(chart,/SIMULATED DEMO TRADE/);
+ assert.match(chart,/Daily and weekly futures charts require historical exchange data/);
+});
