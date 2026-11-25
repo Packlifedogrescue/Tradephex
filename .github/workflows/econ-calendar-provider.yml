@@ -1,0 +1,31 @@
+name: Economic calendar provider connectivity
+on:
+  pull_request:
+    paths:
+      - 'api/econ-calendar.js'
+      - 'public/econ-calendar-ui.js'
+      - 'tests/econ-calendar-*.test.js'
+      - '.github/workflows/econ-calendar-provider.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  external-provider-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Probe documented public calendar endpoint
+        run: |
+          node --input-type=module <<'EOF'
+          const url = 'https://showmytrades.com/api/public/calendar/v1?currency=USD&impact=all&days=7';
+          const r=await fetch(url,{headers:{Accept:'application/json'},signal:AbortSignal.timeout(15000)});
+          if(!r.ok)throw Error('Calendar provider returned HTTP '+r.status);
+          const payload=await r.json();
+          if(!Array.isArray(payload.events))throw Error('Provider missing events array');
+          if(!payload.generated_at||!Number.isFinite(Date.parse(payload.generated_at)))
+            throw Error('Provider freshness timestamp invalid');
+          console.log('Provider reachable; valid JSON event count:',payload.events.length);
+          console.log('Provider generated_at:',payload.generated_at);
+          EOF
