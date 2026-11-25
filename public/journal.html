@@ -388,10 +388,10 @@ async function loadLeaderboard() {
           ${data.map((row, i) => `
             <tr style="border-bottom:1px solid rgba(255,255,255,0.03);${row.user_id===currentUser?.id?'background:rgba(201,168,76,0.05);':''}">
               <td style="padding:10px 12px;color:${i<3?'var(--gold)':'#555'};font-weight:${i<3?'700':'400'};font-family:'Barlow Condensed',sans-serif;font-size:16px;">${i<3?['🥇','🥈','🥉'][i]:i+1}</td>
-              <td style="padding:10px 12px;color:#fff;">${row.display_name || 'Anonymous'}</td>
-              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--green);">${(row.profit_factor||0).toFixed(2)}</td>
-              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:#888;">${(row.win_rate||0).toFixed(0)}%</td>
-              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--gold);">$${(row.account_size||0).toLocaleString()}</td>
+              <td style="padding:10px 12px;color:#fff;">${escapeHtmlText(row.display_name || 'Anonymous')}</td>
+              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--green);">${(Number(row.profit_factor)||0).toFixed(2)}</td>
+              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:#888;">${(Number(row.win_rate)||0).toFixed(0)}%</td>
+              <td style="padding:10px 12px;text-align:right;font-family:'DM Mono',monospace;color:var(--gold);">$${(Number(row.account_size)||0).toLocaleString()}</td>
             </tr>`).join('')}
         </tbody>
       </table>`;
@@ -2503,6 +2503,15 @@ function refreshBestWorstWidget() {
 // ════════════════════════════════════════════════
 // TRADE DETAIL MODAL — click a trade row to see deep info
 // ════════════════════════════════════════════════
+function escapeHtmlText(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function showTradeDetail(tradeId) {
   const t = TRADES.find(x => String(x.id) === decodeURIComponent(String(tradeId)));
   if (!t) return;
@@ -2511,35 +2520,35 @@ function showTradeDetail(tradeId) {
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);';
   const sideCol = t.side === 'Long' ? 'var(--green)' : 'var(--red)';
   const pnlCol = t.pnl >= 0 ? 'var(--green)' : 'var(--red)';
-  const tagsHtml = (t.tags || []).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:4px 10px;border-radius:2px;font-family:DM Mono,monospace;font-size:11px;margin-right:6px;">${tag}</span>`).join('');
+  const tagsHtml = (t.tags || []).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:4px 10px;border-radius:2px;font-family:DM Mono,monospace;font-size:11px;margin-right:6px;">${escapeHtmlText(tag)}</span>`).join('');
   modal.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border2);border-radius:4px;width:600px;max-width:95vw;max-height:90vh;overflow:auto;">
       <div style="padding:16px 22px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:.06em;">${t.symbol} <span style="color:${sideCol};">${t.side.toUpperCase()}</span> · ${t.contracts}</div>
-          <div style="font-size:12px;color:var(--gray2);font-family:DM Mono,monospace;margin-top:3px;">${t.date}</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:.06em;">${escapeHtmlText(t.symbol)} <span style="color:${sideCol};">${escapeHtmlText(t.side.toUpperCase())}</span> · ${escapeHtmlText(t.contracts)}</div>
+          <div style="font-size:12px;color:var(--gray2);font-family:DM Mono,monospace;margin-top:3px;">${escapeHtmlText(t.date)}</div>
         </div>
         <button onclick="document.getElementById('tradeDetailModal').remove()" style="background:none;border:none;color:var(--gray);font-size:18px;cursor:pointer;">✕</button>
       </div>
       <div style="padding:22px;">
         <div style="text-align:center;margin-bottom:24px;">
           <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;color:${pnlCol};line-height:1;">${t.pnl >= 0 ? '+' : '-'}$${Math.abs(t.pnl).toFixed(2)}</div>
-          <div style="font-size:13px;color:var(--gray);margin-top:6px;">${t.r >= 0 ? '+' : ''}${t.r}R · ${t.duration} · Quality ${'★'.repeat(t.quality)}${'☆'.repeat(5-t.quality)}</div>
+          <div style="font-size:13px;color:var(--gray);margin-top:6px;">${t.r >= 0 ? '+' : ''}${t.r}R · ${escapeHtmlText(t.duration)} · Quality ${'★'.repeat(t.quality)}${'☆'.repeat(5-t.quality)}</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin-bottom:18px;">
           <div style="background:var(--surface2);padding:14px;">
             <div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:5px;">ENTRY</div>
-            <div style="font-family:DM Mono,monospace;font-size:18px;color:var(--white);">${t.entry}</div>
+            <div style="font-family:DM Mono,monospace;font-size:18px;color:var(--white);">${escapeHtmlText(t.entry)}</div>
           </div>
           <div style="background:var(--surface2);padding:14px;">
             <div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:5px;">EXIT</div>
-            <div style="font-family:DM Mono,monospace;font-size:18px;color:var(--white);">${t.exit}</div>
+            <div style="font-family:DM Mono,monospace;font-size:18px;color:var(--white);">${escapeHtmlText(t.exit)}</div>
           </div>
         </div>
         ${tagsHtml ? `<div style="margin-bottom:18px;"><div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">TAGS</div>${tagsHtml}</div>` : ''}
-        ${t.notes ? `<div style="background:var(--surface2);padding:14px;border-left:3px solid var(--gold);"><div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">NOTES</div><div style="font-size:13px;color:var(--white);line-height:1.7;">${t.notes}</div></div>` : ''}
+        ${t.notes ? `<div style="background:var(--surface2);padding:14px;border-left:3px solid var(--gold);"><div style="font-size:10px;color:var(--gray2);letter-spacing:.15em;font-family:DM Mono,monospace;margin-bottom:8px;">NOTES</div><div style="font-size:13px;color:var(--white);line-height:1.7;">${escapeHtmlText(t.notes)}</div></div>` : ''}
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
-          <span style="font-size:12px;color:var(--gray2);">Emotion: <span style="color:var(--gold);">${t.emotion}</span></span>
+          <span style="font-size:12px;color:var(--gray2);">Emotion: <span style="color:var(--gold);">${escapeHtmlText(t.emotion)}</span></span>
           <button onclick="openReplay('${encodeURIComponent(String(t.id))}');document.getElementById('tradeDetailModal').remove();" style="background:var(--gold);color:#000;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;padding:8px 18px;cursor:pointer;">▶ REPLAY</button>
         </div>
       </div>
@@ -2568,20 +2577,20 @@ function renderTable(trades, containerId) {
         <div class="mobileTradeCard" onclick="showTradeDetail('${encodeURIComponent(String(t.id))}')">
           <div class="mtcRow">
             <div style="display:flex;align-items:center;gap:8px;">
-              <span class="mtcSym">${t.symbol}</span>
-              <span class="mtcSide ${t.side==='Long'?'long':'short'}">${t.side.toUpperCase()}</span>
+              <span class="mtcSym">${escapeHtmlText(t.symbol)}</span>
+              <span class="mtcSide ${t.side==='Long'?'long':'short'}">${escapeHtmlText(t.side.toUpperCase())}</span>
             </div>
             <span class="mtcPnl ${t.pnl>=0?'pnl-pos':'pnl-neg'}" style="color:${t.pnl>=0?'var(--green)':'var(--red)'};">${t.pnl>=0?'+':'-'}$${Math.abs(t.pnl).toFixed(0)}</span>
           </div>
           <div class="mtcMeta">
-            <span>${t.contracts}c · ${t.entry} → ${t.exit}</span>
+            <span>${escapeHtmlText(t.contracts)}c · ${escapeHtmlText(t.entry)} → ${escapeHtmlText(t.exit)}</span>
             <span style="color:${t.r>=0?'var(--green)':'var(--red)'};">${t.r>=0?'+':''}${t.r}R</span>
           </div>
           <div class="mtcMeta" style="margin-top:4px;">
-            <span class="mtcDate">${t.date}</span>
-            <span>${t.duration}</span>
+            <span class="mtcDate">${escapeHtmlText(t.date)}</span>
+            <span>${escapeHtmlText(t.duration)}</span>
           </div>
-          ${(t.tags||[]).length ? `<div class="mtcTags">${(t.tags||[]).slice(0,4).map(tag=>`<span class="mtcTag">${tag}</span>`).join('')}</div>` : ''}
+          ${(t.tags||[]).length ? `<div class="mtcTags">${(t.tags||[]).slice(0,4).map(tag=>`<span class="mtcTag">${escapeHtmlText(tag)}</span>`).join('')}</div>` : ''}
         </div>
       `).join('')}
     </div>
@@ -2597,16 +2606,16 @@ function renderTable(trades, containerId) {
         <tbody>
           ${trades.map(t => `
             <tr onclick="showTradeDetail('${encodeURIComponent(String(t.id))}')" style="cursor:pointer;" onmouseover="this.style.background='rgba(255,255,255,.03)'" onmouseout="this.style.background=''">
-              <td><span class="trade-time">${t.date}</span></td>
-              <td><span class="sym-badge">${t.symbol}</span></td>
-              <td><span class="side-badge ${t.side==='Long'?'side-long':'side-short'}">${t.side.toUpperCase()}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${t.entry}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${t.exit}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${t.contracts}</span></td>
+              <td><span class="trade-time">${escapeHtmlText(t.date)}</span></td>
+              <td><span class="sym-badge">${escapeHtmlText(t.symbol)}</span></td>
+              <td><span class="side-badge ${t.side==='Long'?'side-long':'side-short'}">${escapeHtmlText(t.side.toUpperCase())}</span></td>
+              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${escapeHtmlText(t.entry)}</span></td>
+              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${escapeHtmlText(t.exit)}</span></td>
+              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${escapeHtmlText(t.contracts)}</span></td>
               <td><span class="pnl-val ${t.pnl>=0?'pnl-pos':'pnl-neg'}">${t.pnl>=0?'+':''}$${Math.abs(t.pnl).toFixed(2)}</span></td>
               <td><span class="r-val ${t.r>=0?'pnl-pos':'pnl-neg'}">${t.r>=0?'+':''}${t.r}R</span></td>
-              <td><span class="trade-time">${t.duration}</span></td>
-              <td>${(t.tags || []).slice(0,2).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:2px 7px;border-radius:2px;font-family:DM Mono,monospace;font-size:10px;margin-right:3px;">${tag}</span>`).join('')}${(t.tags || []).length > 2 ? `<span style="color:var(--gray2);font-size:10px;">+${t.tags.length - 2}</span>` : ''}</td>
+              <td><span class="trade-time">${escapeHtmlText(t.duration)}</span></td>
+              <td>${(t.tags || []).slice(0,2).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:2px 7px;border-radius:2px;font-family:DM Mono,monospace;font-size:10px;margin-right:3px;">${escapeHtmlText(tag)}</span>`).join('')}${(t.tags || []).length > 2 ? `<span style="color:var(--gray2);font-size:10px;">+${t.tags.length - 2}</span>` : ''}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -2621,17 +2630,17 @@ function renderTable(trades, containerId) {
         <tbody>
           ${trades.map(t => `
             <tr>
-              <td><span class="trade-time">${t.date}</span></td>
-              <td><span class="sym-badge">${t.symbol}</span></td>
-              <td><span class="side-badge ${t.side==='Long'?'side-long':'side-short'}">${t.side.toUpperCase()}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${t.entry}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${t.exit}</span></td>
-              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${t.contracts}</span></td>
+              <td><span class="trade-time">${escapeHtmlText(t.date)}</span></td>
+              <td><span class="sym-badge">${escapeHtmlText(t.symbol)}</span></td>
+              <td><span class="side-badge ${t.side==='Long'?'side-long':'side-short'}">${escapeHtmlText(t.side.toUpperCase())}</span></td>
+              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${escapeHtmlText(t.entry)}</span></td>
+              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${escapeHtmlText(t.exit)}</span></td>
+              <td><span style="font-family:'DM Mono',monospace;font-size:12px;">${escapeHtmlText(t.contracts)}</span></td>
               <td><span class="pnl-val ${t.pnl>=0?'pnl-pos':'pnl-neg'}">${t.pnl>=0?'+':''}$${Math.abs(t.pnl).toFixed(2)}</span></td>
               <td><span class="r-val ${t.r>=0?'pnl-pos':'pnl-neg'}">${t.r>=0?'+':''}${t.r}R</span></td>
-              <td><span class="trade-time">${t.duration}</span></td>
+              <td><span class="trade-time">${escapeHtmlText(t.duration)}</span></td>
               <td><span style="color:var(--gold);font-size:13px;">${'★'.repeat(t.quality)}${'☆'.repeat(5-t.quality)}</span></td>
-              <td>${(t.tags || []).slice(0,2).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:2px 7px;border-radius:2px;font-family:DM Mono,monospace;font-size:10px;margin-right:3px;">${tag}</span>`).join('')}${(t.tags || []).length > 2 ? `<span style="color:var(--gray2);font-size:10px;">+${t.tags.length - 2}</span>` : ''}</td>
+              <td>${(t.tags || []).slice(0,2).map(tag => `<span style="background:rgba(201,168,76,.12);color:var(--gold);padding:2px 7px;border-radius:2px;font-family:DM Mono,monospace;font-size:10px;margin-right:3px;">${escapeHtmlText(tag)}</span>`).join('')}${(t.tags || []).length > 2 ? `<span style="color:var(--gray2);font-size:10px;">+${t.tags.length - 2}</span>` : ''}</td>
               <td class="replay-btn-cell" style="display:flex;gap:6px;">
                 <button onclick="showTradeDetail('${encodeURIComponent(String(t.id))}')" style="background:transparent;color:var(--gold);border:1px solid var(--border2);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;padding:6px 10px;cursor:pointer;white-space:nowrap;">DETAIL</button>
                 <button onclick="openReplay('${encodeURIComponent(String(t.id))}')" style="background:var(--gold);color:var(--black);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:0.1em;padding:6px 12px;cursor:pointer;white-space:nowrap;">▶ REPLAY</button>
