@@ -1,0 +1,53 @@
+name: Tradephex isolated database security tests
+on:
+  pull_request:
+    branches:
+      - main
+      - fix/remaining-prelaunch-safeguards-20261123
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-security:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tradephex_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: tradephex_ci
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Set up a disposable copy of relevant schema
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f tests/sql/staging_fixture.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/sql/staging_functions.sql
+      - name: Apply PROPOSED security patches to disposable database only
+        run: |
+          for file in supabase/proposed/0[1-4]_*.sql; do
+            psql -X -v ON_ERROR_STOP=1 -f "$file"
+          done
+      - name: Verify security invariants and signup trigger
+        run: |
+          psql -X -v ON_ERROR_STOP=1 -f supabase/proposed/VERIFY_READ_ONLY.sql
+          psql -X -v ON_ERROR_STOP=1 -c "insert into auth.users(id,email,raw_user_meta_data) values ('00000000-0000-4000-8000-000000000001','ci@example.com','{\"full_name\":\"CI Trader\"}'::jsonb);"
+          psql -X -v ON_ERROR_STOP=1 -c "DO \$\$ BEGIN IF (SELECT count(*) FROM public.profiles WHERE email='ci@example.com') <> 1 THEN RAISE EXCEPTION 'Signup profile trigger failed'; END IF; END \$\$;"
