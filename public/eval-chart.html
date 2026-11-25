@@ -2613,7 +2613,9 @@ function showShortcuts(){
   document.body.appendChild(m);
 }
 function execFill(side,price,qty,type='MKT'){
+  if(!chartUser?.id){showToast('Sign in to use the simulator','var(--red)');return false;}
   if(replayMode){showToast('Orders disabled during replay','var(--red)');return false;}
+  checkRiskLimitsRealTime(); // close/lock positions already past a risk limit
   if(domPos.qty && domPos.symbol && domPos.symbol !== sym){
     showToast('Open position belongs to '+domPos.symbol,'var(--red)');return false;
   }
@@ -2669,6 +2671,7 @@ function execFill(side,price,qty,type='MKT'){
   playSound('fill');
   domPos.symbol=domPos.qty===0?null:sym;
   setAutoBrackets();updateLivePnl();updateEvalStats();renderDOM();redraw();
+  checkRiskLimitsRealTime(); // catch breaches immediately after a fill, not on next tick
   saveDemoTradingState(true);
   return true;
 }
@@ -3042,8 +3045,8 @@ function updateEvalStats(){
   set('evWR',e.trades>0?Math.round(e.wins/e.trades*100)+'%':'—');
   set('evComm','$'+(e.totalCommission||0).toFixed(2));
   set('evPhase','Demo Session — Day '+e.days.size);
-  if(e.maxDD>=ddLim&&!evalViolated){evalViolated=true;showToast('⚠ DEMO RISK LIMIT EXCEEDED','var(--red)');}
-  if(e.dailyPnl<=-dlLim&&!dailyViolated){dailyViolated=true;}
+  // Flag transitions and flattening happen centrally after fills settle.
+  // Do not set flags here: doing so would bypass the risk-triggered close.
   renderOrdersList();
   renderTradeIdeas();
 }
@@ -3787,12 +3790,49 @@ function closePositionForDemoRiskBreach(exitPrice){
   saveDemoTradingState(true);
 }
 
+function beginDailyDemoLockout(){
+  lockEnd=Math.max(lockEnd||0,TradephexTradingDay.nextOpenMs(new Date()));
+  lockMins=Math.max(1,Math.ceil((lockEnd-Date.now())/60000));
+  const reason='Demo daily loss limit hit. Locked until 6 PM Eastern.';
+  const reasonEl=document.getElementById('lkReason');if(reasonEl)reasonEl.textContent=reason;
+  const statusEl=document.getElementById('lockSt');if(statusEl)statusEl.style.display='inline-flex';
+  const inactive=document.getElementById('lInactive');if(inactive)inactive.style.display='none';
+  const active=document.getElementById('lActive');if(active)active.style.display='block';
+  const detail=document.getElementById('lReasonD');if(detail)detail.textContent=reason;
+  const overlay=document.getElementById('lkOvl');if(overlay)overlay.classList.add('show');
+  if(lockIval)clearInterval(lockIval);
+  const render=()=>{
+    const rem=lockEnd-Date.now();
+    if(rem<=0){autoUnlock();dailyViolated=false;saveDemoTradingState(true);return;}
+    const ts=`${String(Math.floor(rem/60000)).padStart(2,'0')}:${String(Math.floor((rem%60000)/1000)).padStart(2,'0')}`;
+    for(const id of ['lkBigT','lockCd','lTimerD']){
+      const el=document.getElementById(id);if(el)el.textContent=ts;
+    }
+  };
+  lockIval=setInterval(render,1000);render();
+  showToast('Demo daily loss limit hit — trading locked until 6 PM ET','var(--orange)');
+  saveDemoTradingState(true);
+}
+
 function checkRiskLimitsRealTime(){
   resetDemoDailyPnlAtSessionBoundary();
-  if(!bars.length||domPos.qty===0){
-    // Hide warning bar when flat
+  if(!bars.length)return;
+  if(domPos.qty===0){
+    // Closed-trade losses still count. A flat account must lock after
+    // a realized loss breach instead of silently allowing a new entry.
     const el=document.getElementById('ddWarning');
     if(el&&el.dataset.shown==='1'){el.style.display='none';el.dataset.shown='0';}
+    if(evalStats.maxDD>=ACCOUNT_SIZE*MAX_DD_PCT&&!evalViolated){
+      evalViolated=true;
+      limitOrders=[];renderOrdersList();
+      showEvalFailedScreen('DEMO MAX DRAWDOWN EXCEEDED',
+        'The simulated closed balance breached the trailing limit. Official evaluation status is unchanged.','var(--red)');
+    }
+    if(evalStats.dailyPnl<=-ACCOUNT_SIZE*DAILY_LIMIT_PCT&&!dailyViolated){
+      dailyViolated=true;
+      limitOrders=[];renderOrdersList();
+      beginDailyDemoLockout();
+    }
     return;
   }
 
@@ -3838,25 +3878,7 @@ function checkRiskLimitsRealTime(){
   if(liveDailyPnl<=-dailyLimit&&!dailyViolated){
     dailyViolated=true;
     closePositionForDemoRiskBreach(last);
-    lockEnd=TradephexTradingDay.nextOpenMs(new Date());
-    lockMins=Math.max(1,Math.ceil((lockEnd-Date.now())/60000));
-    const reason='Demo daily loss limit hit. Locked until 6 PM Eastern.';
-    document.getElementById('lkReason').textContent=reason;
-    document.getElementById('lockSt').style.display='inline-flex';
-    try{document.getElementById('lInactive').style.display='none';
-      document.getElementById('lActive').style.display='block';
-      document.getElementById('lReasonD').textContent=reason;}catch(e){}
-    document.getElementById('lkOvl').classList.add('show');
-    if(lockIval)clearInterval(lockIval);
-    lockIval=setInterval(()=>{
-      const rem=lockEnd-Date.now();
-      if(rem<=0){autoUnlock();dailyViolated=false;return;}
-      const ts=`${String(Math.floor(rem/60000)).padStart(2,'0')}:${String(Math.floor((rem%60000)/1000)).padStart(2,'0')}`;
-      const el=document.getElementById('lkBigT');if(el)el.textContent=ts;
-      const small=document.getElementById('lockCd');if(small)small.textContent=ts;
-      const detail=document.getElementById('lTimerD');if(detail)detail.textContent=ts;
-    },1000);
-    showToast('Demo daily loss limit hit — trading locked until 6 PM ET','var(--orange)');
+    beginDailyDemoLockout();
     return;
   }
 
